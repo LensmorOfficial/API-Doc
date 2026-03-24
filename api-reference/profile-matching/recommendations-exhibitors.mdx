@@ -57,4 +57,4 @@ See [Authentication](/authentication)
 
 ## Notes
 - Unknown `event_id` values are normalized to external `404 EVENT_NOT_FOUND` responses.
-- Fallback responses may also include `code` and `show_refresh_hint` when the current event is not aligned with the stored recommendation snapshot.
+- The request parameter `event_id` refers to the external event identifier returned elsewhere as `eventId`, not the internal `id` field.
