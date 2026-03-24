@@ -1,0 +1,15 @@
+# Pagination conventions
+
+Many list endpoints return a shared pagination envelope.
+
+## Common fields
+- `page`: current page number
+- `pageSize`: number of items requested per page
+- `total`: total matching items
+- `totalPages`: total number of pages
+- `hasMore`: whether another page is available
+
+## Notes
+- Exact item fields vary by endpoint family.
+- External identifiers such as `event_id`, `exhibitor_id`, and `personnel_id` are string identifiers in the public contract.
+- Some endpoints also return route-specific metadata in addition to the shared pagination fields.

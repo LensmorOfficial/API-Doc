@@ -1,0 +1,52 @@
+# List personnel
+
+## Endpoint
+`GET /external/personnel/list`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | External event identifier. |
+| `exhibitor_id` | No | string | Filter by a specific exhibitor. |
+| `department` | No | string | Department filter. |
+| `level` | No | string | Seniority-level filter. |
+| `search_query` | No | string | Name or job-title search. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "789",
+      "fullName": "Jane Smith",
+      "title": "VP of Retail Technology",
+      "department": "Technology",
+      "seniorityLevel": "vp",
+      "linkedinUrl": "https://linkedin.com/in/jane-smith",
+      "companyName": "Acme Retail Systems",
+      "sourceType": "exhibitor"
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Personnel list responses intentionally use the lightweight contact-style public shape.

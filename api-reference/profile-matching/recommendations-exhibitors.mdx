@@ -1,0 +1,56 @@
+# Recommended exhibitors
+
+## Endpoint
+`GET /external/profile-matching/recommendations/exhibitors`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | External event identifier. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `location` | No | string | Country or region filter. |
+| `searchQuery` | No | string | Company-name or description search. |
+| `exhibitorName` | No | string[] | Exact-name filter; repeated query params are normalized into arrays. |
+| `category` | No | string[] | Category filter. |
+| `employeesMin` | No | integer | Minimum employee count. |
+| `employeesMax` | No | integer | Maximum employee count. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "description": "Retail analytics platform",
+      "logo": null,
+      "website": "https://acme.example",
+      "country": "United States",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "fundingRound": "Series B"
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Unknown `event_id` values are normalized to external `404 EVENT_NOT_FOUND` responses.
+- Fallback responses may also include `code` and `show_refresh_hint` when the current event is not aligned with the stored recommendation snapshot.

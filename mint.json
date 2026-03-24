@@ -1,0 +1,40 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Lensmor External API",
+  "theme": "prism",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0F172A",
+    "light": "#334155",
+    "dark": "#E2E8F0"
+  },
+  "navigation": [
+    {
+      "group": "Introduction",
+      "pages": ["index", "authentication"]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/events/list",
+        "api-reference/events/fit-score",
+        "api-reference/events/rank",
+        "api-reference/events/brief",
+        "api-reference/exhibitors/list",
+        "api-reference/exhibitors/search",
+        "api-reference/exhibitors/profile",
+        "api-reference/exhibitors/events",
+        "api-reference/personnel/list",
+        "api-reference/personnel/profile",
+        "api-reference/personnel/events",
+        "api-reference/contacts/search",
+        "api-reference/profile-matching/recommendations-events-paged",
+        "api-reference/profile-matching/recommendations-exhibitors"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": ["concepts/errors", "concepts/pagination"]
+    }
+  ]
+}

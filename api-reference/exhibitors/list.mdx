@@ -1,0 +1,55 @@
+# List exhibitors
+
+## Endpoint
+`GET /external/exhibitors/list`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | External event identifier used to scope the exhibitor list. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `keyword` | No | string | Exhibitor keyword search. |
+| `country` | No | string | Country filter. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "domain": "acme.example",
+      "description": "Retail analytics platform",
+      "website": "https://acme.example",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "country": "United States",
+      "logo": null,
+      "dataSource": "database",
+      "linkedinUrl": null,
+      "fundingRound": "Series B",
+      "matched_event_ids": ["139574"]
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- `matched_event_ids` reflects the requested event scope.

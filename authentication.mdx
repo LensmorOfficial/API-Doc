@@ -1,0 +1,14 @@
+# Authentication
+
+All `external/*` endpoints require a user API key.
+
+## Header format
+```http
+Authorization: Bearer uak_your_api_key
+```
+
+## Notes
+- Bearer scheme matching is case-insensitive at runtime.
+- Public docs follow runtime middleware behavior.
+- Older PM and Swagger references to `sk_...` are historical and are not the source of truth for this public-doc phase.
+- Invalid or missing keys return the shared external error contract described in [Error conventions](/concepts/errors).

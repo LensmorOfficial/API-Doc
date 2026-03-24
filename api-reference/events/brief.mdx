@@ -1,0 +1,56 @@
+# Event brief
+
+## Endpoint
+`GET /external/events/brief`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | External event identifier. |
+
+## Response example
+```json
+{
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026",
+    "nickname": null,
+    "description": "Retail industry event",
+    "url": "https://example.com/events/nrf-2026",
+    "dateStart": "2026-01-12",
+    "dateEnd": "2026-01-15",
+    "venue": "Javits Center",
+    "city": "New York",
+    "region": "NY",
+    "country": "United States",
+    "attendeeCount": 40000,
+    "exhibitorCount": 950,
+    "personnelCount": 6200,
+    "image": null,
+    "dataSource": "database"
+  },
+  "summary": {
+    "attendeeCount": 40000,
+    "exhibitorCount": 950,
+    "personnelCount": 6200,
+    "topCategories": [],
+    "dataFreshness": "database_snapshot"
+  }
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- This is a lightweight snapshot endpoint.
+- `topCategories` is currently returned as an empty array by the live service.

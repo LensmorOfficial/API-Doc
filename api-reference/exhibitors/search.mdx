@@ -1,0 +1,55 @@
+# Search exhibitors
+
+## Endpoint
+`POST /external/exhibitors/search`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_url` | No | string | Company website URL used as an input hint. |
+| `target_audience` | No | string | Free-form audience description. |
+| `event_id` | No | string | Optional event scope. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "domain": "acme.example",
+      "description": "Retail analytics platform",
+      "website": "https://acme.example",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "country": "United States",
+      "logo": null,
+      "dataSource": "database",
+      "linkedinUrl": null,
+      "fundingRound": "Series B",
+      "matched_event_ids": ["139574"]
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- When no `event_id` is supplied, the live service returns `matched_event_ids` as an empty array.
