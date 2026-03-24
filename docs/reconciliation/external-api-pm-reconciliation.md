@@ -1,31 +1,28 @@
 # External API PM Reconciliation
 
-| Item | Code status | PM status | Mintlify publish status | Discrepancy note | Required PM update |
-| --- | --- | --- | --- | --- | --- |
-| Auth token prefix | Runtime middleware requires `Authorization: Bearer uak_...` | Auth doc and revision doc use `sk_...` examples and wording | Publish `uak_...` | Public PM text is inconsistent with runtime truth and current middleware validation | Replace public examples and wording from `sk_...` to `uak_...`; keep older `sk_...` references only as historical drift notes if needed |
-| External error body | `/external/*` filter returns `{ code, message, errorKey, traceId }` and omits `data` / `details` | Auth doc and revision doc show older body shape without `traceId` | Publish runtime shape with `traceId` | PM docs under-document the current external error contract | Update both PM docs to include `traceId` and state that `/external/*` final response body is the contract |
-| POST success status semantics | Success status must be sourced from runtime/tests per endpoint, not assumed | PM revision groups all success semantics loosely under generic `200` guidance | Publish endpoint-specific success status after evidence review | PM docs are too generic for POST endpoints and can cause incorrect public docs if copied forward | Keep generic status overview lightweight and add endpoint-specific status only where evidenced |
-| GET /external/events/list | Implemented in `external-events.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits it | Add this route to the implemented-now summary and endpoint details |
-| POST /external/events/fit-score | Implemented in `external-events.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route, update auth examples to `uak_...`, and verify response/status text against code evidence |
-| POST /external/events/rank | Implemented in `external-events.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route, update auth examples to `uak_...`, and verify response/status text against code evidence |
-| GET /external/events/brief | Implemented in `external-events.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route and update auth examples to `uak_...` |
-| GET /external/exhibitors/list | Implemented in `external-exhibitors.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits it | Add this route to the implemented-now summary and endpoint details |
-| POST /external/exhibitors/search | Implemented in `external-exhibitors.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route, update auth examples to `uak_...`, and verify success status from code evidence |
-| GET /external/exhibitors/profile | Implemented in `external-exhibitors.controller.ts` | Present in revision doc | Publish | Route is live and PM already notes `exhibitor_id` only | Keep route, retain `exhibitor_id` note, update auth examples to `uak_...` |
-| GET /external/exhibitors/events | Implemented in `external-exhibitors.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits it | Add this route to the implemented-now summary and endpoint details |
-| GET /external/personnel/list | Implemented in `external-personnel.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits both the route and this controller family | Add this route to the implemented-now summary and endpoint details |
-| GET /external/personnel/profile | Implemented in `external-personnel.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits both the route and this controller family | Add this route to the implemented-now summary and endpoint details |
-| GET /external/personnel/events | Implemented in `external-personnel.controller.ts` | Missing from revision doc | Publish | Live route exists but PM revision omits both the route and this controller family | Add this route to the implemented-now summary and endpoint details |
-| GET /external/contacts/search | Implemented in `external-contacts.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route and update auth examples to `uak_...` |
-| POST /external/profile-matching/recommendations/events/paged | Implemented in `external-profile-matching.controller.ts` | Missing from revision doc | Publish | PM revision still centers older async/job-style profile-matching routes and omits the live paged POST endpoint | Add this route to the implemented-now summary and endpoint details |
-| GET /external/profile-matching/recommendations/exhibitors | Implemented in `external-profile-matching.controller.ts` | Present in revision doc | Publish | Route is live, but auth examples drift from runtime truth | Keep route and update auth examples to `uak_...` |
-| POST /external/profile-matching/job/start | Not implemented in inspected live controllers | Listed as v1 live capability in revision doc | Do not publish | PM revision presents a stale planned/older route as current implementation | Remove from implemented-now framing; if retained, relabel as historical or draft-only |
-| GET /external/profile-matching/job/status | Not implemented in inspected live controllers | Listed as v1 live capability in revision doc | Do not publish | PM revision presents a stale planned/older route as current implementation | Remove from implemented-now framing; if retained, relabel as historical or draft-only |
-| GET /external/profile-matching/recommendations/events | Not implemented in inspected live controllers | Listed as v1 live capability in revision doc | Do not publish | PM revision presents a stale planned/older route as current implementation; live implementation is instead `POST /recommendations/events/paged` | Remove from implemented-now framing and replace references with the live paged POST route |
-| Controller family count | Five live external controller families inspected: events, exhibitors, personnel, contacts, profile-matching | Revision doc claims there are 4 `external/*` controllers and says it covers them all | Publish five families | PM revision undercounts the implemented controller families and overstates coverage | Update the summary language so implemented coverage includes personnel as a first-class family |
+| Item | API-Doc status | PM revision status | Current alignment | Notes |
+| --- | --- | --- | --- | --- |
+| Source of truth | `API-Doc` defines the current public external API contract | PM `revision` mirrors `API-Doc` in Chinese for contract content | Aligned | Contract changes must land in `API-Doc` first |
+| Auth token prefix | Active auth example is `Authorization: Bearer uak_your_api_key` | Same active wording; `sk_...` appears only as a historical note | Aligned | Historical `sk_...` references must not be reused as current contract wording |
+| Shared error body | External errors use `{ code, message, errorKey, traceId }` with real HTTP status codes | Same shared error body and status semantics are documented in Chinese | Aligned | `/external/*` final error body remains the external contract |
+| Shared pagination contract | Common envelope fields are `page`, `pageSize`, `total`, `totalPages`, and `hasMore` | Same semantics are summarized in Chinese | Aligned | Route-specific request naming and item fields remain endpoint-specific |
+| Live endpoint inventory | 14 live endpoints across 5 controller families | Same 14 live endpoints are listed under the implemented-now summary | Aligned | Draft-only routes are excluded from the live inventory |
+| Events endpoints | 4 endpoint pages include success status, request section, response example, error responses, and notes | 4 Chinese endpoint sections mirror the same contract data | Aligned | Response examples and status codes now track `API-Doc` |
+| Exhibitors endpoints | 4 endpoint pages define list, search, profile, and related-events behavior | 4 Chinese endpoint sections mirror the same contract data | Aligned | `exhibitor_id`-only profile lookup is preserved |
+| Personnel endpoints | 3 endpoint pages define list, profile, and related-events behavior | 3 Chinese endpoint sections mirror the same contract data | Aligned | Lightweight public personnel shape is preserved |
+| Contacts endpoint | `GET /external/contacts/search` uses company-based query input and a contact-style response | Chinese endpoint section mirrors the same contract data | Aligned | Email remains intentionally excluded |
+| Profile Matching endpoints | Current live contract is `POST /external/profile-matching/recommendations/events/paged` plus `GET /external/profile-matching/recommendations/exhibitors` | Chinese endpoint sections mirror the same live contract | Aligned | The older `GET /external/profile-matching/recommendations/events` route remains historical only |
+| Historical draft routes | `job/start`, `job/status`, and `GET /external/profile-matching/recommendations/events` are not live | The PM revision keeps them only as non-live historical notes | Aligned | They must never be promoted back into the implemented-now summary |
+| Intentional differences | English Mintlify prose, navigation, and cross-links | Chinese PM prose and PM-facing framing | Intentional wording difference only | This is not a contract mismatch |
+
+## Maintenance rule
+
+1. Update `API-Doc` first whenever the public contract changes.
+2. Mirror the same contract change into PM `外部 API 接口文档（revision）.md`.
+3. Refresh this reconciliation artifact only when the synchronization rule itself changes or a new divergence appears.
 
 ## Review notes
-- Every one of the 14 live endpoints from the endpoint inventory appears explicitly above.
-- Auth mismatch is explicit: runtime `uak_...` vs PM `sk_...`.
-- Error-contract mismatch is explicit: runtime adds `traceId` and hides `data` / `details`.
-- PM-only stale routes are explicitly marked non-publishable.
+
+- PM `revision` now carries endpoint-level success status codes, request sections, response examples, error responses, and notes for all 14 live endpoints.
+- This artifact now tracks the synchronized state rather than the earlier pre-sync discrepancy snapshot.
+- Future discrepancies should be treated as contract mismatches only when method/path, status code, request fields, response structure, or caller-visible note semantics diverge.
