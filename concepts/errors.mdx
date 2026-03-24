@@ -12,7 +12,13 @@ External API errors use real HTTP status codes.
 }
 ```
 
+## Common status codes
+- `400 Bad Request` — invalid input or unsupported request shape
+- `401 Unauthorized` — missing or invalid API key
+- `404 Not Found` — requested resource does not exist
+- `409 Conflict` — business conflict, depending on route behavior
+
 ## Notes
-- External responses include `traceId`.
+- External responses include `traceId` for troubleshooting.
 - External error bodies do not expose internal `data` or `details` fields.
-- Common statuses across these endpoints include `400`, `401`, `404`, and `409`, depending on route behavior.
+- Individual endpoint pages may list the subset of statuses most relevant to that route.

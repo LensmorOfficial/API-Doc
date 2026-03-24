@@ -1,4 +1,8 @@
-# List exhibitors
+# Exhibitors list
+
+List exhibitors for a specific event.
+
+Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with basic search and country filtering.
 
 ## Endpoint
 `GET /external/exhibitors/list`
@@ -52,4 +56,5 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
+- This endpoint is event-scoped and requires `event_id` on every request.
 - `matched_event_ids` reflects the requested event scope.

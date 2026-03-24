@@ -1,4 +1,8 @@
-# Search exhibitors
+# Exhibitors search
+
+Search exhibitors using company context and optional event scope.
+
+Use this endpoint when you want exhibitor results derived from company inputs such as a public company URL, a target audience description, or an optional event constraint.
 
 ## Endpoint
 `POST /external/exhibitors/search`
@@ -52,4 +56,5 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
+- This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - When no `event_id` is supplied, the live service returns `matched_event_ids` as an empty array.

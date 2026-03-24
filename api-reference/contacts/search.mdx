@@ -1,4 +1,8 @@
-# Search contacts
+# Contacts search
+
+Search contacts by company name.
+
+Use this endpoint when you want a lightweight external contact result set keyed off a company query, with optional role filtering.
 
 ## Endpoint
 `GET /external/contacts/search`
@@ -47,3 +51,4 @@ See [Authentication](/authentication)
 
 ## Notes
 - Email is intentionally not returned by this external endpoint.
+- Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).

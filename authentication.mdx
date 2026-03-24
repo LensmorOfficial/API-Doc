@@ -7,8 +7,16 @@ All `external/*` endpoints require a user API key.
 Authorization: Bearer uak_your_api_key
 ```
 
-## Notes
+## How it works
+- The public contract uses a Bearer token in the `Authorization` header.
 - Bearer scheme matching is case-insensitive at runtime.
-- Public docs follow runtime middleware behavior.
+- Public docs follow the runtime middleware behavior.
+
+## Before you call the API
+- Use a valid user API key.
+- Send the header on every request.
+- Expect `401 Unauthorized` when the key is missing, malformed, revoked, or otherwise invalid.
+
+## Notes
 - Older PM and Swagger references to `sk_...` are historical and are not the source of truth for this public-doc phase.
 - Invalid or missing keys return the shared external error contract described in [Error conventions](/concepts/errors).

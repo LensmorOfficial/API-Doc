@@ -1,4 +1,8 @@
-# Recommended events (paged)
+# Recommended events (paged results)
+
+Request paged event recommendations for the authenticated caller.
+
+Use this endpoint when you want recommendation results plus the filtering and status metadata returned by the live profile-matching flow.
 
 ## Endpoint
 `POST /external/profile-matching/recommendations/events/paged`
@@ -73,4 +77,4 @@ See [Authentication](/authentication)
 
 ## Notes
 - This route is the live implemented replacement for older PM draft references to `GET /external/profile-matching/recommendations/events`.
-- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the profile service’s paged response contract.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the live profile-matching paged response contract.

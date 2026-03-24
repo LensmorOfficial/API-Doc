@@ -16,20 +16,43 @@
     {
       "group": "API Reference",
       "pages": [
-        "api-reference/events/list",
-        "api-reference/events/fit-score",
-        "api-reference/events/rank",
-        "api-reference/events/brief",
-        "api-reference/exhibitors/list",
-        "api-reference/exhibitors/search",
-        "api-reference/exhibitors/profile",
-        "api-reference/exhibitors/events",
-        "api-reference/personnel/list",
-        "api-reference/personnel/profile",
-        "api-reference/personnel/events",
-        "api-reference/contacts/search",
-        "api-reference/profile-matching/recommendations-events-paged",
-        "api-reference/profile-matching/recommendations-exhibitors"
+        {
+          "group": "Events",
+          "pages": [
+            "api-reference/events/list",
+            "api-reference/events/fit-score",
+            "api-reference/events/rank",
+            "api-reference/events/brief"
+          ]
+        },
+        {
+          "group": "Exhibitors",
+          "pages": [
+            "api-reference/exhibitors/list",
+            "api-reference/exhibitors/search",
+            "api-reference/exhibitors/profile",
+            "api-reference/exhibitors/events"
+          ]
+        },
+        {
+          "group": "Personnel",
+          "pages": [
+            "api-reference/personnel/list",
+            "api-reference/personnel/profile",
+            "api-reference/personnel/events"
+          ]
+        },
+        {
+          "group": "Contacts",
+          "pages": ["api-reference/contacts/search"]
+        },
+        {
+          "group": "Profile Matching",
+          "pages": [
+            "api-reference/profile-matching/recommendations-events-paged",
+            "api-reference/profile-matching/recommendations-exhibitors"
+          ]
+        }
       ]
     },
     {

@@ -1,4 +1,8 @@
-# List events
+# Events list
+
+Browse events currently available through the external API.
+
+Use this endpoint when you need a paginated event catalog with basic filters such as keyword, country, city, and date range.
 
 ## Endpoint
 `GET /external/events/list`
@@ -56,5 +60,5 @@ See [Authentication](/authentication)
 - `401 Unauthorized`
 
 ## Notes
-- Response items follow the shared event-item mapper used by the external events service.
+- This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).

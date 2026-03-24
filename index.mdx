@@ -1,15 +1,31 @@
 # Lensmor External API
 
-This site documents the currently implemented `external/*` endpoints.
+Lensmor External API provides developer-facing access to the currently implemented `external/*` endpoints.
 
-## Current scope
-- Events
-- Exhibitors
-- Personnel
-- Contacts
-- Profile Matching
+Use this site to understand authentication, shared response conventions, and the available resources for events, exhibitors, personnel, contacts, and profile matching.
 
-## What is not included
+## Quick start
+1. Get a valid user API key.
+2. Send requests with `Authorization: Bearer uak_your_api_key`.
+3. Read [Authentication](/authentication) before calling any endpoint.
+4. Browse the API Reference by resource in the left navigation.
+
+## Available resources
+- **Events** — browse, score, rank, and inspect event details.
+- **Exhibitors** — list exhibitors, search by profile inputs, inspect profiles, and fetch related events.
+- **Personnel** — list people, inspect profiles, and fetch related events.
+- **Contacts** — search external contacts with company-based query inputs.
+- **Profile Matching** — request paged recommendation results and retrieve recommended exhibitors for an event.
+
+## Shared conventions
+- [Authentication](/authentication)
+- [Error conventions](/concepts/errors)
+- [Pagination conventions](/concepts/pagination)
+
+## Scope of this documentation
+This documentation intentionally follows the currently implemented codebase.
+
+It does **not** include:
 - PM draft endpoints that are not implemented in the current codebase
 - Historical auth examples that still show `sk_...`
 - Internal-only implementation details that are not part of the caller contract
