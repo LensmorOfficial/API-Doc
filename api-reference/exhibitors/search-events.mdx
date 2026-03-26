@@ -1,0 +1,70 @@
+# Exhibitor event search
+
+Search events directly from an exhibitor company name using a precision-first matcher.
+
+Use this endpoint when you have a company name, possibly incomplete, and want deduplicated event results without resolving `exhibitor_id` first.
+
+## Endpoint
+`POST /external/exhibitors/search-events`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "123",
+      "eventId": "139574",
+      "name": "Shoptalk 2026",
+      "nickname": null,
+      "description": null,
+      "url": null,
+      "dateStart": "2026-03-15",
+      "dateEnd": "2026-03-18",
+      "venue": null,
+      "city": "Las Vegas",
+      "region": "Nevada",
+      "country": "United States",
+      "attendeeCount": null,
+      "exhibitorCount": 100,
+      "personnelCount": 50,
+      "image": null,
+      "dataSource": null,
+      "matchedExhibitors": [
+        {
+          "id": "456",
+          "companyName": "Shoptalk"
+        }
+      ]
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+
+## Notes
+- This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
+- Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
+- Longer queries use strict token or prefix admission instead of permissive `contains` matching.
+- No matches return an empty paginated success response rather than `404 Not Found`.
+- `matchedExhibitors` contains only the admitted matched exhibitors that actually participate in the returned event, and event results are returned in deterministic recency order.

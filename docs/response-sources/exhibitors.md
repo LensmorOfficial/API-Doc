@@ -14,6 +14,14 @@
 - Response example source: `src/modules/external-api/services/external-exhibitors.service.ts#search` and `src/modules/external-api/mappers/external-exhibitor-response.mapper.ts`
 - Ambiguity note: `matched_event_ids` is empty when no `event_id` filter is supplied.
 
+## POST /external/exhibitors/search-events
+- Method/path source: `src/modules/external-api/controllers/external-exhibitors.controller.ts`
+- DTO/body source: `src/modules/external-api/dto/exhibitors/external-exhibitor-search-events.dto.ts`
+- Success status source: e2e in `test/e2e/external-exhibitors.e2e-spec.ts` asserts `201`
+- Matching-policy source: `src/modules/external-api/services/external-resource-resolver.service.ts#searchExhibitorsByCompanyNameStrict`
+- Response example source: `src/modules/external-api/services/external-exhibitors.service.ts#searchEvents` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
+- Ambiguity note: `matchedExhibitors` is the admitted-and-capped exhibitor subset that participates in each returned event, and no-match results are empty pagination rather than `404`.
+
 ## GET /external/exhibitors/profile
 - Method/path source: `src/modules/external-api/controllers/external-exhibitors.controller.ts`
 - DTO/query source: `src/modules/external-api/dto/exhibitors/external-exhibitor-profile-query.dto.ts`

@@ -15,7 +15,10 @@
         "groups": [
           {
             "group": "Introduction",
-            "pages": ["index", "authentication"]
+            "pages": [
+              "index",
+              "authentication"
+            ]
           },
           {
             "group": "API Reference",
@@ -34,6 +37,7 @@
                 "pages": [
                   "api-reference/exhibitors/list",
                   "api-reference/exhibitors/search",
+                  "api-reference/exhibitors/search-events",
                   "api-reference/exhibitors/profile",
                   "api-reference/exhibitors/events"
                 ]
@@ -48,7 +52,9 @@
               },
               {
                 "group": "Contacts",
-                "pages": ["api-reference/contacts/search"]
+                "pages": [
+                  "api-reference/contacts/search"
+                ]
               },
               {
                 "group": "Profile Matching",
@@ -61,7 +67,10 @@
           },
           {
             "group": "Concepts",
-            "pages": ["concepts/errors", "concepts/pagination"]
+            "pages": [
+              "concepts/errors",
+              "concepts/pagination"
+            ]
           }
         ]
       }
