@@ -38,8 +38,10 @@ See [Authentication](/authentication)
       "website": "https://acme.example",
       "country": "United States",
       "industry": "Retail Technology",
+      "categories": ["Retail", "POS"],
       "employeeCount": 220,
-      "fundingRound": "Series B"
+      "fundingRound": "Series B",
+      "techStacks": ["Cloudflare", "Nginx"]
     }
   ],
   "total": 87,
@@ -58,3 +60,5 @@ See [Authentication](/authentication)
 ## Notes
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
 - The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- `categories` is preserved when recommendation data contains category labels.
+- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
