@@ -1,6 +1,6 @@
 # Error conventions
 
-External API errors use real HTTP status codes.
+Lensmor API errors use real HTTP status codes.
 
 ## Error body
 ```json
@@ -19,6 +19,6 @@ External API errors use real HTTP status codes.
 - `409 Conflict` — business conflict, depending on route behavior
 
 ## Notes
-- External responses include `traceId` for troubleshooting.
-- External error bodies do not expose internal `data` or `details` fields.
+- API responses include `traceId` for troubleshooting.
+- Error bodies do not expose internal `data` or `details` fields.
 - Individual endpoint pages may list the subset of statuses most relevant to that route.

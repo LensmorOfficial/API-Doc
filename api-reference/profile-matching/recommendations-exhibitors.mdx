@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | External event identifier. |
+| `event_id` | Yes | string | Event identifier. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `location` | No | string | Country or region filter. |
@@ -56,5 +56,5 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-- Unknown `event_id` values are normalized to external `404 EVENT_NOT_FOUND` responses.
-- The request parameter `event_id` refers to the external event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
+- The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "Lensmor External API",
+  "name": "Lensmor API",
   "theme": "mint",
   "favicon": "/favicon.svg",
   "colors": {
