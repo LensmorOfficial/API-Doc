@@ -60,12 +60,6 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 - Enrich sales, partnership, or market research pipelines
 - Explore people and organizations connected to relevant events
 
-## Local preview
-
-```bash
-pnpm dlx mintlify dev
-```
-
 ## Scope
 
 This documentation reflects the current public API contract only. It excludes internal implementation details and historical draft references that are not part of the external developer experience.
