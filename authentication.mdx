@@ -1,11 +1,16 @@
 # Authentication
 
-All `external/*` endpoints require a user API key.
+All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
 
 ## Header format
 ```http
 Authorization: Bearer uak_your_api_key
 ```
+
+## Base URL
+`https://platform.lensmor.com`
+
+Combine this base URL with the endpoint paths documented in the API reference. For example, `GET /external/events/list` becomes `GET https://platform.lensmor.com/external/events/list`.
 
 ## How it works
 - The public contract uses a Bearer token in the `Authorization` header.
