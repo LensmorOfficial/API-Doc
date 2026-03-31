@@ -1,0 +1,64 @@
+# Events list
+
+Browse events currently available through the Lensmor API.
+
+Use this endpoint when you need a paginated event catalog with basic filters such as keyword, country, city, and date range.
+
+## Endpoint
+`GET /external/events/list`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `keyword` | No | string | Event name or keyword search. |
+| `country` | No | string | Country filter. |
+| `city` | No | string | City filter. |
+| `date_start_from` | No | ISO date string | Inclusive lower bound for event date filtering. |
+| `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "123",
+      "eventId": "139574",
+      "name": "NRF 2026",
+      "nickname": null,
+      "description": "Retail industry event",
+      "url": "https://example.com/events/nrf-2026",
+      "dateStart": "2026-01-12",
+      "dateEnd": "2026-01-15",
+      "venue": "Javits Center",
+      "city": "New York",
+      "region": "NY",
+      "country": "United States",
+      "attendeeCount": 40000,
+      "exhibitorCount": 950,
+      "personnelCount": 6200,
+      "image": null,
+      "dataSource": "database"
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 3,
+  "hasMore": true
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+
+## Notes
+- This endpoint returns a paginated event catalog rather than recommendation-specific results.
+- Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).

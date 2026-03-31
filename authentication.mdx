@@ -1,0 +1,27 @@
+# Authentication
+
+All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
+
+## Header format
+```http
+Authorization: Bearer uak_your_api_key
+```
+
+## Base URL
+`https://platform.lensmor.com`
+
+Combine this base URL with the endpoint paths documented in the API reference. For example, `GET /external/events/list` becomes `GET https://platform.lensmor.com/external/events/list`.
+
+## How it works
+- The public contract uses a Bearer token in the `Authorization` header.
+- Bearer scheme matching is case-insensitive at runtime.
+- These docs follow the current public API contract.
+
+## Before you call the API
+- Use a valid user API key.
+- Send the header on every request.
+- Expect `401 Unauthorized` when the key is missing, malformed, revoked, or otherwise invalid.
+
+## Notes
+- Older PM and Swagger references to `sk_...` are historical and are not the source of truth for this public-doc phase.
+- Invalid or missing keys return the shared API error contract described in [Error conventions](/concepts/errors).

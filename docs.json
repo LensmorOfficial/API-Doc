@@ -1,0 +1,79 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Lensmor",
+  "theme": "mint",
+  "favicon": "/logo.svg",
+  "colors": {
+    "primary": "#0F172A",
+    "light": "#334155",
+    "dark": "#E2E8F0"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "index",
+              "authentication"
+            ]
+          },
+          {
+            "group": "API Reference",
+            "pages": [
+              {
+                "group": "Events",
+                "pages": [
+                  "api-reference/events/list",
+                  "api-reference/events/fit-score",
+                  "api-reference/events/rank",
+                  "api-reference/events/brief"
+                ]
+              },
+              {
+                "group": "Exhibitors",
+                "pages": [
+                  "api-reference/exhibitors/list",
+                  "api-reference/exhibitors/search",
+                  "api-reference/exhibitors/search-events",
+                  "api-reference/exhibitors/profile",
+                  "api-reference/exhibitors/events"
+                ]
+              },
+              {
+                "group": "Personnel",
+                "pages": [
+                  "api-reference/personnel/list",
+                  "api-reference/personnel/profile",
+                  "api-reference/personnel/events"
+                ]
+              },
+              {
+                "group": "Contacts",
+                "pages": [
+                  "api-reference/contacts/search"
+                ]
+              },
+              {
+                "group": "Profile Matching",
+                "pages": [
+                  "api-reference/profile-matching/recommendations-events-paged",
+                  "api-reference/profile-matching/recommendations-exhibitors"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/errors",
+              "concepts/pagination"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

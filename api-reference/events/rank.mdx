@@ -1,0 +1,51 @@
+# Events rank
+
+Rank multiple events for the authenticated caller.
+
+Use this endpoint when you already have a candidate set of events and want them returned in preference order.
+
+## Endpoint
+`POST /external/events/rank`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_ids` | Yes | string[] | List of event identifiers to rank. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "event_id": "139574",
+      "name": "NRF 2026",
+      "rank": 1,
+      "match_score": 0.86,
+      "reasons": []
+    },
+    {
+      "event_id": "139575",
+      "name": "Shoptalk 2026",
+      "rank": 2,
+      "match_score": 0.79,
+      "reasons": []
+    }
+  ]
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `409 Conflict`
+
+## Notes
+- The current service returns an ordered `items` array with `rank` and `match_score`.
+- `reasons` is currently emitted as an empty array by the live service.

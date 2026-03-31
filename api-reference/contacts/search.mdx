@@ -1,0 +1,54 @@
+# Contacts search
+
+Search contacts by company name.
+
+Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering.
+
+## Endpoint
+`GET /external/contacts/search`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_name` | Yes | string | Company name query, length `1` to `200`. |
+| `role` | No | string | Optional role filter. Blank values are normalized away. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "101",
+      "fullName": "Jane Doe",
+      "title": "VP Marketing",
+      "department": "marketing",
+      "seniorityLevel": "vp",
+      "linkedinUrl": "https://linkedin.com/in/jane",
+      "companyName": "Acme",
+      "sourceType": "exhibitor"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Email is intentionally not returned by this endpoint.
+- Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).

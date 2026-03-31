@@ -1,0 +1,61 @@
+# Events fit score
+
+Score a single event against the authenticated caller's current profile context.
+
+Use this endpoint when you already know the target event and want a compact compatibility result instead of a full ranked list.
+
+## Endpoint
+`POST /external/events/fit-score`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | Event identifier. |
+
+## Response example
+```json
+{
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026",
+    "nickname": null,
+    "description": "Retail industry event",
+    "url": "https://example.com/events/nrf-2026",
+    "dateStart": "2026-01-12",
+    "dateEnd": "2026-01-15",
+    "venue": "Javits Center",
+    "city": "New York",
+    "region": "NY",
+    "country": "United States",
+    "attendeeCount": 40000,
+    "exhibitorCount": 950,
+    "personnelCount": 6200,
+    "image": null,
+    "dataSource": "database"
+  },
+  "score": 8.1,
+  "recommendation": "recommended",
+  "breakdown": {
+    "profile_match": 8.1,
+    "matched_exhibitor_density": 1.9,
+    "event_scale": 9.5
+  }
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `409 Conflict`
+
+## Notes
+- The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
+- Older PM draft fields such as `breakdown_details` are not part of the live response.

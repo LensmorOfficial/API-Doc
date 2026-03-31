@@ -1,0 +1,64 @@
+# Recommended exhibitors for event
+
+Return recommended exhibitors for a single event.
+
+Use this endpoint when you already know the target event and want exhibitor recommendations under the caller's current recommendation state.
+
+## Endpoint
+`GET /external/profile-matching/recommendations/exhibitors`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | Event identifier. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `location` | No | string | Country or region filter. |
+| `searchQuery` | No | string | Company-name or description search. |
+| `exhibitorName` | No | string[] | Exact-name filter; repeated query params are normalized into arrays. |
+| `category` | No | string[] | Category filter. |
+| `employeesMin` | No | integer | Minimum employee count. |
+| `employeesMax` | No | integer | Maximum employee count. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "description": "Retail analytics platform",
+      "logo": null,
+      "website": "https://acme.example",
+      "country": "United States",
+      "industry": "Retail Technology",
+      "categories": ["Retail", "POS"],
+      "employeeCount": 220,
+      "fundingRound": "Series B",
+      "techStacks": ["Cloudflare", "Nginx"]
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
+- The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- `categories` is preserved when recommendation data contains category labels.
+- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.

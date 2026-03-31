@@ -1,0 +1,41 @@
+# Personnel profile details
+
+Fetch the profile for a single person.
+
+Use this endpoint when you already know the personnel identifier and need the public profile shape for that person.
+
+## Endpoint
+`GET /external/personnel/profile`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_id` | Yes | string | Numeric-string personnel identifier. |
+
+## Response example
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "title": "VP of Retail Technology",
+  "department": "Technology",
+  "seniorityLevel": "vp",
+  "linkedinUrl": "https://linkedin.com/in/jane-smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": "exhibitor"
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- The public contract stays lightweight and does not expose email fields.

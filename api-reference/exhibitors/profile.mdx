@@ -1,0 +1,55 @@
+# Exhibitor profile details
+
+Fetch the profile for a single exhibitor.
+
+Use this endpoint when you already know the exhibitor identifier and need a profile-style response with related event references.
+
+## Endpoint
+`GET /external/exhibitors/profile`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
+
+## Response example
+```json
+{
+  "id": "456",
+  "companyName": "Acme Retail Systems",
+  "domain": "acme.example",
+  "description": "Retail analytics platform",
+  "website": "https://acme.example",
+  "industry": "Retail Technology",
+  "employeeCount": 220,
+  "country": "United States",
+  "logo": null,
+  "dataSource": "database",
+  "linkedinUrl": null,
+  "fundingRound": "Series B",
+  "matched_event_ids": [],
+  "events": [
+    {
+      "id": "123",
+      "eventId": "139574",
+      "name": "NRF 2026"
+    }
+  ]
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- The current public query contract supports `exhibitor_id` only.
+- In embedded event objects, the event identifier is returned as `eventId`. Use that value when another endpoint asks for `event_id`.
+- Older PM text that implies `company_name` lookup should not be treated as current behavior.

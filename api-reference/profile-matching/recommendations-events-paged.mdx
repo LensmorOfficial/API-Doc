@@ -1,0 +1,81 @@
+# Recommended events (paged results)
+
+Request paged event recommendations for the authenticated caller.
+
+Use this endpoint when you want recommendation results plus the filtering and status metadata returned by the current profile-matching flow.
+
+## Endpoint
+`POST /external/profile-matching/recommendations/events/paged`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
+| `target_audience` | Conditionally | string | Audience description. Provide at least one of `company_url` or `target_audience`. |
+| `timeout_ms` | No | integer | Optional sync processing timeout in milliseconds. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `city` | No | string | City filter. |
+| `region` | No | string | Region filter. |
+| `country` | No | string | Country filter. |
+| `category` | No | string[] | Category filter; arrays and comma-separated inputs are normalized by the DTO. |
+| `eventTypeIds` | No | integer[] | Event type ID filter. |
+| `dateStartFrom` | No | ISO date string | Lower date bound. |
+| `dateStartTo` | No | ISO date string | Upper date bound. |
+| `future` | No | integer | Future-event flag. |
+| `attendeeCountMin` | No | integer | Minimum attendee count. |
+| `attendeeCountMax` | No | integer | Maximum attendee count. |
+
+## Response example
+```json
+{
+  "status": "completed",
+  "items": [
+    {
+      "id": "123",
+      "eventId": "139574",
+      "name": "NRF 2026",
+      "nickname": null,
+      "description": "Retail industry event",
+      "url": "https://example.com/events/nrf-2026",
+      "dateStart": "2026-01-12",
+      "dateEnd": "2026-01-15",
+      "venue": "Javits Center",
+      "city": "New York",
+      "region": "NY",
+      "country": "United States",
+      "attendeeCount": 40000,
+      "exhibitorCount": 950,
+      "personnelCount": 6200,
+      "matched_exhibitor_count": 19,
+      "match_score": 0.84,
+      "unlocked": false
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 3,
+  "hasMore": true,
+  "condition_tags": {},
+  "profile_version": 12,
+  "active_result_version": 12,
+  "is_stale": false
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `409 Conflict`
+
+## Notes
+- This route is the current public replacement for older draft references to `GET /external/profile-matching/recommendations/events`.
+- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.

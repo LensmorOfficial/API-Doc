@@ -1,0 +1,24 @@
+# Error conventions
+
+Lensmor API errors use real HTTP status codes.
+
+## Error body
+```json
+{
+  "code": 401,
+  "message": "Invalid API key",
+  "errorKey": "INVALID_API_KEY",
+  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+}
+```
+
+## Common status codes
+- `400 Bad Request` — invalid input or unsupported request shape
+- `401 Unauthorized` — missing or invalid API key
+- `404 Not Found` — requested resource does not exist
+- `409 Conflict` — business conflict, depending on route behavior
+
+## Notes
+- API responses include `traceId` for troubleshooting.
+- Error bodies do not expose internal `data` or `details` fields.
+- Individual endpoint pages may list the subset of statuses most relevant to that route.
