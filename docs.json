@@ -2,7 +2,11 @@
   "$schema": "https://mintlify.com/docs.json",
   "name": "Lensmor API",
   "theme": "mint",
-  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo.svg"
+  },
+  "favicon": "/logo.svg",
   "colors": {
     "primary": "#0F172A",
     "light": "#334155",
