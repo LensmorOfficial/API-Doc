@@ -1,8 +1,11 @@
 # Lensmor API
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![API](https://img.shields.io/badge/API-REST-orange.svg)](https://www.lensmor.com/platform?utm_source=github&utm_medium=readme&utm_campaign=API-Doc)
+
 Lensmor provides developer-facing access to event, exhibitor, personnel, contact, and profile-matching data through a public API contract under `https://platform.lensmor.com/external/*`.
 
-This repository hosts the public documentation site for developers integrating with Lensmor.
+This repository hosts the public documentation site for developers integrating with [Lensmor](https://www.lensmor.com/?utm_source=github&utm_medium=readme&utm_campaign=API-Doc) — an AI-native event intelligence platform for B2B teams.
 
 ## Why Lensmor API
 
@@ -69,3 +72,7 @@ pnpm dlx mintlify dev
 ## Scope
 
 This documentation reflects the current public API contract only. It excludes internal implementation details and historical draft references that are not part of the external developer experience.
+
+---
+
+Built by [Lensmor](https://www.lensmor.com/?utm_source=github&utm_medium=readme&utm_campaign=API-Doc) — AI-native event intelligence platform. Turn trade show data into qualified pipeline.
