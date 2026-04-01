@@ -37,6 +37,7 @@
                 "pages": [
                   "api-reference/exhibitors/list",
                   "api-reference/exhibitors/search",
+                  "api-reference/exhibitors/search-by-company-name",
                   "api-reference/exhibitors/search-events",
                   "api-reference/exhibitors/profile",
                   "api-reference/exhibitors/events"
