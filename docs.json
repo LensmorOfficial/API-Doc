@@ -1,6 +1,15 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "Lensmor",
+  "name": "Lensmor API",
+  "description": "Access Lensmor Event Intelligence data through our APIs and developer tools to build custom integrations and workflows.",
+  "seo": {
+    "indexing": "all",
+    "metatags": {
+      "og:site_name": "Lensmor API",
+      "og:type": "website",
+      "twitter:card": "summary_large_image"
+    }
+  },
   "theme": "mint",
   "favicon": "/logo.svg",
   "colors": {
