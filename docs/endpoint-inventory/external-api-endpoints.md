@@ -39,7 +39,6 @@
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |
 | GET | /external/profile-matching/recommendations/exhibitors | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body, including preview unlock guidance and `no_contacts_available` for event unlock prechecks |
-
 ## GET /external/events/list
 
 ### Authentication
