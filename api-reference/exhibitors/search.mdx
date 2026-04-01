@@ -16,8 +16,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_url` | No | string | Company website URL used as an input hint. |
-| `target_audience` | No | string | Free-form audience description. |
+| `company_url` | Conditionally | string | Company website URL. Provide at least one of `company_url` or `target_audience`. Malformed URLs return `400`. |
+| `target_audience` | Conditionally | string | Free-form audience description. Provide at least one of `company_url` or `target_audience`. |
 | `event_id` | No | string | Optional event scope. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
@@ -54,10 +54,10 @@ See [Authentication](/authentication)
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
-- `404 Not Found`
 
 ## Notes
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
+- No matches return an empty paginated success response (`201`) rather than `404 Not Found`.
 - When no `event_id` is supplied, the live service returns `matched_event_ids` as an empty array.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.

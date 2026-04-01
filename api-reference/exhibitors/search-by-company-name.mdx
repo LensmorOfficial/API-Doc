@@ -1,0 +1,59 @@
+# Exhibitor search by company name
+
+Search exhibitors directly from a company name using a precision-first matcher.
+
+Use this endpoint when you have a company name and want paginated exhibitor results without resolving `exhibitor_id` first.
+
+## Endpoint
+`POST /external/exhibitors/search-by-company-name`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "domain": "acme.example",
+      "description": "Retail analytics platform",
+      "website": "https://acme.example",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "country": "United States",
+      "logo": null,
+      "dataSource": "database",
+      "linkedinUrl": null,
+      "fundingRound": "Series B",
+      "techStacks": ["Cloudflare", "Nginx"],
+      "matched_event_ids": []
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+
+## Notes
+- This endpoint returns exhibitors. To get events from a company name instead, use `POST /external/exhibitors/search-events`.
+- No matches return an empty paginated success response rather than `404 Not Found`.
+- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
