@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![API](https://img.shields.io/badge/API-REST-orange.svg)](https://www.lensmor.com/platform?utm_source=github&utm_medium=readme&utm_campaign=API-Doc)
+[![Docs](https://img.shields.io/badge/Docs-api.lensmor.com-green.svg)](https://api.lensmor.com/)
 
 Lensmor provides developer-facing access to event, exhibitor, personnel, contact, and profile-matching data through a public API contract under `https://platform.lensmor.com/external/*`.
 
@@ -31,7 +32,7 @@ All documented paths are relative to this base URL. For example:
 1. Obtain a valid user API key. API access is available to paying customers — contact [hello@lensmor.com](mailto:hello@lensmor.com) to purchase.
 2. Send requests to `https://platform.lensmor.com`.
 3. Include the authorization header on every request.
-4. Use the reference docs to explore available resources and request formats.
+4. Browse the full interactive docs at **[api.lensmor.com](https://api.lensmor.com/)** or use the reference files in this repository.
 
 ```http
 Authorization: Bearer uak_your_api_key
