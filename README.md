@@ -14,6 +14,7 @@ Use the API to:
 
 - Browse and inspect event data
 - Search exhibitors using company context and optional event scope
+- Search events directly from a company name using a precision-first matcher
 - Retrieve exhibitor and personnel profiles
 - Search contacts with company-based inputs
 - Request profile-matching recommendations for discovery workflows
@@ -61,6 +62,7 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 - Build event discovery workflows
 - Match exhibitors to a company profile or target audience
+- Find events from a company name without resolving exhibitor IDs first
 - Enrich sales, partnership, or market research pipelines
 - Explore people and organizations connected to relevant events
 

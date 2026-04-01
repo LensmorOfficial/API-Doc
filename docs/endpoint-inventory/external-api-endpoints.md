@@ -13,7 +13,8 @@
 | POST | /external/events/rank | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Post('rank')` under `@Controller('external/events')` |
 | GET | /external/events/brief | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Get('brief')` under `@Controller('external/events')` |
 | GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Get('list')` under `@Controller('external/exhibitors')` |
-| POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Post('search')` under `@Controller('external/exhibitors')` |
+| POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search')` under `@Controller('external/exhibitors')` |
+| POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search-by-company-name')` under `@Controller('external/exhibitors')` |
 | POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search-events')` under `@Controller('external/exhibitors')` |
 | GET | /external/exhibitors/profile | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Get('profile')` under `@Controller('external/exhibitors')` |
 | GET | /external/exhibitors/events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | TBD at endpoint-page stage | Yes | `@Get('events')` under `@Controller('external/exhibitors')` |
@@ -33,7 +34,7 @@
 - The external exception path uses real HTTP status codes for the final response status
 
 ## Verification notes
-- Included exactly 15 implemented routes from the five live external controllers
+- Included exactly 16 implemented routes from the five live external controllers
 - Confirmed no `job/start`, `job/status`, or `GET /external/profile-matching/recommendations/events` route exists in the inspected controllers
 - Confirmed auth middleware rejects tokens that do not start with `uak_`
 - Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`
