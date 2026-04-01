@@ -28,7 +28,7 @@ All documented paths are relative to this base URL. For example:
 
 ## Quick start
 
-1. Obtain a valid user API key.
+1. Obtain a valid user API key. API access is available to paying customers — contact [hello@lensmor.com](mailto:hello@lensmor.com) to purchase.
 2. Send requests to `https://platform.lensmor.com`.
 3. Include the authorization header on every request.
 4. Use the reference docs to explore available resources and request formats.
