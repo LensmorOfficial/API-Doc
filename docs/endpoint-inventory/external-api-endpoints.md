@@ -28,13 +28,11 @@
 ## Shared runtime truths
 - Authorization format enforced by middleware: `Authorization: Bearer uak_...`
 - Bearer scheme stripping is case-insensitive at runtime via `/^Bearer\s+/i`
-- Swagger currently documents `Use Authorization: Bearer sk_...` in `src/main.ts` and must not be copied into public docs without reconciliation
 - External error responses are emitted as `{ code, message, errorKey, traceId }`
 - `/external/*` errors do not expose internal `data` or `details` fields in the final HTTP body
 - The external exception path uses real HTTP status codes for the final response status
 
 ## Verification notes
 - Included exactly 16 implemented routes from the five live external controllers
-- Confirmed no `job/start`, `job/status`, or `GET /external/profile-matching/recommendations/events` route exists in the inspected controllers
 - Confirmed auth middleware rejects tokens that do not start with `uak_`
 - Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`

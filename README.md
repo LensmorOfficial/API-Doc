@@ -68,7 +68,7 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 ## Scope
 
-This documentation reflects the current public API contract only. It excludes internal implementation details and historical draft references that are not part of the external developer experience.
+This documentation reflects the current public API contract only. It excludes internal implementation details that are not part of the external developer experience.
 
 ---
 
