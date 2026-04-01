@@ -70,6 +70,7 @@ See [Authentication](/authentication)
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - No matches return an empty paginated success response (`201`) rather than `404 Not Found`.
 - If both `company_url` and `target_audience` are provided, both may influence the returned results.
+- When no event scope or match data exists, the live service returns `matched_event_ids` as an empty array.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.
