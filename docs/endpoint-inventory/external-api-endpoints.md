@@ -12,6 +12,7 @@
 | POST | /external/events/fit-score | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `@Post('fit-score')` under `@Controller('external/events')` |
 | POST | /external/events/rank | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `@Post('rank')` under `@Controller('external/events')` |
 | GET | /external/events/brief | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | `@Get('brief')` under `@Controller('external/events')` |
+| GET | /external/events/:id | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | `@Get(':id')` under `@Controller('external/events')`; published at `api-reference/events/detail.mdx` |
 | GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `@Get('list')` under `@Controller('external/exhibitors')` |
 | POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search')` under `@Controller('external/exhibitors')` |
 | POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search-by-company-name')` under `@Controller('external/exhibitors')` |
@@ -33,6 +34,7 @@
 - The external exception path uses real HTTP status codes for the final response status
 
 ## Verification notes
-- Included exactly 16 implemented routes from the five live external controllers
+- Included exactly 17 implemented routes from the five live external controllers
+- Confirmed `GET /external/events/:id` is implemented in the controller and published in Mintlify
 - Confirmed auth middleware rejects tokens that do not start with `uak_`
 - Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`

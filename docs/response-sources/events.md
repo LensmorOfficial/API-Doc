@@ -27,3 +27,11 @@
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-events.service.ts#getEventBrief` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
 - Ambiguity note: `topCategories` is currently an empty array in the service output.
+
+## GET /external/events/:id
+- Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`
+- Path parameter source: `src/modules/external-api/controllers/external-events.controller.ts#getEventDetail`
+- Identifier resolution source: `src/modules/external-api/services/external-resource-resolver.service.ts#resolveEventDetailByIdOrEventIdOrThrow`
+- Success status source: Nest default for `@Get()` -> `200 OK`
+- Response example source: `src/modules/external-api/services/external-events.service.ts#getEventDetail` and `src/modules/external-api/mappers/external-event-response.mapper.ts#toEventDetail`
+- Ambiguity note: The live resolver accepts either the database row `id` or the external `eventId` in the `:id` path segment.

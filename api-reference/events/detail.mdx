@@ -1,0 +1,86 @@
+# Event details
+
+Fetch the full public detail shape for a single event.
+
+Use this endpoint when you already know the target event and need more than the lightweight summary returned by the brief endpoint.
+
+## Endpoint
+`GET /external/events/:id`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Accepts either the database row `id` or the external `eventId`. |
+
+## Response example
+```json
+{
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026",
+    "nickname": null,
+    "description": "Retail industry event",
+    "url": "https://example.com/events/nrf-2026",
+    "dateStart": "2026-01-12",
+    "dateEnd": "2026-01-15",
+    "venue": "Javits Center",
+    "city": "New York",
+    "region": "NY",
+    "country": "United States",
+    "latitude": "40.7578",
+    "longitude": "-74.0026",
+    "attendeeCount": 40000,
+    "declaredExpectedAttendees": "38000",
+    "estimatedExpectedAttendees": "40000",
+    "priceLower": "199",
+    "priceUpper": "1499",
+    "eventType": "trade_show",
+    "categories": [
+      {
+        "id": 12,
+        "code": "retail-tech",
+        "name": "Retail Technology",
+        "description": "Technology for retail operators and brands",
+        "confidence": "0.96"
+      }
+    ],
+    "topics": [
+      "retail",
+      "commerce",
+      "technology"
+    ],
+    "topicsCount": 3,
+    "verified": 1,
+    "future": 1,
+    "historic": 0,
+    "historicEvent": null,
+    "image": null,
+    "dataSource": "database",
+    "exhibitorCount": 950,
+    "personnelCount": 6200,
+    "eventTypes": [
+      {
+        "id": 5,
+        "typeName": "Trade Show",
+        "slug": "trade-show",
+        "isPrimary": true
+      }
+    ]
+  }
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- This endpoint returns the richer detail shape, including `categories`, `topics`, coordinates, and `eventTypes`.
+- Use [Events list](/api-reference/events/list) or [Event brief details](/api-reference/events/brief) when you only need lighter event payloads.
