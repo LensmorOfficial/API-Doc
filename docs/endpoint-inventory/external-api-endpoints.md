@@ -30,6 +30,7 @@
 | GET | /external/exhibitors/events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `exhibitor_id` is a numeric string |
 | GET | /external/personnel/list | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/personnel/profile | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string |
+| GET | /external/personnel/events/by-linkedin | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | No | `linkedin_url` normalizes to a LinkedIn profile URL, then returns the matched personnel profile plus paginated associated events |
 | GET | /external/personnel/events | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string |
 | GET | /external/contacts/search | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Search is scoped to the authenticated user context |
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |
@@ -80,9 +81,7 @@ Bearer token required.
 | `city` | string or `null` | City. |
 | `region` | string or `null` | Region or state. |
 | `country` | string or `null` | Country. |
-| `attendeeCount` | integer or `null` | Attendance count snapshot. |
 | `exhibitorCount` | integer or `null` | Exhibitor count snapshot. |
-| `personnelCount` | integer or `null` | Personnel count snapshot. |
 | `image` | string or `null` | Image URL. |
 | `dataSource` | string or `null` | Upstream data source label. |
 
@@ -103,9 +102,7 @@ Bearer token required.
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": 10000,
       "exhibitorCount": 250,
-      "personnelCount": 1800,
       "image": null,
       "dataSource": "vendelux"
     }
@@ -123,6 +120,7 @@ Bearer token required.
 
 ### Notes
 - When neither `date_start_from` nor `date_start_to` is supplied, the runtime defaults to events starting from yesterday through one year from now.
+- List-summary items intentionally omit `attendeeCount` and `personnelCount`; those values were removed from this response because they were inaccurate in list context.
 
 ## POST /external/events/fit-score
 
@@ -162,9 +160,7 @@ Bearer token required.
     "city": "Las Vegas",
     "region": "Nevada",
     "country": "United States",
-    "attendeeCount": 10000,
     "exhibitorCount": 250,
-    "personnelCount": 1800,
     "image": null,
     "dataSource": "vendelux"
   },
@@ -262,9 +258,9 @@ Bearer token required.
 #### `summary` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `attendeeCount` | integer | Defaults to `0` when absent in storage. |
+| `attendeeCount` | integer | Defaults to `0` when absent in storage or when the event has no personnel relations. |
 | `exhibitorCount` | integer | Defaults to `0` when absent in storage. |
-| `personnelCount` | integer | Defaults to `0` when absent in storage. |
+| `personnelCount` | integer | Defaults to `0` when absent in storage or when the event has no personnel relations. |
 | `topCategories` | array | Currently returned as an empty array. |
 | `dataFreshness` | string | Currently hard-coded to `database_snapshot`. |
 
@@ -284,9 +280,7 @@ Bearer token required.
     "city": "Las Vegas",
     "region": "Nevada",
     "country": "United States",
-    "attendeeCount": 10000,
     "exhibitorCount": 250,
-    "personnelCount": 1800,
     "image": null,
     "dataSource": "vendelux"
   },
@@ -344,7 +338,7 @@ Bearer token required.
 | `country` | string or `null` | Country. |
 | `latitude` | string or `null` | Latitude rendered as a string. |
 | `longitude` | string or `null` | Longitude rendered as a string. |
-| `attendeeCount` | integer | Defaults to `0` when absent. |
+| `attendeeCount` | integer or `null` | `null` when the event has no personnel relations; otherwise defaults to `0` when absent. |
 | `declaredExpectedAttendees` | string or `null` | Declared attendance expectation rendered as a string. |
 | `estimatedExpectedAttendees` | string or `null` | Estimated attendance expectation rendered as a string. |
 | `priceLower` | string or `null` | Lower ticket price rendered as a string. |
@@ -360,7 +354,7 @@ Bearer token required.
 | `image` | string or `null` | Image URL. |
 | `dataSource` | string or `null` | Upstream data source label. |
 | `exhibitorCount` | integer | Defaults to `0` when absent. |
-| `personnelCount` | integer | Defaults to `0` when absent. |
+| `personnelCount` | integer or `null` | `null` when the event has no personnel relations; otherwise defaults to `0` when absent. |
 | `eventTypes` | object[] | Detailed event-type rows. |
 
 #### `event.categories[]` fields
@@ -427,6 +421,7 @@ Bearer token required.
 ### Notes
 - `GET /external/events/:id` accepts either the internal row `id` or external `eventId` in the `:id` segment.
 - Numeric `:id` values are resolved against internal `Event.id` first, then retried as external `eventId`.
+- `attendeeCount` and `personnelCount` may be `null` on detail responses when the event has no personnel relations.
 
 ## GET /external/exhibitors/list
 
@@ -444,6 +439,8 @@ Bearer token required.
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 | `keyword` | No | string | Exhibitor search term for the event. |
 | `country` | No | string | Exhibitor country filter. |
+| `category` | No | string[] | Exhibitor category filters; repeated query params are supported. |
+| `industry` | No | string[] | Exhibitor industry filters; repeated query params are supported. |
 
 ### Response body
 #### Top-level fields
@@ -509,7 +506,7 @@ Bearer token required.
 ```
 
 ### Error responses
-- `400 Bad Request` when `event_id` is invalid.
+- `400 Bad Request` when `event_id` is invalid or list filters fail validation.
 - `401 Unauthorized` when the API key is missing, malformed, or invalid.
 - `404 Not Found` when the target event cannot be resolved.
 
@@ -704,9 +701,7 @@ Bearer token required.
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": 10000,
       "exhibitorCount": 250,
-      "personnelCount": 1800,
       "image": null,
       "dataSource": "vendelux",
       "matchedExhibitors": [
@@ -850,9 +845,7 @@ Bearer token required.
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": 10000,
       "exhibitorCount": 250,
-      "personnelCount": 1800,
       "image": null,
       "dataSource": "vendelux"
     }
@@ -995,6 +988,101 @@ Bearer token required.
 ### Notes
 - Request-side `personnel_id` differs from the response-side `id` field.
 
+## GET /external/personnel/events/by-linkedin
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`200 OK`
+
+### Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `linkedin_url` | Yes | string | Must normalize to a valid LinkedIn profile URL. Query strings, fragments, and trailing slashes are ignored during matching. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `personnel` | object | Same personnel profile shape as `GET /external/personnel/profile`. |
+| `events` | object | Same paginated event-list shape as `GET /external/personnel/events`. |
+
+#### `personnel` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal personnel row identifier. |
+| `fullName` | string | Full name. |
+| `title` | string or `null` | Sourced from `personnel.bio`. |
+| `department` | string or `null` | Department value. |
+| `seniorityLevel` | string or `null` | Seniority or level value. |
+| `linkedinUrl` | string or `null` | LinkedIn URL. |
+| `companyName` | string or `null` | Latest current exhibitor association, if any. |
+| `sourceType` | string or `null` | Source label. |
+
+#### `events` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Same event summary shape as `GET /external/events/list` `items[]`. |
+| `total` | integer | Total distinct associated events. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+### Response example
+```json
+{
+  "personnel": {
+    "id": "789",
+    "fullName": "Jane Doe",
+    "title": "VP Marketing",
+    "department": "Marketing",
+    "seniorityLevel": "vp",
+    "linkedinUrl": "https://linkedin.com/in/jane-doe",
+    "companyName": "Acme",
+    "sourceType": "exhibitor"
+  },
+  "events": {
+    "items": [
+      {
+        "id": "123",
+        "eventId": "139574",
+        "name": "Shoptalk",
+        "nickname": null,
+        "description": null,
+        "url": "https://example.com",
+        "dateStart": "2026-03-25",
+        "dateEnd": "2026-03-28",
+        "venue": "Convention Center",
+        "city": "Las Vegas",
+        "region": "Nevada",
+        "country": "United States",
+        "exhibitorCount": 250,
+        "image": null,
+        "dataSource": "vendelux"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 20,
+    "totalPages": 1,
+    "hasMore": false
+  }
+}
+```
+
+### Error responses
+- `400 Bad Request` when `linkedin_url` is missing or does not normalize to a valid LinkedIn profile URL.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when no personnel row can be resolved from the normalized LinkedIn URL.
+
+### Notes
+- Runtime matching normalizes the URL to `https://linkedin.com/in/<slug>` form before lookup.
+- If the personnel row exists but has no exhibitor associations, `events` returns an empty paginated success response instead of `404`.
+
 ## GET /external/personnel/events
 
 ### Authentication
@@ -1038,9 +1126,7 @@ Bearer token required.
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": 10000,
       "exhibitorCount": 250,
-      "personnelCount": 1800,
       "image": null,
       "dataSource": "vendelux"
     }
@@ -1131,7 +1217,7 @@ Bearer token required.
 ### Request body
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_url` | Conditionally | string | Optional company URL. At least one of `company_url` or `target_audience` is required. |
+| `company_url` | Conditionally | string | Optional public `http(s)` URL. At least one of `company_url` or `target_audience` is required. |
 | `target_audience` | Conditionally | string | Optional audience description. At least one of `company_url` or `target_audience` is required. |
 | `timeout_ms` | No | integer | Optional synchronous onboarding timeout, min `60000`, max `3600000`. |
 | `page` | No | integer | Defaults to `1`. |
@@ -1208,7 +1294,7 @@ Bearer token required.
 | `updateTime` | integer-like value | Millisecond timestamp from the event row. |
 | `unlocked` | boolean | User-specific unlock flag. |
 | `matched_exhibitor_count` | integer | Number of matched exhibitors at the event. |
-| `match_score` | number or `null` | Raw profile recommendation score. |
+| `match_score` | number | Raw profile recommendation score after runtime numeric coercion. |
 
 ### Response example
 ```json
@@ -1295,7 +1381,8 @@ Bearer token required.
 | `location` | No | string | Country or location filter. |
 | `searchQuery` | No | string | Search term over company name or description. |
 | `exhibitorName` | No | string[] | Exact exhibitor-name filter; repeated query params or a single value become an array. |
-| `category` | No | string[] | Category-name filter. |
+| `category` | No | string[] | Category-name filter; repeated query params or a single value become an array. |
+| `industry` | No | string[] | Industry-name filter; repeated query params or a single value become an array. |
 | `employeesMin` | No | integer | Minimum employee count. |
 | `employeesMax` | No | integer | Maximum employee count. |
 
