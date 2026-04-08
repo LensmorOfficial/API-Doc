@@ -470,6 +470,7 @@ Bearer token required.
 | `fundingRound` | string or `null` | Funding-round label. |
 | `matched_event_ids` | string[] | For this route, contains the resolved event's external `eventId`. |
 | `techStacks` | string[] | Normalized tech-stack names. |
+| `categories` | string[] | Optional. Exhibitor categories. Event-scoped when the upstream query is event-scoped. Present only when non-empty. |
 
 ### Response example
 ```json
@@ -494,6 +495,10 @@ Bearer token required.
       "techStacks": [
         "React",
         "PostgreSQL"
+      ],
+      "categories": [
+        "Retail",
+        "Fintech"
       ]
     }
   ],
@@ -560,6 +565,9 @@ Bearer token required.
       "matched_event_ids": [],
       "techStacks": [
         "React"
+      ],
+      "categories": [
+        "Retail"
       ]
     }
   ],
@@ -626,7 +634,8 @@ Bearer token required.
       "linkedinUrl": null,
       "fundingRound": null,
       "matched_event_ids": [],
-      "techStacks": []
+      "techStacks": [],
+      "categories": []
     }
   ],
   "total": 1,
@@ -758,6 +767,7 @@ Bearer token required.
 | `linkedinUrl` | string or `null` | LinkedIn URL. |
 | `fundingRound` | string or `null` | Funding-round label. |
 | `matched_event_ids` | string[] | Empty unless explicit match scope is attached to the source object. |
+| `categories` | string[] | Optional. Exhibitor categories. Present only when non-empty. |
 | `events` | object[] | First page of associated events, limited to 20 rows. |
 
 #### `events[]` fields
@@ -783,6 +793,9 @@ Bearer token required.
   "linkedinUrl": null,
   "fundingRound": null,
   "matched_event_ids": [],
+  "categories": [
+    "Retail"
+  ],
   "events": [
     {
       "id": "123",
