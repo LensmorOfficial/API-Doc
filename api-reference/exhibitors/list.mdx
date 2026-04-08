@@ -42,7 +42,8 @@ See [Authentication](/authentication)
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "techStacks": ["Cloudflare", "Nginx"],
-      "matched_event_ids": ["139574"]
+      "matched_event_ids": ["139574"],
+      "categories": ["Retail", "Fintech"]
     }
   ],
   "total": 87,
@@ -62,3 +63,4 @@ See [Authentication](/authentication)
 - This endpoint is event-scoped and requires `event_id` on every request.
 - `matched_event_ids` reflects the requested event scope.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- `categories` is an optional string array of exhibitor business categories. It is event-scoped when the query is event-scoped and omitted when empty.

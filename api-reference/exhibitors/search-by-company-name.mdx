@@ -38,7 +38,8 @@ See [Authentication](/authentication)
       "linkedinUrl": null,
       "fundingRound": null,
       "techStacks": [],
-      "matched_event_ids": []
+      "matched_event_ids": [],
+      "categories": []
     }
   ],
   "total": 1,
@@ -57,3 +58,4 @@ See [Authentication](/authentication)
 - This endpoint returns exhibitors. To get events from a company name instead, use `POST /external/exhibitors/search-events`.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
