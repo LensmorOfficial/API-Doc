@@ -84,3 +84,5 @@ See [Authentication](/authentication)
 ## Notes
 - This endpoint returns the richer detail shape, including `categories`, `topics`, coordinates, and `eventTypes`.
 - Use [Events list](/api-reference/events/list) or [Event brief details](/api-reference/events/brief) when you only need lighter event payloads.
+- Numeric `:id` values are resolved against internal `Event.id` first, then retried as external `eventId`.
+- `attendeeCount` and `personnelCount` may be `null` when the event has no personnel relations.

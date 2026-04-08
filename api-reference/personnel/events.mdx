@@ -37,9 +37,7 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
-      "attendeeCount": 40000,
       "exhibitorCount": 950,
-      "personnelCount": 6200,
       "image": null,
       "dataSource": "database"
     }
@@ -60,3 +58,4 @@ See [Authentication](/authentication)
 ## Notes
 - Event items reuse the shared public event-item shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
+- If the personnel row exists but has no exhibitor associations, the API returns an empty paginated success response rather than `404 Not Found`.

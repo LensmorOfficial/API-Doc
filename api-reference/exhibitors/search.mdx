@@ -1,8 +1,8 @@
 # Exhibitors search
 
-Search exhibitors using company context and optional event scope.
+Search exhibitors using company context.
 
-Use this endpoint when you want exhibitor results derived from company inputs such as a public company URL, a target audience description, or an optional event constraint.
+Use this endpoint when you want exhibitor results derived from a public company URL, a target audience description, or both.
 
 ## Endpoint
 `POST /external/exhibitors/search`
@@ -16,9 +16,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_url` | Conditionally | string | Company website URL. Provide at least one of `company_url` or `target_audience`. Malformed URLs return `400`. |
+| `company_url` | Conditionally | string | Public `http(s)` company URL. Provide at least one of `company_url` or `target_audience`. |
 | `target_audience` | Conditionally | string | Free-form audience description. Provide at least one of `company_url` or `target_audience`. |
-| `event_id` | No | string | Optional event scope. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -40,7 +39,7 @@ See [Authentication](/authentication)
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "techStacks": ["Cloudflare", "Nginx"],
-      "matched_event_ids": ["139574"]
+      "matched_event_ids": []
     }
   ],
   "total": 87,
@@ -58,6 +57,8 @@ See [Authentication](/authentication)
 ## Notes
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - No matches return an empty paginated success response (`201`) rather than `404 Not Found`.
-- When no `event_id` is supplied, the live service returns `matched_event_ids` as an empty array.
+- `company_url` is reduced to its hostname with leading `www.` removed before runtime matching.
+- If both `company_url` and `target_audience` are provided, `target_audience` drives the company-name search string while the extracted domain is still applied as an exact filter.
+- `matched_event_ids` is currently returned as an empty array for this route.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.

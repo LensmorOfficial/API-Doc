@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier. |
+| `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
 | `exhibitor_id` | No | string | Filter by a specific exhibitor. |
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
@@ -55,3 +55,5 @@ See [Authentication](/authentication)
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style public shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
+- Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
+- `search_query` matches either relation `position` text or personnel `fullName`.

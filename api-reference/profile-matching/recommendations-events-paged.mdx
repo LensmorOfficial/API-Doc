@@ -38,7 +38,7 @@ See [Authentication](/authentication)
   "status": "completed",
   "items": [
     {
-      "id": "123",
+      "id": 123,
       "eventId": "139574",
       "name": "NRF 2026",
       "nickname": null,
@@ -50,9 +50,28 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
+      "latitude": null,
+      "longitude": null,
       "attendeeCount": 40000,
+      "declaredExpectedAttendees": 0,
+      "estimatedExpectedAttendees": null,
+      "priceLower": null,
+      "priceUpper": null,
+      "eventType": null,
+      "categories": [],
+      "topics": [],
+      "topicsCount": 0,
+      "verified": 1,
+      "future": 1,
+      "historic": 0,
+      "historicEvent": null,
+      "image": null,
+      "dataSource": "database",
       "exhibitorCount": 950,
       "personnelCount": 6200,
+      "eventTypes": [],
+      "createTime": 1711000000000,
+      "updateTime": 1711000000000,
       "matched_exhibitor_count": 19,
       "match_score": 0.84,
       "unlocked": false
@@ -76,5 +95,8 @@ See [Authentication](/authentication)
 - `409 Conflict`
 
 ## Notes
-- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
-- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
+- This route runs synchronous apply-onboarding first, then returns the current paged recommendation snapshot.
+- Paging is applied after duplicate recommendation rows are merged by event.
+- `match_score` is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.
+- Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`.
+- Empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.

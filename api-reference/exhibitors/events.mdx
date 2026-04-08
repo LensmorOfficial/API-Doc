@@ -37,9 +37,7 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
-      "attendeeCount": 40000,
       "exhibitorCount": 950,
-      "personnelCount": 6200,
       "image": null,
       "dataSource": "database"
     }
@@ -60,4 +58,5 @@ See [Authentication](/authentication)
 ## Notes
 - Event items reuse the shared public event-item shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
+- Request-side `exhibitor_id` is snake_case, while response-side identifiers remain `id` and `eventId`.
 - This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.

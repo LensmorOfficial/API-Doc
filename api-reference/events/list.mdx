@@ -41,9 +41,7 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
-      "attendeeCount": 40000,
       "exhibitorCount": 950,
-      "personnelCount": 6200,
       "image": null,
       "dataSource": "database"
     }
@@ -62,3 +60,5 @@ See [Authentication](/authentication)
 ## Notes
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
+- When neither `date_start_from` nor `date_start_to` is supplied, the runtime defaults to events starting from yesterday through one year from now.
+- List-summary items intentionally omit `attendeeCount` and `personnelCount`.

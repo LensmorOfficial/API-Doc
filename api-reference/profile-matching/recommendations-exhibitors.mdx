@@ -16,13 +16,14 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier. |
+| `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `location` | No | string | Country or region filter. |
 | `searchQuery` | No | string | Company-name or description search. |
 | `exhibitorName` | No | string[] | Exact-name filter; repeated query params are normalized into arrays. |
 | `category` | No | string[] | Category filter. |
+| `industry` | No | string[] | Industry-name filter; repeated query params are normalized into arrays. |
 | `employeesMin` | No | integer | Minimum employee count. |
 | `employeesMax` | No | integer | Maximum employee count. |
 
@@ -60,5 +61,7 @@ See [Authentication](/authentication)
 ## Notes
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
 - The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- The route may return fallback metadata at the top level: `code: "AI_SEARCH_RESULT_MISMATCH"` and `show_refresh_hint: true`.
+- In fallback mode, `items.length` may be smaller than `pageSize` even when `hasMore` is true because stored recommended exhibitor ids can resolve to deleted or missing exhibitor rows.
 - `categories` is preserved when recommendation data contains category labels.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.

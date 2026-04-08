@@ -47,8 +47,9 @@ See [Authentication](/authentication)
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
-- `404 Not Found`
 
 ## Notes
 - Email is intentionally not returned by this endpoint.
+- Short company queries use a direct contains-style fallback; longer company queries use scored matching.
+- Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).

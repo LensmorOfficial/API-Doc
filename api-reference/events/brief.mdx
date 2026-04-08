@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier. |
+| `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
 
 ## Response example
 ```json
@@ -34,9 +34,7 @@ See [Authentication](/authentication)
     "city": "New York",
     "region": "NY",
     "country": "United States",
-    "attendeeCount": 40000,
     "exhibitorCount": 950,
-    "personnelCount": 6200,
     "image": null,
     "dataSource": "database"
   },
@@ -58,3 +56,4 @@ See [Authentication](/authentication)
 ## Notes
 - This is a lightweight snapshot endpoint.
 - `topCategories` is currently returned as an empty array by the live service.
+- `summary.attendeeCount` and `summary.personnelCount` fall back to `0` when the event has no personnel relations.

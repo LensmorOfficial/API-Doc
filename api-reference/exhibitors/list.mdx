@@ -2,7 +2,7 @@
 
 List exhibitors for a specific event.
 
-Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with basic search and country filtering.
+Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with keyword, country, category, and industry filters.
 
 ## Endpoint
 `GET /external/exhibitors/list`
@@ -16,11 +16,13 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier used to scope the exhibitor list. |
+| `event_id` | Yes | string | Event identifier used to scope the exhibitor list. Supports either `Event.eventId` or internal `Event.id`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `keyword` | No | string | Exhibitor keyword search. |
 | `country` | No | string | Country filter. |
+| `category` | No | string[] | Exhibitor category filters; repeated query params are supported. |
+| `industry` | No | string[] | Exhibitor industry filters; repeated query params are supported. |
 
 ## Response example
 ```json
