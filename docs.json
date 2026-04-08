@@ -58,6 +58,7 @@
                 "pages": [
                   "api-reference/personnel/list",
                   "api-reference/personnel/profile",
+                  "api-reference/personnel/events-by-linkedin",
                   "api-reference/personnel/events"
                 ]
               },

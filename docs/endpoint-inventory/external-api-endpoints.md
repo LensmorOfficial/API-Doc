@@ -30,7 +30,7 @@
 | GET | /external/exhibitors/events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `exhibitor_id` is a numeric string |
 | GET | /external/personnel/list | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/personnel/profile | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string |
-| GET | /external/personnel/events/by-linkedin | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | No | `linkedin_url` normalizes to a LinkedIn profile URL, then returns the matched personnel profile plus paginated associated events |
+| GET | /external/personnel/events/by-linkedin | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `linkedin_url` normalizes to a LinkedIn profile URL, then returns the matched personnel profile plus paginated associated events |
 | GET | /external/personnel/events | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string |
 | GET | /external/contacts/search | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Search is scoped to the authenticated user context |
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |

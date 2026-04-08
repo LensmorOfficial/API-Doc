@@ -1,0 +1,74 @@
+# Personnel related events by LinkedIn
+
+Resolve a person from their LinkedIn profile URL and return their related events.
+
+Use this endpoint when you have a LinkedIn profile URL instead of a `personnel_id` and need both the matched personnel profile and their associated events.
+
+## Endpoint
+`GET /external/personnel/events/by-linkedin`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `linkedin_url` | Yes | string | Must normalize to a valid LinkedIn profile URL. Query strings, fragments, and trailing slashes are ignored during matching. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Response example
+```json
+{
+  "personnel": {
+    "id": "789",
+    "fullName": "Jane Doe",
+    "title": "VP Marketing",
+    "department": "Marketing",
+    "seniorityLevel": "vp",
+    "linkedinUrl": "https://linkedin.com/in/jane-doe",
+    "companyName": "Acme",
+    "sourceType": "exhibitor"
+  },
+  "events": {
+    "items": [
+      {
+        "id": "123",
+        "eventId": "139574",
+        "name": "Shoptalk",
+        "nickname": null,
+        "description": null,
+        "url": "https://example.com",
+        "dateStart": "2026-03-25",
+        "dateEnd": "2026-03-28",
+        "venue": "Convention Center",
+        "city": "Las Vegas",
+        "region": "Nevada",
+        "country": "United States",
+        "exhibitorCount": 250,
+        "image": null,
+        "dataSource": "vendelux"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 20,
+    "totalPages": 1,
+    "hasMore": false
+  }
+}
+```
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Runtime matching normalizes `linkedin_url` to `https://linkedin.com/in/<slug>` form before lookup.
+- `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile).
+- `events` reuses the same paginated event-item shape as [Personnel related events](/api-reference/personnel/events).
+- If the personnel row exists but has no exhibitor associations, `events` returns an empty paginated success response rather than `404 Not Found`.
