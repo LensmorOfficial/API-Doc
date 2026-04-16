@@ -1,3 +1,7 @@
+---
+title: "Exhibitor event search"
+---
+
 # Exhibitor event search
 
 Search events directly from an exhibitor company name using a precision-first matcher.
@@ -5,15 +9,19 @@ Search events directly from an exhibitor company name using a precision-first ma
 Use this endpoint when you have a company name, possibly incomplete, and want deduplicated event results without resolving `exhibitor_id` first.
 
 ## Endpoint
+
 `POST /external/exhibitors/search-events`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `201 Created`
 
 ## Request body
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
@@ -21,6 +29,7 @@ See [Authentication](/authentication)
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -57,10 +66,12 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 
 ## Notes
+
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
 - Longer queries use strict token or prefix admission instead of permissive `contains` matching.

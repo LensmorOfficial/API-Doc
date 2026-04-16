@@ -1,3 +1,7 @@
+---
+title: "Event brief details"
+---
+
 # Event brief details
 
 Fetch a lightweight summary for a single event.
@@ -5,20 +9,25 @@ Fetch a lightweight summary for a single event.
 Use this endpoint when you need a compact event snapshot instead of a list response or a ranking result.
 
 ## Endpoint
+
 `GET /external/events/brief`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
 
 ## Response example
+
 ```json
 {
   "event": {
@@ -49,11 +58,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 
 ## Notes
+
 - This is a lightweight snapshot endpoint.
 - `topCategories` is currently returned as an empty array by the live service.
 - `summary.attendeeCount` and `summary.personnelCount` fall back to `0` when the event has no personnel relations.

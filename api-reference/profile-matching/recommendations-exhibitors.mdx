@@ -1,3 +1,7 @@
+---
+title: "Recommended exhibitors for event"
+---
+
 # Recommended exhibitors for event
 
 Return recommended exhibitors for a single event.
@@ -5,15 +9,19 @@ Return recommended exhibitors for a single event.
 Use this endpoint when you already know the target event and want exhibitor recommendations under the caller's current recommendation state.
 
 ## Endpoint
+
 `GET /external/profile-matching/recommendations/exhibitors`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
@@ -21,13 +29,14 @@ See [Authentication](/authentication)
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `location` | No | string | Country or region filter. |
 | `searchQuery` | No | string | Company-name or description search. |
-| `exhibitorName` | No | string[] | Exact-name filter; repeated query params are normalized into arrays. |
-| `category` | No | string[] | Category filter. |
+| `exhibitorName` | No | string\[\] | Exact-name filter; repeated query params are normalized into arrays. |
+| `category` | No | string\[\] | Category filter. |
 | `industry` | No | string[] | Industry-name filter; repeated query params are normalized into arrays. |
 | `employeesMin` | No | integer | Minimum employee count. |
 | `employeesMax` | No | integer | Maximum employee count. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -54,11 +63,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 
 ## Notes
+
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
 - The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
 - The route may return fallback metadata at the top level: `code: "AI_SEARCH_RESULT_MISMATCH"` and `show_refresh_hint: true`.

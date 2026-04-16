@@ -1,3 +1,7 @@
+---
+title: "Personnel list"
+---
+
 # Personnel list
 
 List personnel records for a specific event.
@@ -5,15 +9,19 @@ List personnel records for a specific event.
 Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
 
 ## Endpoint
+
 `GET /external/personnel/list`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
@@ -25,6 +33,7 @@ See [Authentication](/authentication)
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -48,11 +57,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 
 ## Notes
+
 - Personnel list responses intentionally use the lightweight contact-style public shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.

@@ -1,3 +1,7 @@
+---
+title: "Events rank"
+---
+
 # Events rank
 
 Rank multiple events for the authenticated caller.
@@ -5,20 +9,25 @@ Rank multiple events for the authenticated caller.
 Use this endpoint when you already have a candidate set of events and want them returned in preference order.
 
 ## Endpoint
+
 `POST /external/events/rank`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `201 Created`
 
 ## Request body
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string[] | List of event identifiers to rank. Each value supports either `Event.eventId` or internal `Event.id`. |
+| `event_ids` | Yes | string\[\] | List of event identifiers to rank. Each value supports either `Event.eventId` or internal `Event.id`. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -41,11 +50,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 - `409 Conflict`
 
 ## Notes
+
 - The current service returns an ordered `items` array with `rank` and `match_score`.
 - `reasons` is currently emitted as an empty array by the live service.

@@ -1,3 +1,7 @@
+---
+title: "Exhibitors search"
+---
+
 # Exhibitors search
 
 Search exhibitors using company context.
@@ -5,15 +9,19 @@ Search exhibitors using company context.
 Use this endpoint when you want exhibitor results derived from a public company URL, a target audience description, or both.
 
 ## Endpoint
+
 `POST /external/exhibitors/search`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `201 Created`
 
 ## Request body
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Public `http(s)` company URL. Provide at least one of `company_url` or `target_audience`. |
@@ -22,6 +30,7 @@ See [Authentication](/authentication)
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -52,10 +61,12 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 
 ## Notes
+
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - No matches return an empty paginated success response (`201`) rather than `404 Not Found`.
 - `company_url` is reduced to its hostname with leading `www.` removed before runtime matching.

@@ -1,3 +1,7 @@
+---
+title: "Recommended events (paged results)"
+---
+
 # Recommended events (paged results)
 
 Request paged event recommendations for the authenticated caller.
@@ -5,15 +9,19 @@ Request paged event recommendations for the authenticated caller.
 Use this endpoint when you want recommendation results plus the filtering and status metadata returned by the current profile-matching flow.
 
 ## Endpoint
+
 `POST /external/profile-matching/recommendations/events/paged`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `201 Created`
 
 ## Request body
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
@@ -24,8 +32,8 @@ See [Authentication](/authentication)
 | `city` | No | string | City filter. |
 | `region` | No | string | Region filter. |
 | `country` | No | string | Country filter. |
-| `category` | No | string[] | Category filter; arrays and comma-separated inputs are normalized by the DTO. |
-| `eventTypeIds` | No | integer[] | Event type ID filter. |
+| `category` | No | string\[\] | Category filter; arrays and comma-separated inputs are normalized by the DTO. |
+| `eventTypeIds` | No | integer\[\] | Event type ID filter. |
 | `dateStartFrom` | No | ISO date string | Lower date bound. |
 | `dateStartTo` | No | ISO date string | Upper date bound. |
 | `future` | No | integer | Future-event flag. |
@@ -33,6 +41,7 @@ See [Authentication](/authentication)
 | `attendeeCountMax` | No | integer | Maximum attendee count. |
 
 ## Response example
+
 ```json
 {
   "status": "completed",
@@ -90,11 +99,15 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `409 Conflict`
 
 ## Notes
+- This route is the current public replacement for older draft references to `GET /external/profile-matching/recommendations/events`.
+- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
 - This route runs synchronous apply-onboarding first, then returns the current paged recommendation snapshot.
 - Paging is applied after duplicate recommendation rows are merged by event.
 - `match_score` is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.

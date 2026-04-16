@@ -3,7 +3,6 @@ title: "Lensmor API"
 description: "Access Lensmor Event Intelligence data through our APIs and developer tools to build custom integrations and workflows."
 keywords: ["event intelligence", "api", "developer tools", "custom integrations", "workflows", "lensmor"]
 ---
-
 # Lensmor API
 
 Lensmor provides developer-facing access to the current public API contract exposed under `https://platform.lensmor.com/external/*`.
@@ -11,17 +10,19 @@ Lensmor provides developer-facing access to the current public API contract expo
 Use this site to understand authentication, shared response conventions, and the available resources for events, exhibitors, personnel, contacts, and profile matching.
 
 ## Base URL
+
 `https://platform.lensmor.com`
 
 All endpoint paths in this documentation are relative to this base URL. For example, `GET /external/events/list` resolves to `GET https://platform.lensmor.com/external/events/list`.
 
 ## Quick start
-1. Obtain a valid user API key. API access is available to paying customers — contact [hello@lensmor.com](mailto:hello@lensmor.com) to purchase.
+1. Get a valid user API key. Obtain a valid user API key. API access is available to paying customers — contact [hello@lensmor.com](mailto:hello@lensmor.com) to purchase.
 2. Send requests to `https://platform.lensmor.com` with `Authorization: Bearer uak_your_api_key`.
 3. Read [Authentication](/authentication) before calling any endpoint.
 4. Browse the API Reference by resource in the left navigation.
 
 ## Available resources
+
 - **Events** — browse, score, rank, and inspect event details.
 - **Exhibitors** — list exhibitors, search by profile inputs, inspect profiles, and fetch related events.
 - **Personnel** — list people, inspect profiles, and fetch related events.
@@ -29,12 +30,16 @@ All endpoint paths in this documentation are relative to this base URL. For exam
 - **Profile Matching** — request paged recommendation results and retrieve recommended exhibitors for an event.
 
 ## Shared conventions
+
 - [Authentication](/authentication)
 - [Error conventions](/concepts/errors)
 - [Pagination conventions](/concepts/pagination)
 
 ## Scope of this documentation
+
 This documentation follows the current public API contract.
 
 It does **not** include:
+- PM draft endpoints that are not implemented in the current codebase
+- Historical auth examples that still show `sk_...`
 - Internal-only implementation details that are not part of the caller contract

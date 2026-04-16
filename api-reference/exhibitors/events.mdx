@@ -1,3 +1,7 @@
+---
+title: "Exhibitor related events"
+---
+
 # Exhibitor related events
 
 List events related to a single exhibitor.
@@ -5,15 +9,19 @@ List events related to a single exhibitor.
 Use this endpoint when you want the event history or current event associations for one exhibitor profile.
 
 ## Endpoint
+
 `GET /external/exhibitors/events`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
@@ -21,6 +29,7 @@ See [Authentication](/authentication)
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -51,11 +60,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 
 ## Notes
+
 - Event items reuse the shared public event-item shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - Request-side `exhibitor_id` is snake_case, while response-side identifiers remain `id` and `eventId`.

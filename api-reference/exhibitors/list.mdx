@@ -1,3 +1,7 @@
+---
+title: "Exhibitors list"
+---
+
 # Exhibitors list
 
 List exhibitors for a specific event.
@@ -5,15 +9,19 @@ List exhibitors for a specific event.
 Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with keyword, country, category, and industry filters.
 
 ## Endpoint
+
 `GET /external/exhibitors/list`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Event identifier used to scope the exhibitor list. Supports either `Event.eventId` or internal `Event.id`. |
@@ -25,6 +33,7 @@ See [Authentication](/authentication)
 | `industry` | No | string[] | Exhibitor industry filters; repeated query params are supported. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -55,11 +64,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 
 ## Notes
+
 - This endpoint is event-scoped and requires `event_id` on every request.
 - `matched_event_ids` reflects the requested event scope.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.

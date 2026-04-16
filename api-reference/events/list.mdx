@@ -1,3 +1,7 @@
+---
+title: "Events list"
+---
+
 # Events list
 
 Browse events currently available through the Lensmor API.
@@ -5,15 +9,19 @@ Browse events currently available through the Lensmor API.
 Use this endpoint when you need a paginated event catalog with basic filters such as keyword, country, city, and date range.
 
 ## Endpoint
+
 `GET /external/events/list`
 
 ## Authentication
+
 See [Authentication](/authentication)
 
 ## Success status code
+
 `200 OK`
 
 ## Query parameters
+
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `page` | No | integer | Defaults to `1`. |
@@ -25,6 +33,7 @@ See [Authentication](/authentication)
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
 
 ## Response example
+
 ```json
 {
   "items": [
@@ -55,9 +64,11 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+
 - `401 Unauthorized`
 
 ## Notes
+
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - When neither `date_start_from` nor `date_start_to` is supplied, the runtime defaults to events starting from yesterday through one year from now.
