@@ -14,7 +14,7 @@
   "favicon": "/logo.svg",
   "colors": {
     "primary": "#6B75FF",
-    "light": "#334155",
+    "light": "#6B75FF",
     "dark": "#E2E8F0"
   },
   "navigation": {
