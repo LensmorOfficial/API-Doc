@@ -11,7 +11,10 @@
     }
   },
   "theme": "mint",
-  "favicon": "/logo.svg",
+  "favicon": {
+    "light": "/logo.svg",
+    "dark": "/logo.svg"
+  },
   "colors": {
     "primary": "#6B75FF",
     "light": "#6B75FF",
@@ -87,5 +90,6 @@
         ]
       }
     ]
-  }
+  },
+  "logo": "/logo.svg"
 }
