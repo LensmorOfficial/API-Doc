@@ -1,0 +1,49 @@
+# Unlock event contacts access
+
+Unlock event-level personnel and contact access for a specific event.
+
+Use this endpoint when preview-style access is no longer enough and you want full contact access for one event.
+
+## Endpoint
+`POST /external/events/:id/unlock`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports either internal `Event.id` or external `Event.eventId`. |
+
+## Response example
+```json
+{
+  "success": true,
+  "alreadyUnlocked": false,
+  "creditsUsed": 2000,
+  "balanceAfter": {
+    "subscriptionBalance": 18000,
+    "permanentBalance": 0,
+    "totalBalance": 18000,
+    "unlimited": false
+  },
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "Shoptalk"
+  }
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+- `402 Payment Required`
+- `404 Not Found`
+- `409 Conflict`
+
+## Notes
+- Repeating the same unlock is idempotent: the route returns `alreadyUnlocked: true`, `creditsUsed: 0`, and `balanceAfter: null`.
+- Successful charged unlocks return the remaining credit balances together with the unlocked event identity.

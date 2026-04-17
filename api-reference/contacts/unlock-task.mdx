@@ -1,0 +1,48 @@
+# Check contact unlock task
+
+Check aggregate and per-person progress for an asynchronous contact email unlock batch.
+
+Use this endpoint after `POST /external/contacts/unlock` returns a `task_id`.
+
+## Endpoint
+`GET /external/contacts/unlock-tasks/:taskId`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `taskId` | Yes | string | Task identifier returned by `POST /external/contacts/unlock`. |
+
+## Response example
+```json
+{
+  "taskId": "901",
+  "taskStatus": "completed",
+  "items": [
+    {
+      "personnelId": "789",
+      "status": "unlocked",
+      "email": "jane.doe@example.com"
+    },
+    {
+      "personnelId": "790",
+      "status": "failed",
+      "errorCode": "TASK_FAILED"
+    }
+  ]
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- `taskStatus` is the aggregate batch status: `pending`, `processing`, `completed`, or `failed`.
+- `email` is returned only for items whose `status` is `unlocked`.
+- Missing underlying subtasks surface as `status: "failed"` with `errorCode: "TASK_NOT_FOUND"`.

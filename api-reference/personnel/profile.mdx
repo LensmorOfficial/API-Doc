@@ -37,7 +37,9 @@ See [Authentication](/authentication)
   "seniorityLevel": "vp",
   "linkedinUrl": "https://linkedin.com/in/jane-smith",
   "companyName": "Acme Retail Systems",
-  "sourceType": "exhibitor"
+  "sourceType": "exhibitor",
+  "email": null,
+  "contactUnlockStatus": "locked"
 }
 ```
 
@@ -48,8 +50,6 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-- The public contract stays lightweight and does not expose email fields.
 - `title` is sourced from `personnel.bio`.
 - `companyName` reflects the latest current exhibitor association, if one exists.
-
-- The public contract stays lightweight and does not expose email fields.
+- `email` and `contactUnlockStatus` are user-scoped and may differ across callers.

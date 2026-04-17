@@ -31,7 +31,9 @@ See [Authentication](/authentication)
     "seniorityLevel": "vp",
     "linkedinUrl": "https://linkedin.com/in/jane-doe",
     "companyName": "Acme",
-    "sourceType": "exhibitor"
+    "sourceType": "exhibitor",
+    "email": null,
+    "contactUnlockStatus": "locked"
   },
   "events": {
     "items": [
@@ -69,6 +71,6 @@ See [Authentication](/authentication)
 
 ## Notes
 - Runtime matching normalizes `linkedin_url` to `https://linkedin.com/in/<slug>` form before lookup.
-- `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile).
+- `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile), including user-scoped `email` and `contactUnlockStatus`.
 - `events` reuses the same paginated event-item shape as [Personnel related events](/api-reference/personnel/events).
 - If the personnel row exists but has no exhibitor associations, `events` returns an empty paginated success response rather than `404 Not Found`.

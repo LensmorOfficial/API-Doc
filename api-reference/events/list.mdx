@@ -71,5 +71,5 @@ See [Authentication](/authentication)
 
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
-- When neither `date_start_from` nor `date_start_to` is supplied, the runtime defaults to events starting from yesterday through one year from now.
+- Date filters apply only when `date_start_from` and/or `date_start_to` are supplied; there is no implicit default date window.
 - List-summary items intentionally omit `attendeeCount` and `personnelCount`.

@@ -45,7 +45,9 @@ See [Authentication](/authentication)
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane-smith",
       "companyName": "Acme Retail Systems",
-      "sourceType": "exhibitor"
+      "sourceType": "exhibitor",
+      "email": null,
+      "contactUnlockStatus": "locked"
     }
   ],
   "total": 3,
@@ -63,8 +65,8 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-
-- Personnel list responses intentionally use the lightweight contact-style public shape.
+- Personnel list responses intentionally use the lightweight contact-style public shape, but now include user-scoped `email` and `contactUnlockStatus`.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
+- `title` is sourced from the event-personnel relation `jobTitle`.
 - `search_query` matches either relation `position` text or personnel `fullName`.

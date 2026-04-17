@@ -41,6 +41,7 @@
                   "api-reference/events/list",
                   "api-reference/events/fit-score",
                   "api-reference/events/rank",
+                  "api-reference/events/unlock",
                   "api-reference/events/brief",
                   "api-reference/events/detail"
                 ]
@@ -68,7 +69,9 @@
               {
                 "group": "Contacts",
                 "pages": [
-                  "api-reference/contacts/search"
+                  "api-reference/contacts/search",
+                  "api-reference/contacts/unlock",
+                  "api-reference/contacts/unlock-task"
                 ]
               },
               {
@@ -76,6 +79,12 @@
                 "pages": [
                   "api-reference/profile-matching/recommendations-events-paged",
                   "api-reference/profile-matching/recommendations-exhibitors"
+                ]
+              },
+              {
+                "group": "Actions",
+                "pages": [
+                  "api-reference/actions/precheck"
                 ]
               }
             ]

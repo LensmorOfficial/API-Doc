@@ -69,9 +69,10 @@ See [Authentication](/authentication)
 
 - `400 Bad Request`
 - `401 Unauthorized`
+- `402 Payment Required`
 
 ## Notes
-
+- This route consumes `50` credits on execution; if downstream search logic fails, the service refunds that charge.
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
 - Longer queries use strict token or prefix admission instead of permissive `contains` matching.
