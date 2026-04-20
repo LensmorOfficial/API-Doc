@@ -20,25 +20,25 @@
 | GET | /external/events/list | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | No implicit date window is applied; date filters only run when provided |
 | POST | /external/events/fit-score | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | POST | /external/events/rank | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `event_ids` accepts either `Event.eventId` or internal `Event.id` |
-| POST | /external/events/:id/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Idempotent event-level unlock; `creditsUsed` is `0` when the event is already unlocked |
+| POST | /external/events/:id/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Idempotent event-level unlock; returns `400 Bad Request` when the event has no chargeable contacts |
 | GET | /external/events/brief | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/events/:id | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | Path `:id` accepts either internal row `id` or external `eventId` |
 | GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Requires `company_url`, `target_audience`, or both; no-match cases stay `200/201` success with empty items |
 | POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Precision-first paged lookup by `company_name` |
-| POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Charge-sensitive reverse lookup from `company_name` to matching events; downstream failures refund the charge |
+| POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Charge-sensitive reverse lookup from `company_name`; longer queries ignore single-character tokens and use strict token/prefix admission |
 | GET | /external/exhibitors/profile | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `exhibitor_id` is a numeric string |
 | GET | /external/exhibitors/events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `exhibitor_id` is a numeric string |
-| GET | /external/personnel/list | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id`; items include user-scoped unlock state |
+| GET | /external/personnel/list | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id`; response now includes preview/full-access `semantics` guidance |
 | GET | /external/personnel/profile | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string; the profile includes user-scoped unlock state |
 | GET | /external/personnel/events/by-linkedin | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `linkedin_url` normalizes to a LinkedIn profile URL, then returns the matched personnel profile with user-scoped unlock state plus paginated associated events |
 | GET | /external/personnel/events | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `personnel_id` is a numeric string |
-| GET | /external/contacts/search | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Search is scoped to the authenticated user context and may expose unlocked email state |
+| GET | /external/contacts/search | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Search is scoped to the authenticated user context, supports optional `person_name`, and may expose unlocked email state |
 | POST | /external/contacts/unlock | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `201 Created` | Yes | Queues an asynchronous email unlock batch for event-scoped personnel IDs |
 | GET | /external/contacts/unlock-tasks/:taskId | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Returns aggregate batch status plus per-person unlock progress |
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |
 | GET | /external/profile-matching/recommendations/exhibitors | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
-| POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body for supported action types without executing them |
+| POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body, including preview unlock guidance and `no_contacts_available` for event unlock prechecks |
 
 ## GET /external/events/list
 
@@ -298,6 +298,7 @@ Bearer token required.
 ```
 
 ### Error responses
+- `400 Bad Request` when the event exists but has no chargeable contacts to unlock.
 - `401 Unauthorized` when the API key is missing, malformed, or invalid.
 - `402 Payment Required` when the caller lacks sufficient credits for an event unlock.
 - `404 Not Found` when the target event cannot be resolved.
@@ -306,6 +307,7 @@ Bearer token required.
 ### Notes
 - `:id` accepts either the internal row `id` or the external `eventId`.
 - Repeating the same unlock is idempotent: the route returns `alreadyUnlocked: true`, `creditsUsed: 0`, and `balanceAfter: null`.
+- The route only succeeds when the event still has chargeable contacts; otherwise it fails fast with `400 Bad Request`.
 - Successful charged unlocks return the remaining credit balances alongside the event identity.
 
 ## GET /external/events/brief
@@ -810,7 +812,7 @@ Bearer token required.
 ### Notes
 - The route consumes `50` credits on execution; if downstream search logic throws, the service refunds that charge.
 - No matches return an empty success response rather than `404`.
-- Short queries stay exact-only after normalization; longer queries use strict token and prefix admission instead of permissive substring matching.
+- Short queries stay exact-only after normalization; longer queries ignore single-character company tokens and use strict token and prefix admission instead of permissive substring matching.
 
 ## GET /external/exhibitors/profile
 
@@ -983,6 +985,7 @@ Bearer token required.
 | `pageSize` | integer | Page size used at runtime. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
+| `semantics` | object | Event-access semantics describing preview/full mode, accessible paging, and unlock guidance. |
 
 #### `items[]` fields
 | Field | Type | Notes |
@@ -997,6 +1000,43 @@ Bearer token required.
 | `sourceType` | string or `null` | Source label. |
 | `email` | string or `null` | Email when this caller has already unlocked the contact; otherwise `null`. |
 | `contactUnlockStatus` | string | User-scoped contact state. Current complete enum: `locked`, `unlocking`, `unlocked`, `failed`. |
+
+#### `semantics` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `accessMode` | string | `preview` when the event is still preview-locked, `full` when the caller already has full event access. |
+| `previewLimit` | integer or `null` | Currently `50` in preview mode; `null` in full mode. |
+| `counts` | object | Actual-versus-visible match counts for the current query. |
+| `pageState` | object | Whether the requested page is currently accessible. |
+| `unlock` | object | Whether event unlock is required to see more results. |
+| `guidance` | object | User-facing machine-readable guidance for the current access state. |
+
+#### `semantics.counts` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `actualTotal` | integer | Total matching personnel for the current query before preview gating. |
+| `visibleTotal` | integer | Total currently accessible under the present access mode. |
+| `remainingLockedCount` | integer | Count of matching personnel that remain inaccessible until event unlock. |
+
+#### `semantics.pageState` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requestedPage` | integer | Echoes the requested page number. |
+| `accessible` | boolean | `false` when the requested page falls outside the preview-accessible window. |
+| `maxAccessiblePage` | integer | Highest page currently accessible under the present access mode. |
+
+#### `semantics.unlock` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requiredForMoreResults` | boolean | `true` when event unlock is required to continue beyond the current preview boundary. |
+| `actionType` | string or `null` | Recommended follow-up action type, currently `unlock_event_contacts` when unlock is needed. |
+| `credits` | integer or `null` | Credits required by the recommended unlock action when present, currently `2000`. |
+
+#### `semantics.guidance` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `code` | string | Current codes include `preview_page_inaccessible`, `preview_results_truncated`, `preview_complete_for_query`, `full_access`, and `no_matching_results`. |
+| `message` | string | Human-readable explanation of the current access state. |
 
 ### Response example
 ```json
@@ -1015,11 +1055,34 @@ Bearer token required.
       "contactUnlockStatus": "locked"
     }
   ],
-  "total": 1,
+  "total": 237,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 1,
-  "hasMore": false
+  "totalPages": 12,
+  "hasMore": true,
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 237,
+      "visibleTotal": 50,
+      "remainingLockedCount": 187
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_contacts",
+      "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_results_truncated",
+      "message": "This event is locked. Only the first 50 matching personnel are currently accessible. Unlock the event to access the remaining matching results."
+    }
+  }
 }
 ```
 
@@ -1032,6 +1095,8 @@ Bearer token required.
 - Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
 - `title` comes from the event-scoped personnel relation, while `email` and `contactUnlockStatus` are user-scoped overlays computed for the authenticated caller.
 - `search_query` matches either relation `position` text or personnel `fullName`.
+- `semantics` exposes whether the caller is in preview or full-access mode for this event, including unlock guidance and actual-versus-visible result counts.
+- When `semantics.pageState.accessible` is `false`, the route can return an empty page while `semantics.counts.actualTotal` still shows more matching results behind the preview boundary.
 
 ## GET /external/personnel/profile
 
@@ -1264,6 +1329,7 @@ Bearer token required.
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company lookup term. Length `1` to `200`. |
 | `role` | No | string | Optional position or role filter. Blank values are normalized away. |
+| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 
@@ -1323,6 +1389,7 @@ Bearer token required.
 
 ### Notes
 - Request-side `company_name` is snake_case, while response-side fields are camelCase.
+- `person_name` can narrow the company-scoped result set by personnel name without requiring an event context.
 - `email` and `contactUnlockStatus` are user-scoped; unlocked emails are only returned for the authenticated caller that has already unlocked them.
 - Short company queries use a direct contains-style fallback; longer company queries use scored matching.
 - Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.
@@ -1707,7 +1774,7 @@ Bearer token required.
 | `allowed` | boolean | Whether the downstream action may proceed. |
 | `should_charge` | boolean | Whether the downstream action would consume credits if executed now. |
 | `credits` | integer | Credit amount for the action if it would charge; otherwise `0`. |
-| `reason_code` | string | Decision code such as `ok`, `already_unlocked`, `unlock_in_progress`, `state_conflict`, `insufficient_balance`, `invalid_subject`, `unsupported_action`, or `not_found`. |
+| `reason_code` | string | Decision code such as `ok`, `already_unlocked`, `unlock_in_progress`, `state_conflict`, `insufficient_balance`, `no_contacts_available`, `invalid_subject`, `unsupported_action`, or `not_found`. |
 | `biz_code` | string | Derived business code used for credit attribution. Empty for actions that do not charge. |
 | `detail` | object | Action-specific decision detail. |
 
@@ -1717,13 +1784,15 @@ Bearer token required.
 | `event_id` | string or `null` | Canonical event identifier when relevant, or the unresolved input in `not_found` cases. |
 | `access_mode` | string | For `query_event_personnel`, currently `full` or `preview`. |
 | `preview_limit` | integer | For `query_event_personnel`, currently `50` when preview mode applies. |
+| `unlock_action_type` | string or `null` | For `query_event_personnel`, suggested paid follow-up action when preview access blocks more results; currently `unlock_event_contacts`. |
+| `unlock_credits` | integer or `null` | For `query_event_personnel`, credits required by the suggested unlock action when present. |
 | `available_balance` | integer | Remaining balance snapshot for event unlock prechecks. |
 | `company_name` | string | Echoed for exhibitor-event search prechecks. |
 | `personnel_ids` | string[] | Deduplicated personnel ids that would be charged for email unlock. |
 | `missing_personnel_ids` | string[] | Returned when requested personnel rows are missing. |
 | `invalid_personnel_ids` | string[] | Returned when requested personnel are not valid for the supplied event. |
 | `requested_count` | integer | Count of unique requested personnel ids. |
-| `chargeable_count` | integer | Count of personnel ids that would consume credits. |
+| `chargeable_count` | integer | Count of records that would consume credits. Event unlock prechecks return `0` here when no chargeable contacts are available. |
 | `already_unlocked_count` | integer | Count of already unlocked contacts that blocks requeue. |
 | `unlocking_count` | integer | Count of in-progress contacts that blocks requeue. |
 
@@ -1731,14 +1800,18 @@ Bearer token required.
 ```json
 {
   "ok": true,
-  "action_type": "search_exhibitor_events",
+  "action_type": "query_event_personnel",
   "allowed": true,
-  "should_charge": true,
-  "credits": 50,
+  "should_charge": false,
+  "credits": 0,
   "reason_code": "ok",
-  "biz_code": "Exhibitor Search - API",
+  "biz_code": "",
   "detail": {
-    "company_name": "Shopify"
+    "event_id": "139574",
+    "access_mode": "preview",
+    "preview_limit": 50,
+    "unlock_action_type": "unlock_event_contacts",
+    "unlock_credits": 2000
   }
 }
 ```
@@ -1750,4 +1823,5 @@ Bearer token required.
 ### Notes
 - This endpoint performs truth evaluation only; it does not execute the downstream action.
 - Unsupported `action_type` values still return `200 OK` with `allowed: false`, `should_charge: false`, and `reason_code: "unsupported_action"`.
-- `detail` is intentionally action-specific: query-personnel prechecks return access-mode hints, unlock prechecks return charge or blocking context, and search prechecks echo the normalized company input.
+- `detail` is intentionally action-specific: query-personnel prechecks return access-mode hints plus unlock guidance, unlock prechecks return charge or blocking context, and search prechecks echo the normalized company input.
+- Event unlock prechecks can return `reason_code: "no_contacts_available"` with `detail.chargeable_count: 0` when the event has nothing left to charge for.
