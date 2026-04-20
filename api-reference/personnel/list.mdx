@@ -7,6 +7,7 @@ title: "Personnel list"
 List personnel records for a specific event.
 
 Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
+The response now includes a `semantics` object that explains preview versus full event access.
 
 ## Endpoint
 
@@ -50,11 +51,34 @@ See [Authentication](/authentication)
       "contactUnlockStatus": "locked"
     }
   ],
-  "total": 3,
+  "total": 237,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 1,
-  "hasMore": false
+  "totalPages": 12,
+  "hasMore": true,
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 237,
+      "visibleTotal": 50,
+      "remainingLockedCount": 187
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_contacts",
+      "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_results_truncated",
+      "message": "This event is locked. Only the first 50 matching personnel are currently accessible. Unlock the event to access the remaining matching results."
+    }
+  }
 }
 ```
 
@@ -66,6 +90,9 @@ See [Authentication](/authentication)
 
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style public shape, but now include user-scoped `email` and `contactUnlockStatus`.
+- `semantics.accessMode` indicates whether this query is still in preview mode or already has full event access.
+- In preview mode, `semantics.previewLimit` is currently `50`, and `semantics.unlock` / `semantics.guidance` explain whether event unlock is required to see more results.
+- If `semantics.pageState.accessible` is `false`, the requested page can be empty even when more matching results exist behind the preview boundary.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
 - `title` is sourced from the event-personnel relation `jobTitle`.

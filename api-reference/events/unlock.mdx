@@ -39,6 +39,7 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
+- `400 Bad Request`
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`
@@ -46,4 +47,5 @@ See [Authentication](/authentication)
 
 ## Notes
 - Repeating the same unlock is idempotent: the route returns `alreadyUnlocked: true`, `creditsUsed: 0`, and `balanceAfter: null`.
+- The route fails fast with `400 Bad Request` when the event exists but no chargeable contacts remain to unlock.
 - Successful charged unlocks return the remaining credit balances together with the unlocked event identity.

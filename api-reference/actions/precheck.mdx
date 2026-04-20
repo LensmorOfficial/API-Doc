@@ -2,7 +2,7 @@
 
 Evaluate whether a supported external action is allowed and whether it would charge credits, without executing it.
 
-Use this endpoint when you need truth data such as `allowed`, `should_charge`, `credits`, and `reason_code` before running an action.
+Use this endpoint when you need truth data such as `allowed`, `should_charge`, `credits`, `reason_code`, and action-specific `detail` before running an action.
 
 ## Endpoint
 `POST /external/actions/precheck`
@@ -28,14 +28,18 @@ See [Authentication](/authentication)
 ```json
 {
   "ok": true,
-  "action_type": "search_exhibitor_events",
+  "action_type": "query_event_personnel",
   "allowed": true,
-  "should_charge": true,
-  "credits": 50,
+  "should_charge": false,
+  "credits": 0,
   "reason_code": "ok",
-  "biz_code": "Exhibitor Search - API",
+  "biz_code": "",
   "detail": {
-    "company_name": "Shopify"
+    "event_id": "139574",
+    "access_mode": "preview",
+    "preview_limit": 50,
+    "unlock_action_type": "unlock_event_contacts",
+    "unlock_credits": 2000
   }
 }
 ```
@@ -47,4 +51,5 @@ See [Authentication](/authentication)
 ## Notes
 - This endpoint performs truth evaluation only and does not execute the downstream action.
 - Unsupported `action_type` values still return `200 OK` with `allowed: false`, `should_charge: false`, and `reason_code: "unsupported_action"`.
-- `detail` is action-specific: personnel queries return access-mode hints, unlock actions return charge or blocking context, and exhibitor-event search echoes the normalized company input.
+- `detail` is action-specific: personnel queries return access-mode hints plus unlock guidance, unlock actions return charge or blocking context, and exhibitor-event search echoes the normalized company input.
+- Event unlock prechecks can return `reason_code: "no_contacts_available"` when the event has nothing left to charge for.

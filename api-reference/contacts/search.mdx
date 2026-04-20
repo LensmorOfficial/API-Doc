@@ -6,7 +6,7 @@ title: "Contacts search"
 
 Search contacts by company name.
 
-Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering.
+Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role and person-name filtering.
 
 ## Endpoint
 
@@ -26,6 +26,7 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name query, length `1` to `200`. |
 | `role` | No | string | Optional role filter. Blank values are normalized away. |
+| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -61,6 +62,7 @@ See [Authentication](/authentication)
 - `401 Unauthorized`
 
 ## Notes
+- `person_name` can narrow the company-scoped result set by personnel name without requiring an event context.
 - `email` and `contactUnlockStatus` are user-scoped; unlocked emails are only returned for the authenticated caller that has already unlocked them.
 - Short company queries use a direct contains-style fallback; longer company queries use scored matching.
 - Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.

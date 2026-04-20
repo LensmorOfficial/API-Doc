@@ -75,6 +75,6 @@ See [Authentication](/authentication)
 - This route consumes `50` credits on execution; if downstream search logic fails, the service refunds that charge.
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
-- Longer queries use strict token or prefix admission instead of permissive `contains` matching.
+- Longer queries ignore single-character company tokens and use strict token or prefix admission instead of permissive `contains` matching.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - `matchedExhibitors` contains only the admitted matched exhibitors that actually participate in the returned event, and event results are returned in deterministic recency order.
