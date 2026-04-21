@@ -1,58 +1,70 @@
----
-title: "Exhibitor event search"
----
-
 # Exhibitor event search
 
 Search events directly from an exhibitor company name using a precision-first matcher.
 
-Use this endpoint when you have a company name, possibly incomplete, and want deduplicated event results without resolving `exhibitor_id` first.
-
 ## Endpoint
-
 `POST /external/exhibitors/search-events`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `201 Created`
 
 ## Request body
-
-| Name | Required | Type | Notes |
+| Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `company_name` | Yes | string | Reverse-lookup source string. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Event summaries enriched with matching exhibitor stubs. |
+| `total` | integer | Total matched events. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| All event summary fields | object | Same event summary shape as `GET /external/events/list` `items[]`. |
+| `matchedExhibitors` | object[] | Matching exhibitors for this event page row. |
+
+### `items[].matchedExhibitors[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal exhibitor row identifier. |
+| `companyName` | string | Matching exhibitor company name. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "id": "123",
       "eventId": "139574",
-      "name": "Shoptalk 2026",
+      "name": "Shoptalk",
       "nickname": null,
       "description": null,
-      "url": null,
-      "dateStart": "2026-03-15",
-      "dateEnd": "2026-03-18",
-      "venue": null,
+      "url": "https://example.com",
+      "dateStart": "2026-03-25",
+      "dateEnd": "2026-03-28",
+      "venue": "Convention Center",
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 100,
+      "exhibitorCount": 250,
       "image": null,
-      "dataSource": null,
+      "dataSource": "vendelux",
       "matchedExhibitors": [
         {
           "id": "456",
-          "companyName": "Shoptalk"
+          "companyName": "Acme"
         }
       ]
     }
@@ -66,13 +78,11 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `402 Payment Required`
+- `400 Bad Request` when `company_name` is empty or invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `402 Payment Required` when the caller lacks sufficient credits for the search charge.
 
 ## Notes
-- This endpoint consumes `50` credits per successful search request.
-- This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
-- No matches return an empty paginated success response rather than `404 Not Found`.
-- `matchedExhibitors` lists the exhibitors matched within each returned event.
+- The route consumes `50` credits on execution; if downstream search logic throws, the service refunds that charge.
+- No matches return an empty success response rather than `404`.
+- Short queries stay exact-only after normalization; longer queries use strict token and prefix admission instead of permissive substring matching.

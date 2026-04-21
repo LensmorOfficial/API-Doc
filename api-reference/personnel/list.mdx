@@ -1,51 +1,103 @@
----
-title: "Personnel list"
----
-
 # Personnel list
 
 List personnel records for a specific event.
 
 Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
 The response now includes a `semantics` object that explains preview versus full event access.
-
 ## Endpoint
-
 `GET /external/personnel/list`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier returned by event endpoints. |
-| `exhibitor_id` | No | string | Filter by a specific exhibitor. |
-| `department` | No | string | Department filter. |
-| `level` | No | string | Seniority-level filter. |
-| `search_query` | No | string | Name or job-title search. |
+| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+| `exhibitor_id` | No | string | Optional numeric-string exhibitor filter. |
+| `department` | No | string | Case-insensitive department filter. |
+| `level` | No | string | Case-insensitive management-level filter. |
+| `search_query` | No | string | Matches relation position or personnel full name. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Personnel contact summaries for the event. |
+| `total` | integer | Total distinct personnel matches. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal personnel row identifier. |
+| `fullName` | string | Full name. |
+| `title` | string or `null` | For this route, sourced from `personnel.bio`. |
+| `department` | string or `null` | Department value. |
+| `seniorityLevel` | string or `null` | Seniority or level value. |
+| `linkedinUrl` | string or `null` | LinkedIn URL. |
+| `companyName` | string or `null` | Associated exhibitor company name. |
+| `sourceType` | string or `null` | Source label. |
+| `email` | string or `null` | Email when this caller has already unlocked the contact; otherwise `null`. |
+| `contactUnlockStatus` | string | User-scoped contact state. Current complete enum: `locked`, `unlocking`, `unlocked`, `failed`. |
+
+### `semantics` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `accessMode` | string | `preview` when the event is still preview-locked, `full` when the caller already has full event access. |
+| `previewLimit` | integer or `null` | Currently `50` in preview mode; `null` in full mode. |
+| `counts` | object | Actual-versus-visible match counts for the current query. |
+| `pageState` | object | Whether the requested page is currently accessible. |
+| `unlock` | object | Whether event unlock is required to see more results. |
+| `guidance` | object | User-facing machine-readable guidance for the current access state. |
+
+### `semantics.counts` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `actualTotal` | integer | Total matching personnel for the current query before preview gating. |
+| `visibleTotal` | integer | Total currently accessible under the present access mode. |
+| `remainingLockedCount` | integer | Count of matching personnel that remain inaccessible until event unlock. |
+
+### `semantics.pageState` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requestedPage` | integer | Echoes the requested page number. |
+| `accessible` | boolean | `false` when the requested page falls outside the preview-accessible window. |
+| `maxAccessiblePage` | integer | Highest page currently accessible under the present access mode. |
+
+### `semantics.unlock` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requiredForMoreResults` | boolean | `true` when event unlock is required to continue beyond the current preview boundary. |
+| `actionType` | string or `null` | Recommended follow-up action type, currently `unlock_event_contacts` when unlock is needed. |
+| `credits` | integer or `null` | Credits required by the recommended unlock action when present, currently `2000`. |
+
+### `semantics.guidance` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `code` | string | Current codes include `preview_page_inaccessible`, `preview_results_truncated`, `preview_complete_for_query`, `full_access`, and `no_matching_results`. |
+| `message` | string | Human-readable explanation of the current access state. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "id": "789",
-      "fullName": "Jane Smith",
-      "title": "VP of Retail Technology",
-      "department": "Technology",
+      "fullName": "Jane Doe",
+      "title": "VP Marketing",
+      "department": "Marketing",
       "seniorityLevel": "vp",
-      "linkedinUrl": "https://linkedin.com/in/jane-smith",
-      "companyName": "Acme Retail Systems",
+      "linkedinUrl": "https://linkedin.com/in/jane-doe",
+      "companyName": "Acme",
       "sourceType": "exhibitor",
       "email": null,
       "contactUnlockStatus": "locked"
@@ -83,16 +135,13 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `event_id` or `exhibitor_id` is invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-- Each item can include user-scoped `email` and `contactUnlockStatus`.
-- `semantics.accessMode` indicates whether this query is still in preview mode or already has full event access.
-- In preview mode, `semantics.previewLimit` is currently `50`, and `semantics.unlock` / `semantics.guidance` explain whether event unlock is required to see more results.
-- If `semantics.pageState.accessible` is `false`, the requested page can be empty even when more matching results exist behind the preview boundary.
-- Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
-- `title` returns the role or title shown for that event record.
-- `search_query` matches names and role or title text.
+- Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
+- `title` comes from the event-scoped personnel relation, while `email` and `contactUnlockStatus` are user-scoped overlays computed for the authenticated caller.
+- `search_query` matches either relation `position` text or personnel `fullName`.
+- `semantics` exposes whether the caller is in preview or full-access mode for this event, including unlock guidance and actual-versus-visible result counts.
+- When `semantics.pageState.accessible` is `false`, the route can return an empty page while `semantics.counts.actualTotal` still shows more matching results behind the preview boundary.

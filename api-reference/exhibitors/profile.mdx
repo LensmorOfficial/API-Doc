@@ -1,68 +1,79 @@
----
-title: "Exhibitor profile details"
----
-
 # Exhibitor profile details
 
 Fetch the profile for a single exhibitor.
 
-Use this endpoint when you already know the exhibitor identifier and need a profile-style response with related event references.
-
 ## Endpoint
-
 `GET /external/exhibitors/profile`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
 
-## Response example
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal exhibitor row identifier. |
+| `companyName` | string | Exhibitor company name. |
+| `domain` | string or `null` | Exhibitor domain. |
+| `description` | string or `null` | Exhibitor description. |
+| `website` | string or `null` | Website URL. |
+| `industry` | string or `null` | Industry label. |
+| `employeeCount` | integer or `null` | Employee-count snapshot. |
+| `country` | string or `null` | Country. |
+| `logo` | string or `null` | Logo URL. |
+| `dataSource` | string or `null` | Upstream data source label. |
+| `linkedinUrl` | string or `null` | LinkedIn URL. |
+| `fundingRound` | string or `null` | Funding-round label. |
+| `matched_event_ids` | string[] | Empty unless explicit match scope is attached to the source object. |
+| `events` | object[] | First page of associated events, limited to 20 rows. |
 
+### `events[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal event row identifier. |
+| `eventId` | string | External event identifier. |
+| `name` | string | Event name. |
+
+## Response example
 ```json
 {
   "id": "456",
-  "companyName": "Acme Retail Systems",
-  "domain": "acme.example",
-  "description": "Retail analytics platform",
-  "website": "https://acme.example",
+  "companyName": "Acme",
+  "domain": "acme.com",
+  "description": null,
+  "website": "https://acme.com",
   "industry": "Retail Technology",
-  "employeeCount": 220,
+  "employeeCount": 120,
   "country": "United States",
   "logo": null,
-  "dataSource": "database",
+  "dataSource": "vendelux",
   "linkedinUrl": null,
-  "fundingRound": "Series B",
+  "fundingRound": null,
   "matched_event_ids": [],
   "categories": ["Retail"],
   "events": [
     {
       "id": "123",
       "eventId": "139574",
-      "name": "NRF 2026"
+      "name": "Shoptalk"
     }
   ]
 }
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `exhibitor_id` is not a valid numeric string.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the exhibitor cannot be resolved.
 
 ## Notes
-- Use `exhibitor_id` to request a single exhibitor profile.
 - `matched_event_ids` is an empty array when no event scope or match data exists.
 - The embedded `events` array is not paginated; it is populated from the first 20 associated events only.
-- `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
-- In embedded event objects, the event identifier is returned as `eventId`. Use that value when another endpoint asks for `event_id`.

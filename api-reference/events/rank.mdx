@@ -1,48 +1,45 @@
----
-title: "Events rank"
----
-
 # Events rank
 
 Rank multiple events for the authenticated caller.
 
-Use this endpoint when you already have a candidate set of events and want them returned in preference order.
-
 ## Endpoint
-
 `POST /external/events/rank`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `201 Created`
 
 ## Request body
-
-| Name | Required | Type | Notes |
+| Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string[] | List of event identifiers to rank. |
+| `event_ids` | Yes | string[] | Each value supports either external `Event.eventId` or internal `Event.id`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Ranked event summaries in descending match-score order. |
+
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `event_id` | string | External event identifier. |
+| `name` | string | Event name. |
+| `rank` | integer | One-based rank in the returned order. |
+| `match_score` | number | Raw profile score rounded to two decimals. |
+| `reasons` | array | Currently returned as an empty array. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "event_id": "139574",
-      "name": "NRF 2026",
+      "name": "Shoptalk",
       "rank": 1,
-      "match_score": 0.86,
-      "reasons": []
-    },
-    {
-      "event_id": "139575",
-      "name": "Shoptalk 2026",
-      "rank": 2,
-      "match_score": 0.79,
+      "match_score": 0.82,
       "reasons": []
     }
   ]
@@ -50,12 +47,10 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
-- `409 Conflict`
+- `400 Bad Request` when any `event_ids` entry is invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when any requested event cannot be resolved.
+- `409 Conflict` when the recommendation dependency is still processing.
 
 ## Notes
-- Results are returned in ranking order.
-- `reasons` is currently returned as an empty array.
+- `POST /external/events/rank` currently returns an empty `reasons` array for each item.

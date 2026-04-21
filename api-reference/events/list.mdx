@@ -1,75 +1,92 @@
----
-title: "Events list"
----
-
 # Events list
 
 Browse events currently available through the Lensmor API.
 
-Use this endpoint when you need a paginated event catalog with basic filters such as keyword, country, city, and date range.
-
 ## Endpoint
-
 `GET /external/events/list`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
-| `keyword` | No | string | Event name or keyword search. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+| `keyword` | No | string | Free-text event search. |
 | `country` | No | string | Country filter. |
 | `city` | No | string | City filter. |
-| `date_start_from` | No | ISO date string | Inclusive lower bound for event date filtering. |
-| `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
+| `date_start_from` | No | `YYYY-MM-DD` string | Optional lower date bound. |
+| `date_start_to` | No | `YYYY-MM-DD` string | Optional upper date bound. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Event summaries for the current page. |
+| `total` | integer | Total matched rows. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal event row identifier. |
+| `eventId` | string | External event identifier. |
+| `name` | string | Event name. |
+| `nickname` | string or `null` | Event short name. |
+| `description` | string or `null` | Event description. |
+| `url` | string or `null` | Event website URL. |
+| `dateStart` | `YYYY-MM-DD` string or `null` | Start date. |
+| `dateEnd` | `YYYY-MM-DD` string or `null` | End date. |
+| `venue` | string or `null` | Venue name. |
+| `city` | string or `null` | City. |
+| `region` | string or `null` | Region or state. |
+| `country` | string or `null` | Country. |
+| `attendeeCount` | integer or `null` | Attendance count snapshot. |
+| `exhibitorCount` | integer or `null` | Exhibitor count snapshot. |
+| `personnelCount` | integer or `null` | Personnel count snapshot. |
+| `image` | string or `null` | Image URL. |
+| `dataSource` | string or `null` | Upstream data source label. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "id": "123",
       "eventId": "139574",
-      "name": "NRF 2026",
+      "name": "Shoptalk",
       "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "description": null,
+      "url": "https://example.com",
+      "dateStart": "2026-03-25",
+      "dateEnd": "2026-03-28",
+      "venue": "Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 950,
+      "exhibitorCount": 250,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "vendelux"
     }
   ],
-  "total": 42,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 3,
-  "hasMore": true
+  "totalPages": 1,
+  "hasMore": false
 }
 ```
 
 ## Error responses
-
-- `401 Unauthorized`
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
 
 ## Notes
-
-- This endpoint returns a paginated event catalog rather than recommendation-specific results.
-- Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
-- Date filters apply only when `date_start_from` and/or `date_start_to` are supplied; there is no implicit default date window.
-- List-summary items intentionally omit `attendeeCount` and `personnelCount`.
+- The route applies date filters only when `date_start_from` and/or `date_start_to` are supplied; no implicit default date window is added at runtime.
+- List-summary items intentionally omit `attendeeCount` and `personnelCount`; those values were removed from this response because they were inaccurate in list context.

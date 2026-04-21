@@ -1,47 +1,48 @@
----
-title: "Contacts search"
----
-
 # Contacts search
 
 Search contacts by company name.
 
 Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role and person-name filtering.
-
 ## Endpoint
-
 `GET /external/contacts/search`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_name` | Yes | string | Company name query, length `1` to `200`. |
-| `role` | No | string | Optional role filter. |
-| `person_name` | No | string | Optional person-name filter. |
+| `company_name` | Yes | string | Company lookup term. Length `1` to `200`. |
+| `role` | No | string | Optional position or role filter. Blank values are normalized away. |
+| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Same contact summary shape as `GET /external/personnel/list` `items[]`. |
+| `total` | integer | Total distinct personnel matches. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
-      "id": "101",
+      "id": "789",
       "fullName": "Jane Doe",
       "title": "VP Marketing",
-      "department": "marketing",
+      "department": "Marketing",
       "seniorityLevel": "vp",
-      "linkedinUrl": "https://linkedin.com/in/jane",
+      "linkedinUrl": "https://linkedin.com/in/jane-doe",
       "companyName": "Acme",
       "sourceType": "exhibitor",
       "email": null,
@@ -57,11 +58,12 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
+- `400 Bad Request` when `company_name` is empty or invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
 
 ## Notes
+- Request-side `company_name` is snake_case, while response-side fields are camelCase.
 - `person_name` can narrow the company-scoped result set by personnel name without requiring an event context.
 - `email` and `contactUnlockStatus` are user-scoped; unlocked emails are only returned for the authenticated caller that has already unlocked them.
-- Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
+- Short company queries use a direct contains-style fallback; longer company queries use scored matching.
+- Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.

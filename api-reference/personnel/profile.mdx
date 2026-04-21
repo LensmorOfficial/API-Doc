@@ -1,42 +1,44 @@
----
-title: "Personnel profile details"
----
-
 # Personnel profile details
 
 Fetch the profile for a single person.
 
-Use this endpoint when you already know the personnel identifier and need the public profile shape for that person.
-
 ## Endpoint
-
 `GET /external/personnel/profile`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Numeric-string personnel identifier. |
 
-## Response example
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal personnel row identifier. |
+| `fullName` | string | Full name. |
+| `title` | string or `null` | Sourced from `personnel.bio`. |
+| `department` | string or `null` | Department value. |
+| `seniorityLevel` | string or `null` | Seniority or level value. |
+| `linkedinUrl` | string or `null` | LinkedIn URL. |
+| `companyName` | string or `null` | Latest current exhibitor association, if any. |
+| `sourceType` | string or `null` | Source label. |
 
+## Response example
 ```json
 {
   "id": "789",
-  "fullName": "Jane Smith",
-  "title": "VP of Retail Technology",
-  "department": "Technology",
+  "fullName": "Jane Doe",
+  "title": "VP Marketing",
+  "department": "Marketing",
   "seniorityLevel": "vp",
-  "linkedinUrl": "https://linkedin.com/in/jane-smith",
-  "companyName": "Acme Retail Systems",
+  "linkedinUrl": "https://linkedin.com/in/jane-doe",
+  "companyName": "Acme",
   "sourceType": "exhibitor",
   "email": null,
   "contactUnlockStatus": "locked"
@@ -44,11 +46,11 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `personnel_id` is not a valid numeric string.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the personnel row cannot be resolved.
 
 ## Notes
-- `companyName` reflects the most recent known company association, if one exists.
+- Request-side `personnel_id` differs from the response-side `id` field.
+- `title` is sourced from `personnel.bio`, while `companyName` reflects the latest current exhibitor association.
 - `email` and `contactUnlockStatus` are user-scoped and may differ across callers.

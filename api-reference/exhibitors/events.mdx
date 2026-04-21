@@ -1,57 +1,57 @@
----
-title: "Exhibitor related events"
----
-
 # Exhibitor related events
 
 List events related to a single exhibitor.
 
-Use this endpoint when you want the event history or current event associations for one exhibitor profile.
-
 ## Endpoint
-
 `GET /external/exhibitors/events`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Same event summary shape as `GET /external/events/list` `items[]`. |
+| `total` | integer | Total associated events. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "id": "123",
       "eventId": "139574",
-      "name": "NRF 2026",
+      "name": "Shoptalk",
       "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "description": null,
+      "url": "https://example.com",
+      "dateStart": "2026-03-25",
+      "dateEnd": "2026-03-28",
+      "venue": "Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 950,
+      "exhibitorCount": 250,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "vendelux"
     }
   ],
-  "total": 12,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
   "totalPages": 1,
@@ -60,14 +60,9 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `exhibitor_id` is not a valid numeric string.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the exhibitor cannot be resolved.
 
 ## Notes
-
-- Event items reuse the shared public event-item shape.
-- Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
-- Use `exhibitor_id` in the request. Event items in the response include `id` and `eventId`.
-- This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.
+- Request-side `exhibitor_id` is snake_case, while response-side identifiers remain `id` and `eventId`.

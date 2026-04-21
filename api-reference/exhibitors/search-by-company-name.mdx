@@ -2,8 +2,6 @@
 
 Search exhibitors directly from a company name using a precision-first matcher.
 
-Use this endpoint when you have a company name and want paginated exhibitor results without resolving `exhibitor_id` first.
-
 ## Endpoint
 `POST /external/exhibitors/search-by-company-name`
 
@@ -14,11 +12,22 @@ See [Authentication](/authentication)
 `201 Created`
 
 ## Request body
-| Name | Required | Type | Notes |
+| Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `company_name` | Yes | string | Precision-first exhibitor lookup term. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Same exhibitor summary shape as `GET /external/exhibitors/list` `items[]`. |
+| `total` | integer | Total matched exhibitors for the paged strict search. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
 
 ## Response example
 ```json
@@ -26,7 +35,7 @@ See [Authentication](/authentication)
   "items": [
     {
       "id": "456",
-      "companyName": "Acme Retail Systems",
+      "companyName": "Acme",
       "domain": null,
       "description": null,
       "website": null,
@@ -37,8 +46,9 @@ See [Authentication](/authentication)
       "dataSource": null,
       "linkedinUrl": null,
       "fundingRound": null,
+      "matched_event_ids": [],
       "techStacks": [],
-      "matched_event_ids": []
+      "categories": []
     }
   ],
   "total": 1,
@@ -50,12 +60,10 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-- `400 Bad Request`
-- `401 Unauthorized`
+- `400 Bad Request` when `company_name` is empty or invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
 
 ## Notes
-- This endpoint returns exhibitors. To get events from a company name instead, use `POST /external/exhibitors/search-events`.
-- No matches return an empty paginated success response rather than `404 Not Found`.
+- No matches return an empty success response rather than `404`.
 - `matched_event_ids` is an empty array when no event scope or match data exists.
-- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
-- `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
+- `techStacks` is always returned as an array.

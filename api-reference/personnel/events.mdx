@@ -1,57 +1,57 @@
----
-title: "Personnel related events"
----
-
 # Personnel related events
 
 List events related to a single person.
 
-Use this endpoint when you want the event associations for one personnel profile in a paginated event-item response.
-
 ## Endpoint
-
 `GET /external/personnel/events`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Numeric-string personnel identifier. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Same event summary shape as `GET /external/events/list` `items[]`. |
+| `total` | integer | Total distinct associated events. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
 
 ## Response example
-
 ```json
 {
   "items": [
     {
       "id": "123",
       "eventId": "139574",
-      "name": "NRF 2026",
+      "name": "Shoptalk",
       "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "description": null,
+      "url": "https://example.com",
+      "dateStart": "2026-03-25",
+      "dateEnd": "2026-03-28",
+      "venue": "Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 950,
+      "exhibitorCount": 250,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "vendelux"
     }
   ],
-  "total": 5,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
   "totalPages": 1,
@@ -60,13 +60,9 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `personnel_id` is not a valid numeric string.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the personnel row cannot be resolved.
 
 ## Notes
-
-- Event items reuse the shared public event-item shape.
-- Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
-- If the person has no related events, the API returns an empty paginated success response rather than `404 Not Found`.
+- If the personnel row exists but has no exhibitor associations, the route returns an empty paginated success response instead of `404`.

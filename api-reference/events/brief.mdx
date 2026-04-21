@@ -1,56 +1,61 @@
----
-title: "Event brief details"
----
-
 # Event brief details
 
 Fetch a lightweight summary for a single event.
 
-Use this endpoint when you need a compact event snapshot instead of a list response or a ranking result.
-
 ## Endpoint
-
 `GET /external/events/brief`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier returned by event endpoints. |
+| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `event` | object | Same event summary shape as `GET /external/events/list` `items[]`. |
+| `summary` | object | Brief rollup metadata. |
+
+### `summary` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `attendeeCount` | integer | Defaults to `0` when absent in storage. |
+| `exhibitorCount` | integer | Defaults to `0` when absent in storage. |
+| `personnelCount` | integer | Defaults to `0` when absent in storage. |
+| `topCategories` | array | Currently returned as an empty array. |
+| `dataFreshness` | string | Currently hard-coded to `database_snapshot`. |
 
 ## Response example
-
 ```json
 {
   "event": {
     "id": "123",
     "eventId": "139574",
-    "name": "NRF 2026",
+    "name": "Shoptalk",
     "nickname": null,
-    "description": "Retail industry event",
-    "url": "https://example.com/events/nrf-2026",
-    "dateStart": "2026-01-12",
-    "dateEnd": "2026-01-15",
-    "venue": "Javits Center",
-    "city": "New York",
-    "region": "NY",
+    "description": null,
+    "url": "https://example.com",
+    "dateStart": "2026-03-25",
+    "dateEnd": "2026-03-28",
+    "venue": "Convention Center",
+    "city": "Las Vegas",
+    "region": "Nevada",
     "country": "United States",
-    "exhibitorCount": 950,
+    "exhibitorCount": 250,
     "image": null,
-    "dataSource": "database"
+    "dataSource": "vendelux"
   },
   "summary": {
-    "attendeeCount": 40000,
-    "exhibitorCount": 950,
-    "personnelCount": 6200,
+    "attendeeCount": 10000,
+    "exhibitorCount": 250,
+    "personnelCount": 1800,
     "topCategories": [],
     "dataFreshness": "database_snapshot"
   }
@@ -58,13 +63,9 @@ See [Authentication](/authentication)
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `event_id` is invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-
-- This is a lightweight snapshot endpoint.
-- `topCategories` is currently returned as an empty array by the live service.
-- `summary.attendeeCount` and `summary.personnelCount` default to `0` when the event has no personnel relations or count data is unavailable.
+- `GET /external/events/brief` currently returns `topCategories` as an empty array.

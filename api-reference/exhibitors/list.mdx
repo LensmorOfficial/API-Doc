@@ -1,30 +1,21 @@
----
-title: "Exhibitors list"
----
-
 # Exhibitors list
 
 List exhibitors for a specific event.
 
 Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with keyword, country, category, and industry filters.
-
 ## Endpoint
-
 `GET /external/exhibitors/list`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `200 OK`
 
 ## Query parameters
-
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier used to scope the exhibitor list. |
+| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `keyword` | No | string | Exhibitor keyword search. |
@@ -32,46 +23,78 @@ See [Authentication](/authentication)
 | `category` | No | string[] | Exhibitor category filters; repeated query params are supported. |
 | `industry` | No | string[] | Exhibitor industry filters; repeated query params are supported. |
 
-## Response example
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Exhibitors associated with the resolved event. |
+| `total` | integer | Total matched exhibitors. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
 
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal exhibitor row identifier. |
+| `companyName` | string | Exhibitor company name. |
+| `domain` | string or `null` | Exhibitor domain. |
+| `description` | string or `null` | Exhibitor description. |
+| `website` | string or `null` | Website URL. |
+| `industry` | string or `null` | Industry label. |
+| `employeeCount` | integer or `null` | Employee-count snapshot. |
+| `country` | string or `null` | Country. |
+| `logo` | string or `null` | Logo URL. |
+| `dataSource` | string or `null` | Upstream data source label. |
+| `linkedinUrl` | string or `null` | LinkedIn URL. |
+| `fundingRound` | string or `null` | Funding-round label. |
+| `matched_event_ids` | string[] | For this route, contains the resolved event's external `eventId`. |
+| `techStacks` | string[] | Normalized tech-stack names. |
+| `categories` | string[] | Optional. Exhibitor categories. Event-scoped when the upstream query is event-scoped. Present only when non-empty. |
+
+## Response example
 ```json
 {
   "items": [
     {
       "id": "456",
-      "companyName": "Acme Retail Systems",
-      "domain": "acme.example",
-      "description": "Retail analytics platform",
-      "website": "https://acme.example",
+      "companyName": "Acme",
+      "domain": "acme.com",
+      "description": null,
+      "website": "https://acme.com",
       "industry": "Retail Technology",
-      "employeeCount": 220,
+      "employeeCount": 120,
       "country": "United States",
       "logo": null,
-      "dataSource": "database",
+      "dataSource": "vendelux",
       "linkedinUrl": null,
-      "fundingRound": "Series B",
-      "techStacks": ["Cloudflare", "Nginx"],
-      "matched_event_ids": ["139574"],
-      "categories": ["Retail", "Fintech"]
+      "fundingRound": null,
+      "matched_event_ids": [
+        "139574"
+      ],
+      "techStacks": [
+        "React",
+        "PostgreSQL"
+      ],
+      "categories": [
+        "Retail",
+        "Fintech"
+      ]
     }
   ],
-  "total": 87,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
-  "totalPages": 5,
-  "hasMore": true
+  "totalPages": 1,
+  "hasMore": false
 }
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
+- `400 Bad Request` when `event_id` is invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-
-- This endpoint is event-scoped and requires `event_id` on every request.
-- `matched_event_ids` reflects the requested event scope.
-- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
-- `categories` is an optional string array of exhibitor business categories. It is event-scoped when the query is event-scoped and omitted when empty.
+- Request-side `event_id` can be either the external event identifier or internal row id, while response-side event references remain in `matched_event_ids`.

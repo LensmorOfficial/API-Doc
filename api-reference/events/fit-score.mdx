@@ -1,68 +1,93 @@
----
-title: "Events fit score"
----
-
 # Events fit score
 
 Score a single event against the authenticated caller's current profile context.
 
-Use this endpoint when you already know the target event and want a compact compatibility result instead of a full ranked list.
-
 ## Endpoint
-
 `POST /external/events/fit-score`
 
 ## Authentication
-
 See [Authentication](/authentication)
 
 ## Success status code
-
 `201 Created`
 
 ## Request body
-
-| Name | Required | Type | Notes |
+| Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Event identifier returned by event endpoints. |
+| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `event` | object | Event summary for the scored event. |
+| `score` | number | Normalized to a `0.0`-`10.0` style scale. |
+| `recommendation` | string | One of `recommended`, `consider`, or `not_recommended`. |
+| `breakdown` | object | Contains `profile_match`, `matched_exhibitor_density`, and `event_scale`. |
+
+### `event` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | Internal event row identifier. |
+| `eventId` | string | External event identifier. |
+| `name` | string | Event name. |
+| `nickname` | string or `null` | Event short name. |
+| `description` | string or `null` | Event description. |
+| `url` | string or `null` | Event website URL. |
+| `dateStart` | `YYYY-MM-DD` string or `null` | Start date. |
+| `dateEnd` | `YYYY-MM-DD` string or `null` | End date. |
+| `venue` | string or `null` | Venue name. |
+| `city` | string or `null` | City. |
+| `region` | string or `null` | Region or state. |
+| `country` | string or `null` | Country. |
+| `attendeeCount` | integer or `null` | Attendance count snapshot. |
+| `exhibitorCount` | integer or `null` | Exhibitor count snapshot. |
+| `personnelCount` | integer or `null` | Personnel count snapshot. |
+| `image` | string or `null` | Image URL. |
+| `dataSource` | string or `null` | Upstream data source label. |
+
+### `breakdown` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `profile_match` | number | Profile similarity component. |
+| `matched_exhibitor_density` | number | Matched exhibitor density component. |
+| `event_scale` | number | Event scale component. |
 
 ## Response example
-
 ```json
 {
   "event": {
     "id": "123",
     "eventId": "139574",
-    "name": "NRF 2026",
+    "name": "Shoptalk",
     "nickname": null,
-    "description": "Retail industry event",
-    "url": "https://example.com/events/nrf-2026",
-    "dateStart": "2026-01-12",
-    "dateEnd": "2026-01-15",
-    "venue": "Javits Center",
-    "city": "New York",
-    "region": "NY",
+    "description": null,
+    "url": "https://example.com",
+    "dateStart": "2026-03-25",
+    "dateEnd": "2026-03-28",
+    "venue": "Convention Center",
+    "city": "Las Vegas",
+    "region": "Nevada",
     "country": "United States",
-    "exhibitorCount": 950,
+    "exhibitorCount": 250,
     "image": null,
-    "dataSource": "database"
+    "dataSource": "vendelux"
   },
-  "score": 8.1,
+  "score": 7.8,
   "recommendation": "recommended",
   "breakdown": {
-    "profile_match": 8.1,
-    "matched_exhibitor_density": 1.9,
-    "event_scale": 9.5
+    "profile_match": 7.8,
+    "matched_exhibitor_density": 2.4,
+    "event_scale": 2.5
   }
 }
 ```
 
 ## Error responses
-
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
-- `409 Conflict`
+- `400 Bad Request` when `event_id` is missing or invalid.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the target event cannot be resolved.
+- `409 Conflict` when the recommendation dependency is still processing.
 
 ## Notes
-- The response includes `event`, `score`, `recommendation`, and `breakdown`.
+- `event_id` accepts either the internal row `id` or external `eventId`.
