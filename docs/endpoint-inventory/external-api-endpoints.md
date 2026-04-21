@@ -38,6 +38,9 @@
 | GET | /external/contacts/unlock-tasks/:taskId | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Returns aggregate batch status plus per-person unlock progress |
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |
 | GET | /external/profile-matching/recommendations/exhibitors | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
+| GET | /external/agent-files/upload-presign | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Returns a one-time PUT URL plus `fileId` for the two-step upload flow |
+| POST | /external/agent-files/confirm-upload | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `201 Created` | Yes | Marks a pending upload as complete and returns file metadata with a signed download URL |
+| GET | /external/agent-files/list | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Lists uploaded generated files for the authenticated user, newest first |
 | POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body, including preview unlock guidance and `no_contacts_available` for event unlock prechecks |
 ## GET /external/events/list
 
@@ -1744,6 +1747,165 @@ Bearer token required.
 - The route may return fallback metadata at the top level: `code: "AI_SEARCH_RESULT_MISMATCH"` and `show_refresh_hint: true`.
 - In fallback mode, `items.length` may be smaller than `pageSize` even when `hasMore` is true because stored recommended exhibitor ids can resolve to deleted or missing exhibitor rows.
 - `techStacks` is always returned as an array.
+
+## GET /external/agent-files/upload-presign
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`200 OK`
+
+### Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `name` | Yes | string | Original file name to associate with the upload record. |
+| `contentType` | Yes | string | MIME type used for the presigned PUT request. |
+| `instanceId` | No | string | Optional agent instance identifier for file history scoping. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `fileId` | string | File record identifier used by `POST /external/agent-files/confirm-upload`. |
+| `putUrl` | string | Presigned S3 PUT URL for direct binary upload. |
+| `s3Key` | string | Storage object key assigned to the uploaded file. |
+
+### Response example
+```json
+{
+  "fileId": "1024",
+  "putUrl": "https://storage.example.com/lensmor-test/agent-files/42/1024_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=600",
+  "s3Key": "agent-files/42/1024_report.csv"
+}
+```
+
+### Error responses
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+
+### Notes
+- This is step 1 of the file-upload flow: request the presigned PUT URL here, upload the binary to `putUrl`, then call `POST /external/agent-files/confirm-upload`.
+- The presigned PUT URL currently expires after `600` seconds.
+- When `instanceId` is omitted, the service may associate the file with the caller's most recent active agent instance.
+- If `name` or `contentType` is omitted, the current controller implementation returns `200 OK` with `{ "error": "name and contentType are required" }` instead of a validation error response.
+
+## POST /external/agent-files/confirm-upload
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`201 Created`
+
+### Request body
+| Field | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `fileId` | Yes | string | File record identifier returned by `GET /external/agent-files/upload-presign`. |
+| `fileSize` | No | integer | Optional uploaded file size in bytes. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | File record identifier. |
+| `fileName` | string | Original file name. |
+| `fileSize` | integer or `null` | Uploaded file size in bytes when supplied. |
+| `mimeType` | string | MIME type stored for the file. |
+| `instanceId` | string or `null` | Associated agent instance identifier when available. |
+| `status` | string | Current file status; this route returns `uploaded` once confirmation succeeds. |
+| `createdAt` | string | Millisecond timestamp serialized as a string. |
+| `signUrl` | string, optional | Signed download URL returned on the first successful confirmation transition. |
+
+### Response example
+```json
+{
+  "id": "1024",
+  "fileName": "report.csv",
+  "fileSize": 10240,
+  "mimeType": "text/csv",
+  "instanceId": "i-abc123",
+  "status": "uploaded",
+  "createdAt": "1776743105123",
+  "signUrl": "https://storage.example.com/lensmor-test/agent-files/42/1024_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
+}
+```
+
+### Error responses
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `404 Not Found` when the `fileId` does not exist for the authenticated user.
+
+### Notes
+- This is step 3 of the file-upload flow and should be called after the file has been uploaded to the `putUrl` returned by `GET /external/agent-files/upload-presign`.
+- On the first successful confirmation, the route marks the file as `uploaded` and returns a signed download URL that currently expires after `3600` seconds.
+- Repeating `confirm-upload` for an already uploaded file is idempotent, but the current implementation returns file metadata without a fresh `signUrl`.
+- If `fileId` is omitted, the current controller implementation returns `201 Created` with `{ "error": "fileId is required" }` instead of a validation error response.
+
+## GET /external/agent-files/list
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`200 OK`
+
+### Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`. |
+| `instanceId` | No | string | Optional exact-match agent instance filter. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Uploaded generated files visible to the authenticated user. |
+| `total` | integer | Total uploaded files that match the current filter. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+#### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | File record identifier. |
+| `fileName` | string | Original file name. |
+| `fileSize` | integer or `null` | Uploaded file size in bytes when known. |
+| `mimeType` | string | MIME type stored for the file. |
+| `instanceId` | string or `null` | Associated agent instance identifier when available. |
+| `status` | string | Current file status; list results are currently filtered to `uploaded`. |
+| `createdAt` | string | Millisecond timestamp serialized as a string. |
+
+### Response example
+```json
+{
+  "items": [
+    {
+      "id": "1024",
+      "fileName": "report.csv",
+      "fileSize": 10240,
+      "mimeType": "text/csv",
+      "instanceId": "i-abc123",
+      "status": "uploaded",
+      "createdAt": "1776743105123"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+### Error responses
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+
+### Notes
+- The route lists only files whose status is already `uploaded`; pending or deleted records are excluded.
+- Results are ordered by `createdAt` descending, so the newest uploaded files appear first.
+- Use `instanceId` when you need file history for one specific agent instance.
 
 ## POST /external/actions/precheck
 

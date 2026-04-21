@@ -1,0 +1,73 @@
+# Agent files list
+
+List uploaded generated files for the authenticated user.
+
+Use this endpoint to show generated-file history, optionally filtered to one agent instance.
+
+## Endpoint
+`GET /external/agent-files/list`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`. |
+| `instanceId` | No | string | Optional exact-match agent instance filter. |
+
+## Response body
+### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | object[] | Uploaded generated files visible to the authenticated user. |
+| `total` | integer | Total uploaded files that match the current filter. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+
+### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | File record identifier. |
+| `fileName` | string | Original file name. |
+| `fileSize` | integer or `null` | Uploaded file size in bytes when known. |
+| `mimeType` | string | MIME type stored for the file. |
+| `instanceId` | string or `null` | Associated agent instance identifier when available. |
+| `status` | string | Current file status; list results are currently filtered to `uploaded`. |
+| `createdAt` | string | Millisecond timestamp serialized as a string. |
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "1024",
+      "fileName": "report.csv",
+      "fileSize": 10240,
+      "mimeType": "text/csv",
+      "instanceId": "i-abc123",
+      "status": "uploaded",
+      "createdAt": "1776743105123"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+
+## Notes
+- Only uploaded files are listed; pending and deleted records are excluded.
+- Results are ordered newest first.
+- Use `instanceId` when you need file history for one specific agent instance.

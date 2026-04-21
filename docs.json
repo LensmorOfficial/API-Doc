@@ -82,6 +82,14 @@
                 ]
               },
               {
+                "group": "Agent Files",
+                "pages": [
+                  "api-reference/agent-files/upload-presign",
+                  "api-reference/agent-files/confirm-upload",
+                  "api-reference/agent-files/list"
+                ]
+              },
+              {
                 "group": "Actions",
                 "pages": [
                   "api-reference/actions/precheck"

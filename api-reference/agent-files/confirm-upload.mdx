@@ -1,0 +1,56 @@
+# Agent files confirm upload
+
+Mark a previously presigned upload as complete and receive file metadata.
+
+Use this endpoint after the binary upload succeeds so the file becomes visible in history and you can receive a signed download URL.
+
+## Endpoint
+`POST /external/agent-files/confirm-upload`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `fileId` | Yes | string | File identifier returned by [Agent files upload presign](/api-reference/agent-files/upload-presign). |
+| `fileSize` | No | integer | Optional uploaded file size in bytes. |
+
+## Response body
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | string | File record identifier. |
+| `fileName` | string | Original file name. |
+| `fileSize` | integer or `null` | Uploaded file size in bytes when supplied. |
+| `mimeType` | string | MIME type stored for the file. |
+| `instanceId` | string or `null` | Associated agent instance identifier when available. |
+| `status` | string | Current file status; this route returns `uploaded` after confirmation succeeds. |
+| `createdAt` | string | Millisecond timestamp serialized as a string. |
+| `signUrl` | string, optional | Signed download URL returned on the first successful confirmation. |
+
+## Response example
+```json
+{
+  "id": "1024",
+  "fileName": "report.csv",
+  "fileSize": 10240,
+  "mimeType": "text/csv",
+  "instanceId": "i-abc123",
+  "status": "uploaded",
+  "createdAt": "1776743105123",
+  "signUrl": "https://storage.example.com/lensmor-test/agent-files/42/1024_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
+}
+```
+
+## Error responses
+- `401 Unauthorized`
+- `404 Not Found`
+
+## Notes
+- Call this after uploading the file bytes to the `putUrl` returned by [Agent files upload presign](/api-reference/agent-files/upload-presign).
+- The current signed download URL expiry is 1 hour.
+- Repeating `confirm-upload` for an already uploaded file is idempotent, but the current implementation returns metadata without a fresh `signUrl`.
+- If `fileId` is missing, the current implementation returns `201 Created` with an `error` field instead of a validation error response.
