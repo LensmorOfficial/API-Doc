@@ -61,10 +61,8 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-
-- The current public query contract supports `exhibitor_id` only.
+- Use `exhibitor_id` to request a single exhibitor profile.
 - `matched_event_ids` is an empty array when no event scope or match data exists.
 - The embedded `events` array is not paginated; it is populated from the first 20 associated events only.
 - `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
 - In embedded event objects, the event identifier is returned as `eventId`. Use that value when another endpoint asks for `event_id`.
-- Older PM text that implies `company_name` lookup should not be treated as current behavior.

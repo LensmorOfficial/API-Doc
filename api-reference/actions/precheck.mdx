@@ -17,12 +17,8 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `action_type` | Yes | string | Supported values currently include `query_event_personnel`, `unlock_event_contacts`, `unlock_contact_emails`, `search_exhibitor_events`, and `others`. |
-| `call_source` | No | string | Optional caller source used to derive sourced credit business codes. |
 | `params` | Yes | object | Action-specific input payload. |
 | `locale` | No | string | Optional locale hint. |
-| `trace_id` | No | string | Optional trace identifier. |
-| `conversation_id` | No | string | Optional conversation identifier. |
-| `channel_message_id` | No | string | Optional channel message identifier. |
 
 ## Response example
 ```json
@@ -33,7 +29,6 @@ See [Authentication](/authentication)
   "should_charge": false,
   "credits": 0,
   "reason_code": "ok",
-  "biz_code": "",
   "detail": {
     "event_id": "139574",
     "access_mode": "preview",
@@ -49,7 +44,7 @@ See [Authentication](/authentication)
 - `401 Unauthorized`
 
 ## Notes
-- This endpoint performs truth evaluation only and does not execute the downstream action.
+- Use this endpoint to check whether an action is allowed and whether it would consume credits.
 - Unsupported `action_type` values still return `200 OK` with `allowed: false`, `should_charge: false`, and `reason_code: "unsupported_action"`.
-- `detail` is action-specific: personnel queries return access-mode hints plus unlock guidance, unlock actions return charge or blocking context, and exhibitor-event search echoes the normalized company input.
+- `detail` returns context for the requested action, such as preview-access guidance or unlock-related information.
 - Event unlock prechecks can return `reason_code: "no_contacts_available"` when the event has nothing left to charge for.

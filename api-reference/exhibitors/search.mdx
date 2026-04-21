@@ -69,9 +69,7 @@ See [Authentication](/authentication)
 
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - No matches return an empty paginated success response (`201`) rather than `404 Not Found`.
-- `company_url` is reduced to its hostname with leading `www.` removed before runtime matching.
-- If both `company_url` and `target_audience` are provided, `target_audience` drives the company-name search string while the extracted domain is still applied as an exact filter.
-- `matched_event_ids` is currently returned as an empty array for this route.
+- If both `company_url` and `target_audience` are provided, both may influence the returned results.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - `categories` is an optional string array of exhibitor business categories. It is omitted when empty.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.

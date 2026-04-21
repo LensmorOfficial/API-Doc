@@ -25,8 +25,8 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name query, length `1` to `200`. |
-| `role` | No | string | Optional role filter. Blank values are normalized away. |
-| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
+| `role` | No | string | Optional role filter. |
+| `person_name` | No | string | Optional person-name filter. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -64,6 +64,4 @@ See [Authentication](/authentication)
 ## Notes
 - `person_name` can narrow the company-scoped result set by personnel name without requiring an event context.
 - `email` and `contactUnlockStatus` are user-scoped; unlocked emails are only returned for the authenticated caller that has already unlocked them.
-- Short company queries use a direct contains-style fallback; longer company queries use scored matching.
-- Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).

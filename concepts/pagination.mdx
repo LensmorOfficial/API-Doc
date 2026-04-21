@@ -17,10 +17,9 @@ Many list endpoints return a shared pagination envelope.
 ## What to expect
 
 - Exact item fields vary by endpoint family.
-- Some endpoints return extra route-specific metadata in addition to the shared pagination fields.
+- Some endpoints return additional metadata alongside the shared pagination fields.
 - Identifiers such as `event_id`, `exhibitor_id`, and `personnel_id` are string values in the public contract.
-- Parameter naming is route-specific. Treat each endpoint page as the source of truth for casing and field names.
+- Parameter names can vary by endpoint. Check each reference page for exact names and casing.
 
 ## Notes
-
 Use each endpoint page as the source of truth for route-specific filters, item fields, and any additional metadata returned with paginated results.

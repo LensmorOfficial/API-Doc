@@ -1,6 +1,6 @@
-# Queue contact email unlock
+# Request contact email unlock
 
-Queue an asynchronous email unlock batch for a set of event-scoped personnel ids.
+Request email unlock for a set of event-scoped personnel ids.
 
 Use this endpoint when the user has already identified specific people and wants their email access unlocked for one event.
 
@@ -17,7 +17,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_ids` | Yes | string[] | One or more personnel ids to unlock. Duplicate values are deduplicated before precheck and charging. |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by event endpoints. |
 
 ## Response example
 ```json
@@ -36,6 +36,6 @@ See [Authentication](/authentication)
 - `409 Conflict`
 
 ## Notes
-- This route queues an asynchronous unlock batch; `201 Created` means the task was accepted, not that emails are already available.
+- `201 Created` means the request was accepted, not that emails are already available.
 - The request is event-scoped: every `personnel_id` must belong to the supplied `event_id`.
-- Use [Check contact unlock task](/api-reference/contacts/unlock-task) with the returned `task_id` to monitor progress.
+- Use [Check contact unlock status](/api-reference/contacts/unlock-task) with the returned `task_id` to monitor progress.

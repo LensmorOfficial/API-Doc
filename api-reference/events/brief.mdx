@@ -24,7 +24,7 @@ See [Authentication](/authentication)
 
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by event endpoints. |
 
 ## Response example
 
@@ -67,4 +67,4 @@ See [Authentication](/authentication)
 
 - This is a lightweight snapshot endpoint.
 - `topCategories` is currently returned as an empty array by the live service.
-- `summary.attendeeCount` and `summary.personnelCount` fall back to `0` when the event has no personnel relations.
+- `summary.attendeeCount` and `summary.personnelCount` default to `0` when the event has no personnel relations or count data is unavailable.

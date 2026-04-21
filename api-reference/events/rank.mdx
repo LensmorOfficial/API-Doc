@@ -24,7 +24,7 @@ See [Authentication](/authentication)
 
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string\[\] | List of event identifiers to rank. Each value supports either `Event.eventId` or internal `Event.id`. |
+| `event_ids` | Yes | string[] | List of event identifiers to rank. |
 
 ## Response example
 
@@ -57,6 +57,5 @@ See [Authentication](/authentication)
 - `409 Conflict`
 
 ## Notes
-
-- The current service returns an ordered `items` array with `rank` and `match_score`.
-- `reasons` is currently emitted as an empty array by the live service.
+- Results are returned in ranking order.
+- `reasons` is currently returned as an empty array.

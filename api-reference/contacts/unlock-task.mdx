@@ -1,6 +1,6 @@
-# Check contact unlock task
+# Check contact unlock status
 
-Check aggregate and per-person progress for an asynchronous contact email unlock batch.
+Check aggregate and per-person progress for a contact email unlock request.
 
 Use this endpoint after `POST /external/contacts/unlock` returns a `task_id`.
 
@@ -45,4 +45,3 @@ See [Authentication](/authentication)
 ## Notes
 - `taskStatus` is the aggregate batch status: `pending`, `processing`, `completed`, or `failed`.
 - `email` is returned only for items whose `status` is `unlocked`.
-- Missing underlying subtasks surface as `status: "failed"` with `errorCode: "TASK_NOT_FOUND"`.

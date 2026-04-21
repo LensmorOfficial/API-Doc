@@ -22,10 +22,10 @@ Lensmor API errors use real HTTP status codes.
 - `400 Bad Request` — invalid input or unsupported request shape
 - `401 Unauthorized` — missing or invalid API key
 - `404 Not Found` — requested resource does not exist
-- `409 Conflict` — business conflict, depending on route behavior
+- `409 Conflict` — request conflicts with the current resource or action state
 
 ## Notes
 
 - API responses include `traceId` for troubleshooting.
 - Error bodies do not expose internal `data` or `details` fields.
-- Individual endpoint pages may list the subset of statuses most relevant to that route.
+- Individual endpoint pages may list the subset of statuses most relevant to that endpoint.

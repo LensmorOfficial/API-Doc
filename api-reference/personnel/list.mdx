@@ -25,7 +25,7 @@ See [Authentication](/authentication)
 
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by event endpoints. |
 | `exhibitor_id` | No | string | Filter by a specific exhibitor. |
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
@@ -89,11 +89,10 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-- Personnel list responses intentionally use the lightweight contact-style public shape, but now include user-scoped `email` and `contactUnlockStatus`.
+- Each item can include user-scoped `email` and `contactUnlockStatus`.
 - `semantics.accessMode` indicates whether this query is still in preview mode or already has full event access.
 - In preview mode, `semantics.previewLimit` is currently `50`, and `semantics.unlock` / `semantics.guidance` explain whether event unlock is required to see more results.
 - If `semantics.pageState.accessible` is `false`, the requested page can be empty even when more matching results exist behind the preview boundary.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
-- Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
-- `title` is sourced from the event-personnel relation `jobTitle`.
-- `search_query` matches either relation `position` text or personnel `fullName`.
+- `title` returns the role or title shown for that event record.
+- `search_query` matches names and role or title text.

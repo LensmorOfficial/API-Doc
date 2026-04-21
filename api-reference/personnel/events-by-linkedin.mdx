@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `linkedin_url` | Yes | string | Must normalize to a valid LinkedIn profile URL. Query strings, fragments, and trailing slashes are ignored during matching. |
+| `linkedin_url` | Yes | string | Provide a valid LinkedIn profile URL. Query strings, fragments, and trailing slashes are ignored. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -70,7 +70,6 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-- Runtime matching normalizes `linkedin_url` to `https://linkedin.com/in/<slug>` form before lookup.
 - `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile), including user-scoped `email` and `contactUnlockStatus`.
 - `events` reuses the same paginated event-item shape as [Personnel related events](/api-reference/personnel/events).
-- If the personnel row exists but has no exhibitor associations, `events` returns an empty paginated success response rather than `404 Not Found`.
+- If the matched person has no related events, `events` returns an empty paginated success response rather than `404 Not Found`.

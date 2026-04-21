@@ -6,7 +6,7 @@ title: "Recommended events (paged results)"
 
 Request paged event recommendations for the authenticated caller.
 
-Use this endpoint when you want recommendation results plus the filtering and status metadata returned by the current profile-matching flow.
+Use this endpoint when you want paginated recommended events with optional filters.
 
 ## Endpoint
 
@@ -26,14 +26,14 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
 | `target_audience` | Conditionally | string | Audience description. Provide at least one of `company_url` or `target_audience`. |
-| `timeout_ms` | No | integer | Optional sync processing timeout in milliseconds. |
+| `timeout_ms` | No | integer | Optional request timeout in milliseconds. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `city` | No | string | City filter. |
 | `region` | No | string | Region filter. |
 | `country` | No | string | Country filter. |
-| `category` | No | string\[\] | Category filter; arrays and comma-separated inputs are normalized by the DTO. |
-| `eventTypeIds` | No | integer\[\] | Event type ID filter. |
+| `category` | No | string[] | Category filter. Repeated values and comma-separated inputs are supported. |
+| `eventTypeIds` | No | integer[] | Event type ID filter. |
 | `dateStartFrom` | No | ISO date string | Lower date bound. |
 | `dateStartTo` | No | ISO date string | Upper date bound. |
 | `future` | No | integer | Future-event flag. |
@@ -91,10 +91,7 @@ See [Authentication](/authentication)
   "pageSize": 20,
   "totalPages": 3,
   "hasMore": true,
-  "condition_tags": {},
-  "profile_version": 12,
-  "active_result_version": 12,
-  "is_stale": false
+  "condition_tags": {}
 }
 ```
 
@@ -105,11 +102,7 @@ See [Authentication](/authentication)
 - `409 Conflict`
 
 ## Notes
-- This route is the current public replacement for older draft references to `GET /external/profile-matching/recommendations/events`.
-- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
-- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
-- This route runs synchronous apply-onboarding first, then returns the current paged recommendation snapshot.
+- This endpoint returns paginated event recommendations for the authenticated user.
 - Paging is applied after duplicate recommendation rows are merged by event.
 - `match_score` is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.
-- Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`.
-- Empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.
+- Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`; empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.
