@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Path parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `id` | Yes | string | Accepts either internal event row `id` or external `eventId`. |
+| `id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 
 ## Response body
 ### Top-level fields
@@ -25,8 +25,8 @@ See [Authentication](/authentication)
 ### `event` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal event row identifier. |
-| `eventId` | string | External event identifier. |
+| `id` | string | Lensmor event identifier. |
+| `eventId` | string | Source event identifier, when available. |
 | `name` | string or `null` | Event name. |
 | `nickname` | string or `null` | Event short name. |
 | `description` | string or `null` | Event description. |
@@ -46,14 +46,13 @@ See [Authentication](/authentication)
 | `priceUpper` | string or `null` | Upper ticket price rendered as a string. |
 | `eventType` | string or `null` | Primary event-type label. |
 | `categories` | object[] | Event category metadata. |
-| `topics` | string[] | Topics array parsed from stored JSON or string data. |
+| `topics` | string[] | Topics list. |
 | `topicsCount` | integer | Topic count. |
 | `verified` | integer | Verification flag. |
 | `future` | integer | Future-event flag. |
 | `historic` | integer | Historic-event flag. |
 | `historicEvent` | string or `null` | Historic event marker. |
 | `image` | string or `null` | Image URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 | `exhibitorCount` | integer | Defaults to `0` when absent. |
 | `personnelCount` | integer | Defaults to `0` when absent. |
 | `eventTypes` | object[] | Detailed event-type rows. |
@@ -107,7 +106,6 @@ See [Authentication](/authentication)
     "historic": 0,
     "historicEvent": null,
     "image": null,
-    "dataSource": "vendelux",
     "exhibitorCount": 250,
     "personnelCount": 1800,
     "eventTypes": []
@@ -120,6 +118,5 @@ See [Authentication](/authentication)
 - `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-- `GET /external/events/:id` accepts either the internal row `id` or external `eventId` in the `:id` segment.
-- Numeric `:id` values are resolved against internal `Event.id` first, then retried as external `eventId`.
+- Use the event `id` returned by Lensmor event endpoints when requesting a specific event.
 - `attendeeCount` and `personnelCount` may be `null` on detail responses when the event has no personnel relations.

@@ -15,7 +15,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `keyword` | No | string | Exhibitor keyword search. |
@@ -30,28 +30,27 @@ See [Authentication](/authentication)
 | `items` | object[] | Exhibitors associated with the resolved event. |
 | `total` | integer | Total matched exhibitors. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
 ### `items[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal exhibitor row identifier. |
+| `id` | string | Lensmor exhibitor identifier. |
 | `companyName` | string | Exhibitor company name. |
 | `domain` | string or `null` | Exhibitor domain. |
 | `description` | string or `null` | Exhibitor description. |
 | `website` | string or `null` | Website URL. |
 | `industry` | string or `null` | Industry label. |
-| `employeeCount` | integer or `null` | Employee-count snapshot. |
+| `employeeCount` | integer or `null` | Employee count, when available. |
 | `country` | string or `null` | Country. |
 | `logo` | string or `null` | Logo URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 | `linkedinUrl` | string or `null` | LinkedIn URL. |
 | `fundingRound` | string or `null` | Funding-round label. |
-| `matched_event_ids` | string[] | For this route, contains the resolved event's external `eventId`. |
+| `matched_event_ids` | string[] | Related event identifiers for the current result. |
 | `techStacks` | string[] | Normalized tech-stack names. |
-| `categories` | string[] | Optional. Exhibitor categories. Event-scoped when the upstream query is event-scoped. Present only when non-empty. |
+| `categories` | string[] | Optional exhibitor categories. Present only when non-empty. |
 
 ## Response example
 ```json
@@ -67,7 +66,6 @@ See [Authentication](/authentication)
       "employeeCount": 120,
       "country": "United States",
       "logo": null,
-      "dataSource": "vendelux",
       "linkedinUrl": null,
       "fundingRound": null,
       "matched_event_ids": [
@@ -97,4 +95,4 @@ See [Authentication](/authentication)
 - `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-- Request-side `event_id` can be either the external event identifier or internal row id, while response-side event references remain in `matched_event_ids`.
+- Use the `event_id` returned by Lensmor event endpoints when requesting exhibitors for an event.

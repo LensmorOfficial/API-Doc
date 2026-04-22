@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Request body
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 
 ## Response body
 ### Top-level fields
@@ -28,8 +28,8 @@ See [Authentication](/authentication)
 ### `event` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal event row identifier. |
-| `eventId` | string | External event identifier. |
+| `id` | string | Lensmor event identifier. |
+| `eventId` | string | Source event identifier, when available. |
 | `name` | string | Event name. |
 | `nickname` | string or `null` | Event short name. |
 | `description` | string or `null` | Event description. |
@@ -40,11 +40,10 @@ See [Authentication](/authentication)
 | `city` | string or `null` | City. |
 | `region` | string or `null` | Region or state. |
 | `country` | string or `null` | Country. |
-| `attendeeCount` | integer or `null` | Attendance count snapshot. |
-| `exhibitorCount` | integer or `null` | Exhibitor count snapshot. |
-| `personnelCount` | integer or `null` | Personnel count snapshot. |
+| `attendeeCount` | integer or `null` | Attendance count, when available. |
+| `exhibitorCount` | integer or `null` | Exhibitor count, when available. |
+| `personnelCount` | integer or `null` | Personnel count, when available. |
 | `image` | string or `null` | Image URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 
 ### `breakdown` fields
 | Field | Type | Notes |
@@ -70,8 +69,7 @@ See [Authentication](/authentication)
     "region": "Nevada",
     "country": "United States",
     "exhibitorCount": 250,
-    "image": null,
-    "dataSource": "vendelux"
+    "image": null
   },
   "score": 7.8,
   "recommendation": "recommended",
@@ -90,4 +88,4 @@ See [Authentication](/authentication)
 - `409 Conflict` when the recommendation dependency is still processing.
 
 ## Notes
-- `event_id` accepts either the internal row `id` or external `eventId`.
+- Use the event `id` returned by Lensmor event endpoints when requesting a fit score.

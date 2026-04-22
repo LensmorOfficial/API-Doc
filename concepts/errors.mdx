@@ -12,8 +12,7 @@ Lensmor API errors use real HTTP status codes.
 {
   "code": 401,
   "message": "Invalid API key",
-  "errorKey": "INVALID_API_KEY",
-  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+  "errorKey": "INVALID_API_KEY"
 }
 ```
 
@@ -26,6 +25,5 @@ Lensmor API errors use real HTTP status codes.
 
 ## Notes
 
-- API responses include `traceId` for troubleshooting.
-- Error bodies do not expose internal `data` or `details` fields.
+- Error bodies do not include extra diagnostic fields such as `data` or `details`.
 - Individual endpoint pages may list the subset of statuses most relevant to that endpoint.

@@ -26,9 +26,9 @@ See [Authentication](/authentication)
 | Field | Type | Notes |
 | --- | --- | --- |
 | `items` | object[] | Same exhibitor summary shape as `GET /external/exhibitors/list` `items[]`. |
-| `total` | integer | Total matched exhibitors after the resolver search. |
+| `total` | integer | Total matched exhibitors. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -46,7 +46,6 @@ See [Authentication](/authentication)
       "employeeCount": 120,
       "country": "United States",
       "logo": null,
-      "dataSource": "vendelux",
       "linkedinUrl": null,
       "fundingRound": null,
       "matched_event_ids": [],
@@ -72,7 +71,5 @@ See [Authentication](/authentication)
 
 ## Notes
 - No matches return an empty success response rather than `404`.
-- `company_url` is reduced to its hostname with leading `www.` removed before the runtime builds the domain filter.
-- If both `company_url` and `target_audience` are sent, `target_audience` drives the company-name search string while the extracted domain is still applied as an exact filter.
 - `matched_event_ids` is an empty array when no event scope or match data exists.
 - `techStacks` is always returned as an array.

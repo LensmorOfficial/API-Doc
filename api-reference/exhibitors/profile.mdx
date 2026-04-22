@@ -20,25 +20,24 @@ See [Authentication](/authentication)
 ### Top-level fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal exhibitor row identifier. |
+| `id` | string | Lensmor exhibitor identifier. |
 | `companyName` | string | Exhibitor company name. |
 | `domain` | string or `null` | Exhibitor domain. |
 | `description` | string or `null` | Exhibitor description. |
 | `website` | string or `null` | Website URL. |
 | `industry` | string or `null` | Industry label. |
-| `employeeCount` | integer or `null` | Employee-count snapshot. |
+| `employeeCount` | integer or `null` | Employee count, when available. |
 | `country` | string or `null` | Country. |
 | `logo` | string or `null` | Logo URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 | `linkedinUrl` | string or `null` | LinkedIn URL. |
 | `fundingRound` | string or `null` | Funding-round label. |
-| `matched_event_ids` | string[] | Empty unless explicit match scope is attached to the source object. |
-| `events` | object[] | First page of associated events, limited to 20 rows. |
+| `matched_event_ids` | string[] | Related event identifiers, when available. |
+| `events` | object[] | Up to 20 associated events. |
 
 ### `events[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal event row identifier. |
+| `id` | string | Lensmor event identifier. |
 | `eventId` | string | External event identifier. |
 | `name` | string | Event name. |
 
@@ -54,7 +53,6 @@ See [Authentication](/authentication)
   "employeeCount": 120,
   "country": "United States",
   "logo": null,
-  "dataSource": "vendelux",
   "linkedinUrl": null,
   "fundingRound": null,
   "matched_event_ids": [],
@@ -76,4 +74,4 @@ See [Authentication](/authentication)
 
 ## Notes
 - `matched_event_ids` is an empty array when no event scope or match data exists.
-- The embedded `events` array is not paginated; it is populated from the first 20 associated events only.
+- The embedded `events` array includes up to 20 associated events.

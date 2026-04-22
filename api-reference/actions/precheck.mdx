@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `action_type` | Yes | string | Supported values currently include `query_event_personnel`, `unlock_event_contacts`, `unlock_contact_emails`, `search_exhibitor_events`, and `others`. |
+| `action_type` | Yes | string | Action code to evaluate. |
 | `params` | Yes | object | Action-specific input payload. |
 | `locale` | No | string | Optional locale hint. |
 
@@ -24,7 +24,7 @@ See [Authentication](/authentication)
 ```json
 {
   "ok": true,
-  "action_type": "query_event_personnel",
+  "action_type": "<action-code>",
   "allowed": true,
   "should_charge": false,
   "credits": 0,
@@ -32,9 +32,7 @@ See [Authentication](/authentication)
   "detail": {
     "event_id": "139574",
     "access_mode": "preview",
-    "preview_limit": 50,
-    "unlock_action_type": "unlock_event_contacts",
-    "unlock_credits": 2000
+    "preview_limit": 50
   }
 }
 ```
@@ -45,6 +43,4 @@ See [Authentication](/authentication)
 
 ## Notes
 - Use this endpoint to check whether an action is allowed and whether it would consume credits.
-- Unsupported `action_type` values still return `200 OK` with `allowed: false`, `should_charge: false`, and `reason_code: "unsupported_action"`.
 - `detail` returns context for the requested action, such as preview-access guidance or unlock-related information.
-- Event unlock prechecks can return `reason_code: "no_contacts_available"` when the event has nothing left to charge for.

@@ -17,7 +17,7 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Optional company URL. At least one of `company_url` or `target_audience` is required. |
 | `target_audience` | Conditionally | string | Optional audience description. At least one of `company_url` or `target_audience` is required. |
-| `timeout_ms` | No | integer | Optional synchronous onboarding timeout, min `60000`, max `3600000`. |
+| `timeout_ms` | No | integer | Optional synchronous request timeout, min `60000`, max `3600000`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 | `city` | No | string | Exact city filter. |
@@ -37,27 +37,21 @@ See [Authentication](/authentication)
 | --- | --- | --- |
 | `status` | string | One of `processing`, `failed`, `completed_empty`, or `completed`. |
 | `items` | object[] | Recommended events for the current page. |
-| `total` | integer | Total merged recommended events after filtering. |
+| `total` | integer | Total recommended events after filtering. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
-| `condition_tags` | object | Structured filter conditions for downstream rendering. |
-| `parsed_filters_snapshot` | object, optional | Parsed filter snapshot, when available. |
-| `relaxed_conditions` | object, optional | Currently used for relaxed-matching metadata. |
-| `profile_version` | integer | Current profile version. |
-| `active_result_version` | integer or `null` | Active recommendation snapshot version. |
-| `is_stale` | boolean | `true` when recalculation is in progress over an older active snapshot. |
+| `condition_tags` | object | Structured filter summary for the current result set. |
 | `empty_reason` | string, optional | Empty-result reason when status is empty or failed. |
 | `failed_filters` | string[], optional | Filters that did not match. |
-| `candidate_count` | integer, optional | Candidate count before semantic matching. |
 | `suggestions` | string[], optional | Suggested filter adjustments. |
 
 ### `items[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | integer | Internal event row identifier. |
-| `eventId` | string | External event identifier. |
+| `id` | integer | Lensmor event identifier. |
+| `eventId` | string | Source event identifier, when available. |
 | `name` | string or `null` | Event name. |
 | `nickname` | string or `null` | Event short name. |
 | `description` | string or `null` | Event description. |
@@ -84,7 +78,6 @@ See [Authentication](/authentication)
 | `historic` | integer | Historic-event flag. |
 | `historicEvent` | string or `null` | Historic event marker. |
 | `image` | string or `null` | Image URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 | `exhibitorCount` | integer | Exhibitor count. |
 | `personnelCount` | integer | Personnel count. |
 | `eventTypes` | object[] | Event-type rows. |
@@ -92,7 +85,7 @@ See [Authentication](/authentication)
 | `updateTime` | integer-like value | Millisecond timestamp from the event row. |
 | `unlocked` | boolean | User-specific unlock flag. |
 | `matched_exhibitor_count` | integer | Number of matched exhibitors at the event. |
-| `match_score` | number or `null` | Raw profile recommendation score. |
+| `match_score` | number or `null` | Recommendation score for the event. |
 
 ## Response example
 ```json
@@ -128,7 +121,6 @@ See [Authentication](/authentication)
       "historic": 0,
       "historicEvent": null,
       "image": null,
-      "dataSource": "vendelux",
       "exhibitorCount": 250,
       "personnelCount": 1800,
       "eventTypes": [],
@@ -144,10 +136,7 @@ See [Authentication](/authentication)
   "pageSize": 20,
   "totalPages": 1,
   "hasMore": false,
-  "condition_tags": {},
-  "profile_version": 3,
-  "active_result_version": 3,
-  "is_stale": false
+  "condition_tags": {}
 }
 ```
 
@@ -157,7 +146,5 @@ See [Authentication](/authentication)
 - `409 Conflict` when a recommendation task is already running for the user.
 
 ## Notes
-- The route runs synchronous apply-onboarding first, then returns the current paged recommendation snapshot.
-- Paging is applied after the service merges duplicate recommendation rows by event.
-- Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`; empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.
-- `match_score` here is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.
+- Responses can include `status`, `condition_tags`, and empty-result guidance such as `empty_reason`, `failed_filters`, and `suggestions`.
+- `match_score` here is the recommendation score; `POST /external/events/fit-score` separately normalizes it onto a `0-10` style scale.

@@ -20,13 +20,13 @@ See [Authentication](/authentication)
 ### Top-level fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal personnel row identifier. |
+| `id` | string | Lensmor personnel identifier. |
 | `fullName` | string | Full name. |
-| `title` | string or `null` | Sourced from `personnel.bio`. |
+| `title` | string or `null` | Current role title, when available. |
 | `department` | string or `null` | Department value. |
 | `seniorityLevel` | string or `null` | Seniority or level value. |
 | `linkedinUrl` | string or `null` | LinkedIn URL. |
-| `companyName` | string or `null` | Latest current exhibitor association, if any. |
+| `companyName` | string or `null` | Associated company name, if available. |
 | `sourceType` | string or `null` | Source label. |
 
 ## Response example
@@ -51,6 +51,4 @@ See [Authentication](/authentication)
 - `404 Not Found` when the personnel row cannot be resolved.
 
 ## Notes
-- Request-side `personnel_id` differs from the response-side `id` field.
-- `title` is sourced from `personnel.bio`, while `companyName` reflects the latest current exhibitor association.
-- `email` and `contactUnlockStatus` are user-scoped and may differ across callers.
+- `email` and `contactUnlockStatus` depend on the authenticated caller's access state.

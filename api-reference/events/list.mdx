@@ -29,15 +29,15 @@ See [Authentication](/authentication)
 | `items` | object[] | Event summaries for the current page. |
 | `total` | integer | Total matched rows. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
 ### `items[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal event row identifier. |
-| `eventId` | string | External event identifier. |
+| `id` | string | Lensmor event identifier. |
+| `eventId` | string | Source event identifier, when available. |
 | `name` | string | Event name. |
 | `nickname` | string or `null` | Event short name. |
 | `description` | string or `null` | Event description. |
@@ -48,11 +48,10 @@ See [Authentication](/authentication)
 | `city` | string or `null` | City. |
 | `region` | string or `null` | Region or state. |
 | `country` | string or `null` | Country. |
-| `attendeeCount` | integer or `null` | Attendance count snapshot. |
-| `exhibitorCount` | integer or `null` | Exhibitor count snapshot. |
-| `personnelCount` | integer or `null` | Personnel count snapshot. |
+| `attendeeCount` | integer or `null` | Attendance count, when available. |
+| `exhibitorCount` | integer or `null` | Exhibitor count, when available. |
+| `personnelCount` | integer or `null` | Personnel count, when available. |
 | `image` | string or `null` | Image URL. |
-| `dataSource` | string or `null` | Upstream data source label. |
 
 ## Response example
 ```json
@@ -72,8 +71,7 @@ See [Authentication](/authentication)
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 250,
-      "image": null,
-      "dataSource": "vendelux"
+      "image": null
     }
   ],
   "total": 1,
@@ -88,5 +86,5 @@ See [Authentication](/authentication)
 - `401 Unauthorized` when the API key is missing, malformed, or invalid.
 
 ## Notes
-- The route applies date filters only when `date_start_from` and/or `date_start_to` are supplied; no implicit default date window is added at runtime.
-- List-summary items intentionally omit `attendeeCount` and `personnelCount`; those values were removed from this response because they were inaccurate in list context.
+- Date filters are applied only when `date_start_from` and/or `date_start_to` are supplied.
+- Use [Event details](/api-reference/events/detail) when you need the full event payload for a specific event.

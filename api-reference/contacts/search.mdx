@@ -16,8 +16,8 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company lookup term. Length `1` to `200`. |
-| `role` | No | string | Optional position or role filter. Blank values are normalized away. |
-| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
+| `role` | No | string | Optional position or role filter. Blank values are ignored. |
+| `person_name` | No | string | Optional person-name filter. Blank values are ignored. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 
@@ -28,7 +28,7 @@ See [Authentication](/authentication)
 | `items` | object[] | Same contact summary shape as `GET /external/personnel/list` `items[]`. |
 | `total` | integer | Total distinct personnel matches. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -64,6 +64,5 @@ See [Authentication](/authentication)
 ## Notes
 - Request-side `company_name` is snake_case, while response-side fields are camelCase.
 - `person_name` can narrow the company-scoped result set by personnel name without requiring an event context.
-- `email` and `contactUnlockStatus` are user-scoped; unlocked emails are only returned for the authenticated caller that has already unlocked them.
-- Short company queries use a direct contains-style fallback; longer company queries use scored matching.
-- Results are scoped to the authenticated user because the service computes user-specific reveal and task state before mapping the response.
+- `email` and `contactUnlockStatus` depend on the authenticated caller's current access state.
+- Results reflect the authenticated caller's current access state.

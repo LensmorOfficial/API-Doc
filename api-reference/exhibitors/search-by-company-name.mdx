@@ -1,6 +1,6 @@
 # Exhibitor search by company name
 
-Search exhibitors directly from a company name using a precision-first matcher.
+Search exhibitors directly by company name.
 
 ## Endpoint
 `POST /external/exhibitors/search-by-company-name`
@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Request body
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_name` | Yes | string | Precision-first exhibitor lookup term. |
+| `company_name` | Yes | string | Company name to search for. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 
@@ -23,9 +23,9 @@ See [Authentication](/authentication)
 | Field | Type | Notes |
 | --- | --- | --- |
 | `items` | object[] | Same exhibitor summary shape as `GET /external/exhibitors/list` `items[]`. |
-| `total` | integer | Total matched exhibitors for the paged strict search. |
+| `total` | integer | Total matched exhibitors. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -43,7 +43,6 @@ See [Authentication](/authentication)
       "employeeCount": null,
       "country": null,
       "logo": null,
-      "dataSource": null,
       "linkedinUrl": null,
       "fundingRound": null,
       "matched_event_ids": [],

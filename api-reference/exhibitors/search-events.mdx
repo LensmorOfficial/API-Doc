@@ -1,6 +1,6 @@
 # Exhibitor event search
 
-Search events directly from an exhibitor company name using a precision-first matcher.
+Search events directly by exhibitor company name.
 
 ## Endpoint
 `POST /external/exhibitors/search-events`
@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Request body
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_name` | Yes | string | Reverse-lookup source string. |
+| `company_name` | Yes | string | Company name to search for. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 
@@ -25,7 +25,7 @@ See [Authentication](/authentication)
 | `items` | object[] | Event summaries enriched with matching exhibitor stubs. |
 | `total` | integer | Total matched events. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -38,7 +38,7 @@ See [Authentication](/authentication)
 ### `items[].matchedExhibitors[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal exhibitor row identifier. |
+| `id` | string | Lensmor exhibitor identifier. |
 | `companyName` | string | Matching exhibitor company name. |
 
 ## Response example
@@ -60,7 +60,6 @@ See [Authentication](/authentication)
       "country": "United States",
       "exhibitorCount": 250,
       "image": null,
-      "dataSource": "vendelux",
       "matchedExhibitors": [
         {
           "id": "456",
@@ -83,6 +82,5 @@ See [Authentication](/authentication)
 - `402 Payment Required` when the caller lacks sufficient credits for the search charge.
 
 ## Notes
-- The route consumes `50` credits on execution; if downstream search logic throws, the service refunds that charge.
+- A successful search consumes `50` credits.
 - No matches return an empty success response rather than `404`.
-- Short queries stay exact-only after normalization; longer queries use strict token and prefix admission instead of permissive substring matching.

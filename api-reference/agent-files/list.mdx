@@ -1,8 +1,8 @@
 # Agent files list
 
-List uploaded generated files for the authenticated user.
+List generated files available to the authenticated user.
 
-Use this endpoint to show generated-file history, optionally filtered to one agent instance.
+Use this endpoint to show generated-file history for the authenticated user.
 
 ## Endpoint
 `GET /external/agent-files/list`
@@ -18,16 +18,15 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`. |
-| `instanceId` | No | string | Optional exact-match agent instance filter. |
 
 ## Response body
 ### Top-level fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `items` | object[] | Uploaded generated files visible to the authenticated user. |
-| `total` | integer | Total uploaded files that match the current filter. |
+| `items` | object[] | Generated files visible to the authenticated user. |
+| `total` | integer | Total files that match the current filter. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -37,9 +36,8 @@ See [Authentication](/authentication)
 | `id` | string | File record identifier. |
 | `fileName` | string | Original file name. |
 | `fileSize` | integer or `null` | Uploaded file size in bytes when known. |
-| `mimeType` | string | MIME type stored for the file. |
-| `instanceId` | string or `null` | Associated agent instance identifier when available. |
-| `status` | string | Current file status; list results are currently filtered to `uploaded`. |
+| `mimeType` | string | MIME type for the file. |
+| `status` | string | File upload status. |
 | `createdAt` | string | Millisecond timestamp serialized as a string. |
 
 ## Response example
@@ -51,7 +49,6 @@ See [Authentication](/authentication)
       "fileName": "report.csv",
       "fileSize": 10240,
       "mimeType": "text/csv",
-      "instanceId": "i-abc123",
       "status": "uploaded",
       "createdAt": "1776743105123"
     }
@@ -68,6 +65,4 @@ See [Authentication](/authentication)
 - `401 Unauthorized`
 
 ## Notes
-- Only uploaded files are listed; pending and deleted records are excluded.
 - Results are ordered newest first.
-- Use `instanceId` when you need file history for one specific agent instance.

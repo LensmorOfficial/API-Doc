@@ -16,7 +16,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 | `exhibitor_id` | No | string | Optional numeric-string exhibitor filter. |
@@ -31,14 +31,14 @@ See [Authentication](/authentication)
 | `items` | object[] | Personnel contact summaries for the event. |
 | `total` | integer | Total distinct personnel matches. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
 ### `items[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal personnel row identifier. |
+| `id` | string | Lensmor personnel identifier. |
 | `fullName` | string | Full name. |
 | `title` | string or `null` | For this route, sourced from `personnel.bio`. |
 | `department` | string or `null` | Department value. |
@@ -77,8 +77,8 @@ See [Authentication](/authentication)
 | Field | Type | Notes |
 | --- | --- | --- |
 | `requiredForMoreResults` | boolean | `true` when event unlock is required to continue beyond the current preview boundary. |
-| `actionType` | string or `null` | Recommended follow-up action type, currently `unlock_event_contacts` when unlock is needed. |
-| `credits` | integer or `null` | Credits required by the recommended unlock action when present, currently `2000`. |
+| `actionType` | string or `null` | Action code for the next recommended step when more access is available. |
+| `credits` | integer or `null` | Credits required for that recommended step when applicable. |
 
 ### `semantics.guidance` fields
 | Field | Type | Notes |
@@ -123,7 +123,7 @@ See [Authentication](/authentication)
     },
     "unlock": {
       "requiredForMoreResults": true,
-      "actionType": "unlock_event_contacts",
+      "actionType": "<next-step-code>",
       "credits": 2000
     },
     "guidance": {
@@ -141,7 +141,7 @@ See [Authentication](/authentication)
 
 ## Notes
 - Request-side identifiers use `event_id` and optional `exhibitor_id`, while response-side identifiers use only `id`.
-- `title` comes from the event-scoped personnel relation, while `email` and `contactUnlockStatus` are user-scoped overlays computed for the authenticated caller.
-- `search_query` matches either relation `position` text or personnel `fullName`.
+- `title` reflects the person's role for the current event, while `email` and `contactUnlockStatus` reflect the authenticated caller's access state.
+- `search_query` matches role or title text, or personnel `fullName`.
 - `semantics` exposes whether the caller is in preview or full-access mode for this event, including unlock guidance and actual-versus-visible result counts.
 - When `semantics.pageState.accessible` is `false`, the route can return an empty page while `semantics.counts.actualTotal` still shows more matching results behind the preview boundary.

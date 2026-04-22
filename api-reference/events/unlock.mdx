@@ -46,6 +46,6 @@ See [Authentication](/authentication)
 - `409 Conflict`
 
 ## Notes
-- Repeating the same unlock is idempotent: the route returns `alreadyUnlocked: true`, `creditsUsed: 0`, and `balanceAfter: null`.
-- The route returns `400 Bad Request` when the event exists but no chargeable contacts remain to unlock.
-- Successful charged unlocks return the remaining credit balances together with the unlocked event identity.
+- If the event is already unlocked, the response sets `alreadyUnlocked` to `true` and no additional credits are used.
+- The route returns `400 Bad Request` when no additional contacts are available to unlock for the event.
+- Successful responses include the remaining credit balance and basic event details.

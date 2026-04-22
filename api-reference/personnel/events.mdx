@@ -25,7 +25,7 @@ See [Authentication](/authentication)
 | `items` | object[] | Same event summary shape as `GET /external/events/list` `items[]`. |
 | `total` | integer | Total distinct associated events. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 
@@ -47,8 +47,7 @@ See [Authentication](/authentication)
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 250,
-      "image": null,
-      "dataSource": "vendelux"
+      "image": null
     }
   ],
   "total": 1,

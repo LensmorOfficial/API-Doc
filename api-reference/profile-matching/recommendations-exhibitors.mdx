@@ -15,7 +15,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
 | `location` | No | string | Country or location filter. |
@@ -33,25 +33,23 @@ See [Authentication](/authentication)
 | `items` | object[] | Recommended exhibitors for the resolved event. |
 | `total` | integer | Total exhibitors after filtering. |
 | `page` | integer | Current page number. |
-| `pageSize` | integer | Page size used at runtime. |
+| `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
-| `code` | string, optional | Present only for fallback responses; currently `AI_SEARCH_RESULT_MISMATCH`. |
-| `show_refresh_hint` | boolean, optional | Present only for fallback responses. |
 
 ### `items[]` fields
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Internal exhibitor row identifier. |
+| `id` | string | Lensmor exhibitor identifier. |
 | `companyName` | string | Exhibitor company name. |
 | `description` | string or `null` | Exhibitor description. |
 | `logo` | string or `null` | Logo URL. |
 | `website` | string or `null` | Website URL. |
 | `country` | string or `null` | Country. |
 | `industry` | string or `null` | Industry label. |
-| `categories` | string[] | Event-scoped business tags. |
-| `employeeCount` | integer or `null` | Employee-count snapshot. |
-| `companySize` | string or `null` | Raw `company_size` value. |
+| `categories` | string[] | Business tags for the exhibitor. |
+| `employeeCount` | integer or `null` | Employee count, when available. |
+| `companySize` | string or `null` | Company size label, when available. |
 | `fundingRound` | string or `null` | Funding-round label. |
 | `techStacks` | string[] | Normalized tech-stack names. |
 
@@ -92,7 +90,5 @@ See [Authentication](/authentication)
 - `404 Not Found` when the target event cannot be resolved.
 
 ## Notes
-- Request-side `event_id` differs from the response-side `id` field on exhibitors.
-- The route may return fallback metadata at the top level: `code: "AI_SEARCH_RESULT_MISMATCH"` and `show_refresh_hint: true`.
-- In fallback mode, `items.length` may be smaller than `pageSize` even when `hasMore` is true because stored recommended exhibitor ids can resolve to deleted or missing exhibitor rows.
+- Use the `event_id` returned by Lensmor event endpoints when requesting exhibitors for an event.
 - `techStacks` is always returned as an array.

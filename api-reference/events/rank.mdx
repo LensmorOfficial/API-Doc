@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Request body
 | Field | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string[] | Each value supports either external `Event.eventId` or internal `Event.id`. |
+| `event_ids` | Yes | string[] | Event identifiers returned by Lensmor event endpoints. |
 
 ## Response body
 ### Top-level fields
@@ -29,7 +29,7 @@ See [Authentication](/authentication)
 | `name` | string | Event name. |
 | `rank` | integer | One-based rank in the returned order. |
 | `match_score` | number | Raw profile score rounded to two decimals. |
-| `reasons` | array | Currently returned as an empty array. |
+| `reasons` | array | Optional explanatory labels for the ranking result. |
 
 ## Response example
 ```json
@@ -51,6 +51,3 @@ See [Authentication](/authentication)
 - `401 Unauthorized` when the API key is missing, malformed, or invalid.
 - `404 Not Found` when any requested event cannot be resolved.
 - `409 Conflict` when the recommendation dependency is still processing.
-
-## Notes
-- `POST /external/events/rank` currently returns an empty `reasons` array for each item.

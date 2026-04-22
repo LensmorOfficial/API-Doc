@@ -14,7 +14,7 @@ See [Authentication](/authentication)
 ## Query parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
+| `event_id` | Yes | string | Event identifier returned by Lensmor event endpoints. |
 
 ## Response body
 ### Top-level fields
@@ -29,8 +29,6 @@ See [Authentication](/authentication)
 | `attendeeCount` | integer | Defaults to `0` when absent in storage. |
 | `exhibitorCount` | integer | Defaults to `0` when absent in storage. |
 | `personnelCount` | integer | Defaults to `0` when absent in storage. |
-| `topCategories` | array | Currently returned as an empty array. |
-| `dataFreshness` | string | Currently hard-coded to `database_snapshot`. |
 
 ## Response example
 ```json
@@ -49,15 +47,12 @@ See [Authentication](/authentication)
     "region": "Nevada",
     "country": "United States",
     "exhibitorCount": 250,
-    "image": null,
-    "dataSource": "vendelux"
+    "image": null
   },
   "summary": {
     "attendeeCount": 10000,
     "exhibitorCount": 250,
-    "personnelCount": 1800,
-    "topCategories": [],
-    "dataFreshness": "database_snapshot"
+    "personnelCount": 1800
   }
 }
 ```
@@ -66,6 +61,3 @@ See [Authentication](/authentication)
 - `400 Bad Request` when `event_id` is invalid.
 - `401 Unauthorized` when the API key is missing, malformed, or invalid.
 - `404 Not Found` when the target event cannot be resolved.
-
-## Notes
-- `GET /external/events/brief` currently returns `topCategories` as an empty array.

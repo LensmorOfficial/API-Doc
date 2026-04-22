@@ -51,8 +51,7 @@ See [Authentication](/authentication)
         "region": "Nevada",
         "country": "United States",
         "exhibitorCount": 250,
-        "image": null,
-        "dataSource": "vendelux"
+        "image": null
       }
     ],
     "total": 1,
@@ -70,6 +69,6 @@ See [Authentication](/authentication)
 - `404 Not Found`
 
 ## Notes
-- `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile), including user-scoped `email` and `contactUnlockStatus`.
+- `personnel` reuses the same public profile shape as [Personnel profile details](/api-reference/personnel/profile), including `email` and `contactUnlockStatus`.
 - `events` reuses the same paginated event-item shape as [Personnel related events](/api-reference/personnel/events).
 - If the matched person has no related events, `events` returns an empty paginated success response rather than `404 Not Found`.
