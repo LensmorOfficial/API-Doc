@@ -1,0 +1,9 @@
+# Internal planning, reconciliation, and inventory docs.
+docs/
+
+# Repository-only metadata, not part of the public docs site.
+README.md
+.DS_Store
+**/.DS_Store
+.claude/
+.codex-migrate-user/
