@@ -17,7 +17,7 @@
 ## Endpoint table
 | Method | Path | Controller file | Auth required | Success status | Published in Mintlify | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| GET | /external/events/list | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | No implicit date window is applied; date filters only run when provided |
+| GET | /external/events/list | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | Supports keyword/location/date plus `event_type` and `quality` filters; no implicit date window is applied |
 | POST | /external/events/fit-score | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | POST | /external/events/rank | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | `event_ids` accepts either `Event.eventId` or internal `Event.id` |
 | POST | /external/events/:id/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Idempotent event-level unlock; returns `400 Bad Request` when the event has no chargeable contacts |
@@ -60,6 +60,8 @@ Bearer token required.
 | `city` | No | string | City filter. |
 | `date_start_from` | No | `YYYY-MM-DD` string | Optional lower date bound. |
 | `date_start_to` | No | `YYYY-MM-DD` string | Optional upper date bound. |
+| `event_type` | No | string[] | Event type filter; accepts an array or a comma-separated string. Supported values: `trade_show`, `vendor_summit`, `startup_festival`, `conference_led`. |
+| `quality` | No | string[] | Quality label filter; accepts an array or a comma-separated string. Supported values: `Global`, `Regional`, `Standard`. |
 
 ### Response body
 #### Top-level fields
@@ -126,6 +128,8 @@ Bearer token required.
 
 ### Notes
 - The route applies date filters only when `date_start_from` and/or `date_start_to` are supplied; no implicit default date window is added at runtime.
+- `event_type` values map to trade show, vendor summit, startup festival, and conference-led event categories.
+- `quality` values map to global flagship events, regionally important events, and standard events.
 - List-summary items intentionally omit `attendeeCount` and `personnelCount`; those values were removed from this response because they were inaccurate in list context.
 
 ## POST /external/events/fit-score

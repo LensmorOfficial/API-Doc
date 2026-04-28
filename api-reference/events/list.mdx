@@ -21,6 +21,8 @@ See [Authentication](/authentication)
 | `city` | No | string | City filter. |
 | `date_start_from` | No | `YYYY-MM-DD` string | Optional lower date bound. |
 | `date_start_to` | No | `YYYY-MM-DD` string | Optional upper date bound. |
+| `event_type` | No | string[] | Event type filter. Accepts a comma-separated string or array values. Supported values: `trade_show`, `vendor_summit`, `startup_festival`, `conference_led`. |
+| `quality` | No | string[] | Quality label filter. Accepts a comma-separated string or array values. Supported values: `Global`, `Regional`, `Standard`. |
 
 ## Response body
 ### Top-level fields
@@ -48,10 +50,9 @@ See [Authentication](/authentication)
 | `city` | string or `null` | City. |
 | `region` | string or `null` | Region or state. |
 | `country` | string or `null` | Country. |
-| `attendeeCount` | integer or `null` | Attendance count, when available. |
 | `exhibitorCount` | integer or `null` | Exhibitor count, when available. |
-| `personnelCount` | integer or `null` | Personnel count, when available. |
 | `image` | string or `null` | Image URL. |
+| `dataSource` | string or `null` | Source label for the event record. |
 
 ## Response example
 ```json
@@ -71,7 +72,8 @@ See [Authentication](/authentication)
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 250,
-      "image": null
+      "image": null,
+      "dataSource": "vendelux"
     }
   ],
   "total": 1,
@@ -87,4 +89,7 @@ See [Authentication](/authentication)
 
 ## Notes
 - Date filters are applied only when `date_start_from` and/or `date_start_to` are supplied.
+- `event_type` narrows results by event category, such as trade shows, vendor summits, startup festivals, or conference-led events.
+- `quality` narrows results by quality label: global flagship events, regionally important events, or standard events.
+- List results do not include attendee or personnel counts; use [Event details](/api-reference/events/detail) or [Event brief](/api-reference/events/brief) when you need scale fields for one event.
 - Use [Event details](/api-reference/events/detail) when you need the full event payload for a specific event.
