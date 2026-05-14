@@ -23,7 +23,7 @@
 | POST | /external/events/:id/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Idempotent event-level unlock; returns `400 Bad Request` when the event has no chargeable contacts |
 | GET | /external/events/brief | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/events/:id | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `200 OK` | Yes | Path `:id` accepts either internal row `id` or external `eventId` |
-| GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
+| GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id`; response includes preview/full-access `semantics` guidance |
 | POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Requires `company_url`, `target_audience`, or both; no-match cases stay `200/201` success with empty items |
 | POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Precision-first paged lookup by `company_name` |
 | POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Charge-sensitive reverse lookup from `company_name`; longer queries ignore single-character tokens and use strict token/prefix admission |
@@ -36,11 +36,13 @@
 | GET | /external/contacts/search | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Search is scoped to the authenticated user context, supports optional `person_name`, and may expose unlocked email state |
 | POST | /external/contacts/unlock | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `201 Created` | Yes | Queues an asynchronous email unlock batch for event-scoped personnel IDs |
 | GET | /external/contacts/unlock-tasks/:taskId | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Returns aggregate batch status plus per-person unlock progress |
-| POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Runs synchronous apply-onboarding, then returns paged recommended events |
+| POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Deprecated synchronous apply facade; runs apply-onboarding, then returns paged recommended events |
+| POST | /external/profile-matching/actions/apply-recommended-events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | No | Canonical synchronous apply route for paged recommended events |
 | GET | /external/profile-matching/recommendations/exhibitors | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/agent-files/upload-presign | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Returns a one-time PUT URL plus `fileId` for the two-step upload flow |
 | POST | /external/agent-files/confirm-upload | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `201 Created` | Yes | Marks a pending upload as complete and returns file metadata with a signed download URL |
 | GET | /external/agent-files/list | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Lists uploaded generated files for the authenticated user, newest first |
+| GET | /external/agent-files/:id | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | No | Resolves a file UUID into metadata plus a one-hour signed download URL |
 | POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body, including preview unlock guidance and `no_contacts_available` for event unlock prechecks |
 ## GET /external/events/list
 
@@ -517,11 +519,15 @@ Bearer token required.
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Supports either external `Event.eventId` or internal `Event.id`. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+| `pageSize` | No | integer | Defaults to `50` at service runtime when omitted, max `100`. |
 | `keyword` | No | string | Exhibitor search term for the event. |
 | `country` | No | string | Exhibitor country filter. |
 | `category` | No | string[] | Exhibitor category filters; repeated query params are supported. |
 | `industry` | No | string[] | Exhibitor industry filters; repeated query params are supported. |
+| `jobTitle` | No | string[] | Personnel job-title filters; repeated query params are supported. |
+| `managementLevel` | No | string[] | Personnel management-level filters; repeated query params are supported and normalized to lowercase. |
+| `department` | No | string[] | Personnel department filters; repeated query params are supported and normalized to lowercase. |
+| `personnelLimit` | No | integer | Maximum nested personnel rows to load per exhibitor; `0` or omitted means no nested personnel. |
 
 ### Response body
 #### Top-level fields
@@ -533,6 +539,8 @@ Bearer token required.
 | `pageSize` | integer | Page size used at runtime. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
+| `recommendationProcessing` | boolean | `true` when recommendation enrichment is still processing; otherwise `false`. |
+| `semantics` | object | Event-access semantics describing preview/full mode, accessible paging, and unlock guidance. |
 
 #### `items[]` fields
 | Field | Type | Notes |
@@ -550,8 +558,51 @@ Bearer token required.
 | `linkedinUrl` | string or `null` | LinkedIn URL. |
 | `fundingRound` | string or `null` | Funding-round label. |
 | `matched_event_ids` | string[] | For this route, contains the resolved event's external `eventId`. |
+| `isRecommended` | boolean | Whether the exhibitor is recommended for the authenticated caller; defaults to `false`. |
+| `recommendationRank` | integer or `null` | Recommendation rank when available. |
+| `matchStatus` | string or `null` | Recommendation processing state. Current values include `pending_unlock`, `processing`, `ready`, and `failed`. |
+| `matchScore` | number or `null` | Recommendation match score when available. |
+| `matchTier` | string or `null` | Recommendation tier when available. Current values include `top_match`, `strong_match`, and `qualifying_match`. |
+| `matchReason` | string or `null` | Recommendation explanation when available. |
 | `techStacks` | string[] | Normalized tech-stack names. |
 | `categories` | string[] | Optional. Exhibitor categories. Event-scoped when the upstream query is event-scoped. Present only when non-empty. |
+
+#### `semantics` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `accessMode` | string | `preview` when the event is still preview-locked, `full` when the caller already has full event access. |
+| `previewLimit` | integer or `null` | Currently `50` in preview mode; `null` in full mode. |
+| `counts` | object | Actual-versus-visible match counts for the current query. |
+| `pageState` | object | Whether the requested page is currently accessible. |
+| `unlock` | object | Whether event unlock is required to see more results. |
+| `guidance` | object | User-facing machine-readable guidance for the current access state. |
+
+#### `semantics.counts` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `actualTotal` | integer | Total matching exhibitors for the current query before preview gating. |
+| `visibleTotal` | integer | Total currently accessible under the present access mode. |
+| `remainingLockedCount` | integer | Count of matching exhibitors that remain inaccessible until event unlock. |
+
+#### `semantics.pageState` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requestedPage` | integer | Echoes the requested page number. |
+| `accessible` | boolean | `false` when the requested page falls outside the preview-accessible window. |
+| `maxAccessiblePage` | integer | Highest page currently accessible under the present access mode. |
+
+#### `semantics.unlock` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `requiredForMoreResults` | boolean | `true` when event unlock is required to continue beyond the current preview boundary. |
+| `actionType` | string or `null` | Recommended follow-up action type, currently `unlock_event_exhibitors` when unlock is needed. |
+| `credits` | integer or `null` | Credits required by the recommended unlock action when present. |
+
+#### `semantics.guidance` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `code` | string | Current codes include `preview_page_inaccessible`, `preview_results_truncated`, `preview_complete_for_query`, `full_access`, and `no_matching_results`. |
+| `message` | string | Human-readable explanation of the current access state. |
 
 ### Response example
 ```json
@@ -570,6 +621,12 @@ Bearer token required.
       "dataSource": "vendelux",
       "linkedinUrl": null,
       "fundingRound": null,
+      "isRecommended": true,
+      "recommendationRank": 1,
+      "matchStatus": "ready",
+      "matchScore": 91,
+      "matchTier": "top_match",
+      "matchReason": "Strong fit for the buyer profile.",
       "matched_event_ids": [
         "139574"
       ],
@@ -585,9 +642,33 @@ Bearer token required.
   ],
   "total": 1,
   "page": 1,
-  "pageSize": 20,
+  "pageSize": 50,
   "totalPages": 1,
-  "hasMore": false
+  "hasMore": false,
+  "recommendationProcessing": false,
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 87,
+      "visibleTotal": 50,
+      "remainingLockedCount": 37
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_exhibitors",
+      "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_results_truncated",
+      "message": "This event is locked. Only the first 50 matching exhibitors are currently accessible. Unlock the event to access the remaining matching results."
+    }
+  }
 }
 ```
 
@@ -598,6 +679,9 @@ Bearer token required.
 
 ### Notes
 - Request-side `event_id` can be either the external event identifier or internal row id, while response-side event references remain in `matched_event_ids`.
+- In preview mode, the current runtime limits accessible exhibitors to the first `50` matching rows and exposes actual-versus-visible counts through `semantics`.
+- When `semantics.pageState.accessible` is `false`, the route can return an empty page while `semantics.counts.actualTotal` still shows more matching results behind the preview boundary.
+- `recommendationProcessing` and recommendation fields such as `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, and `matchReason` are user-scoped overlays for the authenticated caller.
 
 ## POST /external/exhibitors/search
 
@@ -1654,7 +1738,168 @@ Bearer token required.
 - `409 Conflict` when a recommendation task is already running for the user.
 
 ### Notes
+- This route is a deprecated synchronous apply facade. Prefer `POST /external/profile-matching/actions/apply-recommended-events/paged` for new integrations.
 - The route runs synchronous apply-onboarding first, then returns the current paged recommendation snapshot.
+- Paging is applied after the service merges duplicate recommendation rows by event.
+- Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`; empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.
+- `match_score` here is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.
+
+## POST /external/profile-matching/actions/apply-recommended-events/paged
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`201 Created`
+
+### Request body
+| Field | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_url` | Conditionally | string | Optional public `http(s)` URL. At least one of `company_url` or `target_audience` is required. |
+| `target_audience` | Conditionally | string | Optional audience description. At least one of `company_url` or `target_audience` is required. |
+| `timeout_ms` | No | integer | Optional synchronous onboarding timeout, min `60000`, max `3600000`. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`, max `100`. |
+| `autoRecommendTop3EventsEnabled` | No | boolean | Optional per-request override for synchronous top-3 recommendation reason generation. |
+| `city` | No | string | Exact city filter. |
+| `region` | No | string | Exact region filter. |
+| `country` | No | string | Exact country filter. |
+| `category` | No | string[] | Category filters; accepts an array or a comma-separated string. |
+| `eventTypeIds` | No | integer[] | Event type filters; accepts an array or a comma-separated string. |
+| `dateStartFrom` | No | `YYYY-MM-DD` string | Lower date bound. |
+| `dateStartTo` | No | `YYYY-MM-DD` string | Upper date bound. |
+| `future` | No | integer | Future-only flag. |
+| `attendeeCountMin` | No | integer | Minimum attendee count. |
+| `attendeeCountMax` | No | integer | Maximum attendee count. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `status` | string | One of `processing`, `failed`, `completed_empty`, or `completed`. |
+| `items` | object[] | Recommended events for the current page. |
+| `total` | integer | Total merged recommended events after filtering. |
+| `page` | integer | Current page number. |
+| `pageSize` | integer | Page size used at runtime. |
+| `totalPages` | integer | `0` when `total` is `0`. |
+| `hasMore` | boolean | `true` when another page exists. |
+| `condition_tags` | object | Structured filter conditions for downstream rendering. |
+| `parsed_filters_snapshot` | object, optional | Parsed filter snapshot, when available. |
+| `relaxed_conditions` | object, optional | Currently used for relaxed-matching metadata. |
+| `profile_version` | integer | Current profile version. |
+| `active_result_version` | integer or `null` | Active recommendation snapshot version. |
+| `is_stale` | boolean | `true` when recalculation is in progress over an older active snapshot. |
+| `empty_reason` | string, optional | Empty-result reason when status is empty or failed. |
+| `failed_filters` | string[], optional | Filters that did not match. |
+| `candidate_count` | integer, optional | Candidate count before semantic matching. |
+| `suggestions` | string[], optional | Suggested filter adjustments. |
+
+#### `items[]` fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | integer | Internal event row identifier. |
+| `eventId` | string | External event identifier. |
+| `name` | string or `null` | Event name. |
+| `nickname` | string or `null` | Event short name. |
+| `description` | string or `null` | Event description. |
+| `url` | string or `null` | Event website URL. |
+| `dateStart` | `YYYY-MM-DD` string or `null` | Start date. |
+| `dateEnd` | `YYYY-MM-DD` string or `null` | End date. |
+| `venue` | string or `null` | Venue name. |
+| `city` | string or `null` | City. |
+| `region` | string or `null` | Region or state. |
+| `country` | string or `null` | Country. |
+| `latitude` | string or `null` | Latitude rendered as a string. |
+| `longitude` | string or `null` | Longitude rendered as a string. |
+| `attendeeCount` | integer | Attendance count. |
+| `declaredExpectedAttendees` | integer | Declared attendance expectation. |
+| `estimatedExpectedAttendees` | string or `null` | Estimated attendance expectation rendered as a string. |
+| `priceLower` | string or `null` | Lower ticket price rendered as a string. |
+| `priceUpper` | string or `null` | Upper ticket price rendered as a string. |
+| `eventType` | string or `null` | Primary event-type label. |
+| `categories` | object[] | Category metadata. |
+| `topics` | string[] | Topic list. |
+| `topicsCount` | integer | Topic count. |
+| `verified` | integer | Verification flag. |
+| `future` | integer | Future-event flag. |
+| `historic` | integer | Historic-event flag. |
+| `historicEvent` | string or `null` | Historic event marker. |
+| `image` | string or `null` | Image URL. |
+| `dataSource` | string or `null` | Upstream data source label. |
+| `exhibitorCount` | integer | Exhibitor count. |
+| `personnelCount` | integer | Personnel count. |
+| `eventTypes` | object[] | Event-type rows. |
+| `createTime` | integer-like value | Millisecond timestamp from the event row. |
+| `updateTime` | integer-like value | Millisecond timestamp from the event row. |
+| `unlocked` | boolean | User-specific unlock flag. |
+| `matched_exhibitor_count` | integer | Number of matched exhibitors at the event. |
+| `match_score` | number | Raw profile recommendation score after runtime numeric coercion. |
+
+### Response example
+```json
+{
+  "status": "completed",
+  "items": [
+    {
+      "id": 123,
+      "eventId": "139574",
+      "name": "Shoptalk",
+      "nickname": null,
+      "description": null,
+      "url": "https://example.com",
+      "dateStart": "2026-03-25",
+      "dateEnd": "2026-03-28",
+      "venue": "Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
+      "country": "United States",
+      "latitude": null,
+      "longitude": null,
+      "attendeeCount": 10000,
+      "declaredExpectedAttendees": 0,
+      "estimatedExpectedAttendees": null,
+      "priceLower": null,
+      "priceUpper": null,
+      "eventType": null,
+      "categories": [],
+      "topics": [],
+      "topicsCount": 0,
+      "verified": 1,
+      "future": 1,
+      "historic": 0,
+      "historicEvent": null,
+      "image": null,
+      "dataSource": "vendelux",
+      "exhibitorCount": 250,
+      "personnelCount": 1800,
+      "eventTypes": [],
+      "createTime": 1711000000000,
+      "updateTime": 1711000000000,
+      "unlocked": false,
+      "matched_exhibitor_count": 12,
+      "match_score": 0.82
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false,
+  "condition_tags": {},
+  "profile_version": 3,
+  "active_result_version": 3,
+  "is_stale": false
+}
+```
+
+### Error responses
+- `400 Bad Request` when the body fails validation.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `409 Conflict` when a recommendation task is already running for the user.
+
+### Notes
+- This is the canonical synchronous apply route for paged recommended events.
+- The legacy `POST /external/profile-matching/recommendations/events/paged` route currently returns the same response contract.
 - Paging is applied after the service merges duplicate recommendation rows by event.
 - Top-level metadata includes `status`, `condition_tags`, `profile_version`, `active_result_version`, and `is_stale`; empty-result responses may also include `empty_reason`, `failed_filters`, `candidate_count`, and `suggestions`.
 - `match_score` here is the raw recommendation score; `POST /external/events/fit-score` separately normalizes a score onto a `0-10` style scale.
@@ -1910,6 +2155,51 @@ Bearer token required.
 - The route lists only files whose status is already `uploaded`; pending or deleted records are excluded.
 - Results are ordered by `createdAt` descending, so the newest uploaded files appear first.
 - Use `instanceId` when you need file history for one specific agent instance.
+
+## GET /external/agent-files/:id
+
+### Authentication
+Bearer token required.
+
+### Success status code
+`200 OK`
+
+### Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | File UUID, as used in `lensmor-file://{fileUuid}` resource links. |
+
+### Response body
+#### Top-level fields
+| Field | Type | Notes |
+| --- | --- | --- |
+| `fileId` | string | File UUID. |
+| `name` | string | Original file name. |
+| `mimeType` | string | MIME type stored for the file. |
+| `sizeBytes` | integer or `null` | Uploaded file size in bytes when known. |
+| `signUrl` | string | Signed download URL, currently valid for `3600` seconds. |
+
+### Response example
+```json
+{
+  "fileId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "report.csv",
+  "mimeType": "text/csv",
+  "sizeBytes": 10240,
+  "signUrl": "https://storage.example.com/lensmor-test/agent-files/42/550e8400-e29b-41d4-a716-446655440000_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
+}
+```
+
+### Error responses
+- `400 Bad Request` when `id` is empty.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `403 Forbidden` when the file exists but belongs to another user.
+- `404 Not Found` when the file UUID cannot be resolved, is not uploaded, is deleted, or has no storage reference.
+
+### Notes
+- This route is intended for resolving `lensmor-file://{fileUuid}` resource links into downloadable metadata.
+- Only uploaded, non-deleted files are resolvable.
+- The `:id` path segment is a file UUID, not the numeric file record id returned by `GET /external/agent-files/upload-presign`.
 
 ## POST /external/actions/precheck
 
