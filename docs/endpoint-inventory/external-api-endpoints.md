@@ -37,12 +37,12 @@
 | POST | /external/contacts/unlock | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `201 Created` | Yes | Queues an asynchronous email unlock batch for event-scoped personnel IDs |
 | GET | /external/contacts/unlock-tasks/:taskId | `src/modules/external-api/controllers/external-contacts.controller.ts` | Yes | `200 OK` | Yes | Returns aggregate batch status plus per-person unlock progress |
 | POST | /external/profile-matching/recommendations/events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Deprecated synchronous apply facade; runs apply-onboarding, then returns paged recommended events |
-| POST | /external/profile-matching/actions/apply-recommended-events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | No | Canonical synchronous apply route for paged recommended events |
+| POST | /external/profile-matching/actions/apply-recommended-events/paged | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `201 Created` | Yes | Canonical synchronous apply route for paged recommended events |
 | GET | /external/profile-matching/recommendations/exhibitors | `src/modules/external-api/controllers/external-profile-matching.controller.ts` | Yes | `200 OK` | Yes | `event_id` accepts either `Event.eventId` or internal `Event.id` |
 | GET | /external/agent-files/upload-presign | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Returns a one-time PUT URL plus `fileId` for the two-step upload flow |
 | POST | /external/agent-files/confirm-upload | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `201 Created` | Yes | Marks a pending upload as complete and returns file metadata with a signed download URL |
 | GET | /external/agent-files/list | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Lists uploaded generated files for the authenticated user, newest first |
-| GET | /external/agent-files/:id | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | No | Resolves a file UUID into metadata plus a one-hour signed download URL |
+| GET | /external/agent-files/:id | `src/modules/external-api/controllers/external-agent-files.controller.ts` | Yes | `200 OK` | Yes | Resolves a file UUID into metadata plus a one-hour signed download URL |
 | POST | /external/actions/precheck | `src/modules/external-api/controllers/external-actions.controller.ts` | Yes | `200 OK` | Yes | Returns allow/charge truth in-body, including preview unlock guidance and `no_contacts_available` for event unlock prechecks |
 ## GET /external/events/list
 

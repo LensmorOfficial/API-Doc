@@ -1,0 +1,50 @@
+# Agent file detail
+
+Resolve a generated file resource into metadata and a temporary download URL.
+
+Use this endpoint when you have a `lensmor-file://{fileUuid}` resource link and need file metadata plus a signed URL to download the content.
+
+## Endpoint
+`GET /external/agent-files/:id`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | File UUID from a `lensmor-file://{fileUuid}` resource link. |
+
+## Response body
+| Field | Type | Notes |
+| --- | --- | --- |
+| `fileId` | string | File UUID. |
+| `name` | string | Original file name. |
+| `mimeType` | string | MIME type for the file. |
+| `sizeBytes` | integer or `null` | Uploaded file size in bytes when known. |
+| `signUrl` | string | Temporary download URL. |
+
+## Response example
+```json
+{
+  "fileId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "report.csv",
+  "mimeType": "text/csv",
+  "sizeBytes": 10240,
+  "signUrl": "https://storage.example.com/lensmor-test/agent-files/42/550e8400-e29b-41d4-a716-446655440000_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
+}
+```
+
+## Error responses
+- `400 Bad Request` when `id` is empty.
+- `401 Unauthorized` when the API key is missing, malformed, or invalid.
+- `403 Forbidden` when the file exists but belongs to another user.
+- `404 Not Found` when the file cannot be resolved.
+
+## Notes
+- Only uploaded, non-deleted files can be resolved.
+- `:id` is a file UUID, not the numeric file record identifier returned by [Agent files upload presign](/api-reference/agent-files/upload-presign).
+- Download URLs expire after 1 hour.

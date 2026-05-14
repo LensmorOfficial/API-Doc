@@ -1,10 +1,11 @@
-# Recommended events (paged results)
+# Apply recommended events (paged results)
 
-Request paged event recommendations for the authenticated caller.
+Apply profile-matching input and return paged event recommendations.
 
-This route is kept for compatibility. For new integrations, use [Apply recommended events (paged results)](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+Use this endpoint when you want to submit company or audience context and receive filtered recommended events in one synchronous request.
+
 ## Endpoint
-`POST /external/profile-matching/recommendations/events/paged`
+`POST /external/profile-matching/actions/apply-recommended-events/paged`
 
 ## Authentication
 See [Authentication](/authentication)
@@ -103,15 +104,15 @@ See [Authentication](/authentication)
     {
       "id": 123,
       "eventId": "139574",
-      "name": "Shoptalk",
+      "name": "NRF 2026",
       "nickname": null,
-      "description": null,
-      "url": "https://example.com",
-      "dateStart": "2026-03-25",
-      "dateEnd": "2026-03-28",
-      "venue": "Convention Center",
-      "city": "Las Vegas",
-      "region": "Nevada",
+      "description": "Retail technology event",
+      "url": "https://example.com/events/nrf-2026",
+      "dateStart": "2026-01-12",
+      "dateEnd": "2026-01-15",
+      "venue": "Javits Center",
+      "city": "New York",
+      "region": "NY",
       "country": "United States",
       "latitude": null,
       "longitude": null,
@@ -158,6 +159,6 @@ See [Authentication](/authentication)
 - `409 Conflict` when a recommendation task is already running for the user.
 
 ## Notes
-- This route returns the same public response contract as [Apply recommended events (paged results)](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+- This is the preferred endpoint for synchronous profile matching apply requests.
 - Responses can include `status`, `condition_tags`, and empty-result guidance such as `empty_reason`, `failed_filters`, and `suggestions`.
 - `match_score` here is the recommendation score; `POST /external/events/fit-score` separately normalizes it onto a `0-10` style scale.

@@ -18,18 +18,21 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `name` | Yes | string | Original file name to associate with the upload record. |
 | `contentType` | Yes | string | MIME type for the file upload. |
+| `instanceId` | No | string | Optional agent instance identifier for file history scoping. |
 
 ## Response body
 | Field | Type | Notes |
 | --- | --- | --- |
 | `fileId` | string | File identifier used by [Agent files confirm upload](/api-reference/agent-files/confirm-upload). |
 | `putUrl` | string | Temporary upload URL. |
+| `s3Key` | string | Storage object key assigned to the uploaded file. |
 
 ## Response example
 ```json
 {
   "fileId": "1024",
-  "putUrl": "https://storage.example.com/agent-files/1024-report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=600"
+  "putUrl": "https://storage.example.com/lensmor-test/agent-files/42/1024_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=600",
+  "s3Key": "agent-files/42/1024_report.csv"
 }
 ```
 
@@ -39,3 +42,5 @@ See [Authentication](/authentication)
 ## Notes
 - This is step 1 of the upload flow: request `putUrl`, upload the file, then call [Agent files confirm upload](/api-reference/agent-files/confirm-upload).
 - Upload URLs expire after 10 minutes.
+- When `instanceId` is omitted, Lensmor may associate the file with the caller's most recent active agent instance.
+- If `name` or `contentType` is omitted, this endpoint currently returns `200 OK` with an error object.

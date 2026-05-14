@@ -26,6 +26,7 @@ See [Authentication](/authentication)
 | `fileName` | string | Original file name. |
 | `fileSize` | integer or `null` | Uploaded file size in bytes when supplied. |
 | `mimeType` | string | MIME type for the file. |
+| `instanceId` | string or `null` | Associated agent instance identifier when available. |
 | `status` | string | Current file status; this route returns `uploaded` after confirmation succeeds. |
 | `createdAt` | string | Millisecond timestamp serialized as a string. |
 | `signUrl` | string, optional | Temporary download URL returned on the first successful confirmation. |
@@ -37,9 +38,10 @@ See [Authentication](/authentication)
   "fileName": "report.csv",
   "fileSize": 10240,
   "mimeType": "text/csv",
+  "instanceId": "i-abc123",
   "status": "uploaded",
   "createdAt": "1776743105123",
-  "signUrl": "https://storage.example.com/agent-files/1024-report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
+  "signUrl": "https://storage.example.com/lensmor-test/agent-files/42/1024_report.csv?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600"
 }
 ```
 
@@ -50,3 +52,5 @@ See [Authentication](/authentication)
 ## Notes
 - Call this after uploading the file bytes to the `putUrl` returned by [Agent files upload presign](/api-reference/agent-files/upload-presign).
 - Download URLs expire after 1 hour.
+- Repeating confirmation for an already uploaded file is idempotent, but may return metadata without a fresh `signUrl`.
+- If `fileId` is omitted, this endpoint currently returns `201 Created` with an error object.

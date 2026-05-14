@@ -78,6 +78,7 @@
                 "group": "Profile Matching",
                 "pages": [
                   "api-reference/profile-matching/recommendations-events-paged",
+                  "api-reference/profile-matching/actions-apply-recommended-events-paged",
                   "api-reference/profile-matching/recommendations-exhibitors"
                 ]
               },
@@ -86,7 +87,8 @@
                 "pages": [
                   "api-reference/agent-files/upload-presign",
                   "api-reference/agent-files/confirm-upload",
-                  "api-reference/agent-files/list"
+                  "api-reference/agent-files/list",
+                  "api-reference/agent-files/detail"
                 ]
               },
               {
