@@ -114,7 +114,7 @@ Bearer token required.
       "country": "United States",
       "exhibitorCount": 250,
       "image": null,
-      "dataSource": "vendelux"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 1,
@@ -174,7 +174,7 @@ Bearer token required.
     "country": "United States",
     "exhibitorCount": 250,
     "image": null,
-    "dataSource": "vendelux"
+    "dataSource": "Lensmor"
   },
   "score": 7.8,
   "recommendation": "recommended",
@@ -365,7 +365,7 @@ Bearer token required.
     "country": "United States",
     "exhibitorCount": 250,
     "image": null,
-    "dataSource": "vendelux"
+    "dataSource": "Lensmor"
   },
   "summary": {
     "attendeeCount": 10000,
@@ -489,7 +489,7 @@ Bearer token required.
     "historic": 0,
     "historicEvent": null,
     "image": null,
-    "dataSource": "vendelux",
+    "dataSource": "Lensmor",
     "exhibitorCount": 250,
     "personnelCount": 1800,
     "eventTypes": []
@@ -618,7 +618,7 @@ Bearer token required.
       "employeeCount": 120,
       "country": "United States",
       "logo": null,
-      "dataSource": "vendelux",
+      "dataSource": "Lensmor",
       "linkedinUrl": null,
       "fundingRound": null,
       "isRecommended": true,
@@ -724,7 +724,7 @@ Bearer token required.
       "employeeCount": 120,
       "country": "United States",
       "logo": null,
-      "dataSource": "vendelux",
+      "dataSource": "Lensmor",
       "linkedinUrl": null,
       "fundingRound": null,
       "matched_event_ids": [],
@@ -877,7 +877,7 @@ Bearer token required.
       "country": "United States",
       "exhibitorCount": 250,
       "image": null,
-      "dataSource": "vendelux",
+      "dataSource": "Lensmor",
       "matchedExhibitors": [
         {
           "id": "456",
@@ -956,7 +956,7 @@ Bearer token required.
   "employeeCount": 120,
   "country": "United States",
   "logo": null,
-  "dataSource": "vendelux",
+  "dataSource": "Lensmor",
   "linkedinUrl": null,
   "fundingRound": null,
   "matched_event_ids": [],
@@ -1027,7 +1027,7 @@ Bearer token required.
       "country": "United States",
       "exhibitorCount": 250,
       "image": null,
-      "dataSource": "vendelux"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 1,
@@ -1320,7 +1320,7 @@ Bearer token required.
         "country": "United States",
         "exhibitorCount": 250,
         "image": null,
-        "dataSource": "vendelux"
+        "dataSource": "Lensmor"
       }
     ],
     "total": 1,
@@ -1387,7 +1387,7 @@ Bearer token required.
       "country": "United States",
       "exhibitorCount": 250,
       "image": null,
-      "dataSource": "vendelux"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 1,
@@ -1709,7 +1709,7 @@ Bearer token required.
       "historic": 0,
       "historicEvent": null,
       "image": null,
-      "dataSource": "vendelux",
+      "dataSource": "Lensmor",
       "exhibitorCount": 250,
       "personnelCount": 1800,
       "eventTypes": [],
@@ -1869,7 +1869,7 @@ Bearer token required.
       "historic": 0,
       "historicEvent": null,
       "image": null,
-      "dataSource": "vendelux",
+      "dataSource": "Lensmor",
       "exhibitorCount": 250,
       "personnelCount": 1800,
       "eventTypes": [],
