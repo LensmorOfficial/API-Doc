@@ -17,10 +17,10 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Optional company URL. At least one of `company_url` or `target_audience` is required. |
 | `target_audience` | Conditionally | string | Optional audience description. At least one of `company_url` or `target_audience` is required. |
-| `timeout_ms` | No | integer | Optional synchronous request timeout, min `60000`, max `3600000`. |
+| `timeout_ms` | No | integer | Optional request timeout, min `60000`, max `3600000`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`, max `100`. |
-| `autoRecommendTop3EventsEnabled` | No | boolean | Optional per-request override for synchronous top-3 recommendation reason generation. |
+| `autoRecommendTop3EventsEnabled` | No | boolean | Optional per-request override for immediate top-3 recommendation reasons. |
 | `city` | No | string | Exact city filter. |
 | `region` | No | string | Exact region filter. |
 | `country` | No | string | Exact country filter. |
@@ -44,11 +44,11 @@ See [Authentication](/authentication)
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
 | `condition_tags` | object | Structured filter summary for the current result set. |
-| `parsed_filters_snapshot` | object, optional | Parsed filter snapshot when available. |
-| `relaxed_conditions` | object, optional | Relaxed matching metadata when available. |
+| `parsed_filters_snapshot` | object, optional | Normalized filter summary when available. |
+| `relaxed_conditions` | object, optional | Relaxed matching conditions when available. |
 | `profile_version` | integer | Current profile version. |
-| `active_result_version` | integer or `null` | Active recommendation snapshot version. |
-| `is_stale` | boolean | `true` when recalculation is in progress over an older active snapshot. |
+| `active_result_version` | integer or `null` | Version identifier for the recommendation set returned in this response. |
+| `is_stale` | boolean | `true` when the response is based on a previous recommendation set while a refreshed set is still being prepared. |
 | `empty_reason` | string, optional | Empty-result reason when status is empty or failed. |
 | `failed_filters` | string[], optional | Filters that did not match. |
 | `candidate_count` | integer, optional | Candidate count before matching. |

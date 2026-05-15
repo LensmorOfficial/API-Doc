@@ -37,7 +37,7 @@ See [Authentication](/authentication)
 | `pageSize` | integer | Page size used for this response. |
 | `totalPages` | integer | `0` when `total` is `0`. |
 | `hasMore` | boolean | `true` when another page exists. |
-| `recommendationProcessing` | boolean | `true` when recommendation enrichment is still processing; otherwise `false`. |
+| `recommendationProcessing` | boolean | `true` when recommendation data for the current caller is still being prepared; otherwise `false`. |
 | `semantics` | object | Preview/full-access guidance for the current event query. |
 
 ### `items[]` fields
@@ -72,7 +72,7 @@ See [Authentication](/authentication)
 | `counts` | object | Actual-versus-visible match counts for the current query. |
 | `pageState` | object | Whether the requested page is currently accessible. |
 | `unlock` | object | Whether an event unlock is required to see more results. |
-| `guidance` | object | Machine-readable and human-readable guidance for the current access state. |
+| `guidance` | object | Structured guidance for the current access state. |
 
 ### `semantics.counts` fields
 | Field | Type | Notes |
