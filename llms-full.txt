@@ -3,7 +3,7 @@
 This file is generated from the public Mintlify MDX sources for LLM and agent consumption.
 It intentionally uses plain Markdown code fences without Mintlify-specific metadata.
 
-## Lensmor API
+## Lensmor API Documentation
 
 Source: /index
 
