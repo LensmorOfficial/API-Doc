@@ -1,0 +1,94 @@
+---
+title: "Quickstart"
+---
+
+Make your first Lensmor API request and understand the core objects you will use in most integrations.
+
+Lensmor's public API is designed around a typical event-intelligence workflow:
+
+1. Start with a company profile, buyer profile, keyword, or target market.
+2. Discover relevant trade shows and event records.
+3. Inspect exhibitors and people connected to those events.
+4. Unlock full access or contact emails only when the data is actionable.
+
+## Before you begin
+
+You need a valid user API key and an environment capable of sending HTTPS requests.
+
+```bash
+export LENSMOR_API_KEY="uak_your_api_key"
+```
+
+<Note>
+  The public API uses user API keys with the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
+</Note>
+
+## 1. Check your credit balance
+
+Credit-aware workflows return clear billing semantics, but most integrations should still check balance before running unlock operations.
+
+```bash
+curl "https://platform.lensmor.com/external/credits/balance" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+The response includes subscription credits, gift credits, the total balance, and the next reset timestamp when available.
+
+## 2. Search the event catalog
+
+Use the events list endpoint when you need a broad catalog query.
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=United%20States&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+The event list is paginated. Store both `id` and `eventId` when possible:
+
+- `id` is the database identifier.
+- `eventId` is the public event identifier that may be easier to share across tools.
+- Many event-scoped endpoints accept either value.
+
+## 3. Inspect a specific event
+
+After selecting an event, fetch the event detail record.
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Use the detail response to confirm event dates, venue, geography, source URL, and available count fields before deciding whether to explore exhibitors or personnel.
+
+## 4. Fetch exhibitors or personnel
+
+Event-scoped lists may return preview results if the event is locked.
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574/exhibitors?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+When the response contains `semantics.accessLevel: "preview"`, read the `semantics.unlock` object before calling an unlock endpoint. It tells you whether more data is available and which action unlocks it.
+
+## 5. Handle errors and limits
+
+Production integrations should handle these responses explicitly:
+
+- `401 Unauthorized` means the API key is missing or invalid.
+- `402 Payment Required` means the requested credit-consuming workflow cannot proceed with the current balance or access state.
+- `404 Not Found` means the requested event, exhibitor, person, or task does not exist.
+- `429 Too Many Requests` means your integration should back off and retry later.
+
+See [Error conventions](/concepts/errors), [Credits and access](/concepts/credits-and-access), and [Rate limits](/concepts/rate-limits) for the shared contracts.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Find and unlock an event" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
+    Learn how preview access works and when to spend credits on full event coverage.
+  </Card>
+  <Card title="Unlock contact emails" icon="mail-check" href="/guides/unlock-contact-emails">
+    Start an email unlock task and poll until the result is ready.
+  </Card>
+</CardGroup>

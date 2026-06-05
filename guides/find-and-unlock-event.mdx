@@ -1,0 +1,131 @@
+---
+title: "Find and unlock an event"
+---
+
+Use this guide when your integration needs to move from discovery to full event-level coverage.
+
+Event unlocks are intentionally explicit. Lensmor lets you preview available exhibitor and personnel data first, then spend credits only when the event is worth deeper analysis.
+
+## Recommended workflow
+
+<Steps>
+  <Step title="Find candidate events">
+    Search the event catalog, rank events, or apply profile matching to identify a shortlist.
+  </Step>
+  <Step title="Inspect the event">
+    Fetch the event detail and confirm the event identity, date, venue, source URL, and available data counts.
+  </Step>
+  <Step title="Preview exhibitors or personnel">
+    Call event-scoped list endpoints. If the event is locked, read the `semantics` object to understand preview limits.
+  </Step>
+  <Step title="Unlock only when needed">
+    Call `POST /external/events/:id/unlock` when `semantics.unlock` indicates more records are available and the event is actionable.
+  </Step>
+</Steps>
+
+## 1. Search events
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?keyword=retail&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+For fit-based discovery, use [Get event fit score](/api-reference/events/fit-score), [Rank events](/api-reference/events/rank), or [Apply recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+
+## 2. Fetch event detail
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Confirm that the event is the one your team expects before unlocking. For example, check `name`, `dateStart`, `dateEnd`, `venue`, `country`, `url`, and any count fields returned by the API.
+
+## 3. Preview event-scoped data
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574/personnel?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Locked events can return a response like this:
+
+```json
+{
+  "items": [
+    {
+      "id": "789",
+      "fullName": "Jane Doe",
+      "title": "VP of Partnerships",
+      "companyName": "Example Retail Co",
+      "email": null,
+      "contactUnlockStatus": "locked"
+    }
+  ],
+  "total": 120,
+  "page": 1,
+  "pageSize": 20,
+  "hasMore": true,
+  "semantics": {
+    "accessLevel": "preview",
+    "visibleRecords": 20,
+    "requiresUnlockForMore": true,
+    "unlock": {
+      "action": "event_unlock",
+      "credits": 2000
+    }
+  }
+}
+```
+
+Use `semantics` to decide whether to unlock. Do not infer full access from pagination alone.
+
+## 4. Unlock the event
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+The response tells you whether credits were used:
+
+```json
+{
+  "success": true,
+  "alreadyUnlocked": false,
+  "creditsUsed": 2000,
+  "balanceAfter": 28050,
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026"
+  }
+}
+```
+
+If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed` is `0`.
+
+## Common mistakes
+
+- Unlocking before checking preview results. Preview first to verify the event has relevant records.
+- Using only the event name as your local key. Store `id` or `eventId` so follow-up calls are deterministic.
+- Treating `402 Payment Required` as a generic failure. It usually means your integration needs to pause, notify the user, or ask them to add credits.
+- Ignoring `semantics`. It is the contract that tells you whether a list is preview or full access.
+
+## Related endpoints
+
+<CardGroup cols={2}>
+  <Card title="List events" icon="calendar" href="/api-reference/events/list">
+    Browse events with filters and pagination.
+  </Card>
+  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock">
+    Spend credits to access full event-scoped coverage.
+  </Card>
+  <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list">
+    Fetch exhibitors for a selected event.
+  </Card>
+  <Card title="List event personnel" icon="users" href="/api-reference/personnel/list">
+    Fetch people associated with a selected event.
+  </Card>
+</CardGroup>
