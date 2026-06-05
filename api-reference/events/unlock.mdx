@@ -1,0 +1,94 @@
+---
+title: "Unlock event"
+---
+
+Unlock full access to an event's exhibitor and personnel results.
+
+Use this endpoint when preview list responses indicate that more event-scoped records require an event unlock.
+
+## When to use this endpoint
+
+Call `POST /external/events/:id/unlock` only after you have confirmed that an event is relevant and the preview response indicates more records are available.
+
+Typical sequence:
+
+1. Find the event with [Events list](/api-reference/events/list), [Rank events](/api-reference/events/rank), or profile matching.
+2. Preview exhibitors or personnel for that event.
+3. Read `semantics.accessLevel` and `semantics.unlock`.
+4. Unlock the event if the user wants full event-scoped coverage.
+
+<Warning>
+  Event unlocks can consume credits. Preview event-scoped results first so users understand what they are unlocking.
+</Warning>
+
+## Endpoint
+`POST /external/events/:id/unlock`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports either event `id` or public `eventId`. |
+
+## Headers
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+## Response example
+```json
+{
+  "success": true,
+  "alreadyUnlocked": false,
+  "creditsUsed": 2000,
+  "balanceAfter": 28050,
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026"
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `success` | Whether the unlock request completed successfully. |
+| `alreadyUnlocked` | `true` when the API key owner already had full access to the event. |
+| `creditsUsed` | Number of credits charged by this request. `0` when the event was already unlocked. |
+| `balanceAfter` | Remaining balance after the unlock operation. |
+| `event` | Minimal event identity for confirmation and audit logs. |
+
+## Idempotency behavior
+
+Unlocking the same event again does not spend credits again. The API returns `alreadyUnlocked: true` and `creditsUsed: 0` when the event is already available to the API key owner.
+
+Your integration can use this behavior to safely retry after a network failure, but should still avoid repeated unlock calls in the UI.
+
+## Access after unlock
+
+After a successful unlock, call event-scoped exhibitor or personnel list endpoints again. The list response should move from preview semantics to full-access semantics for that event.
+
+## Error responses
+- `401 Unauthorized`
+- `402 Payment Required`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- Event unlock currently costs `2000` credits when the event is not already unlocked.
+- If the event is already unlocked, `alreadyUnlocked` is `true` and `creditsUsed` is `0`.
+- See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

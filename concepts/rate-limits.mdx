@@ -1,0 +1,42 @@
+---
+title: "Rate limits"
+---
+
+Lensmor applies rate limits to `external/*` endpoints to protect customer API availability.
+
+## Default behavior
+Rate limits are evaluated by IP address and API key. When a request is allowed, the response includes rate-limit headers for the active API-key bucket when available.
+
+```http
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 119
+X-RateLimit-Reset: 1714521600
+```
+
+`X-RateLimit-Reset` is a Unix timestamp in seconds.
+
+## Limit exceeded
+When a request exceeds the active limit, the API returns `429 Too Many Requests`.
+
+```json
+{
+  "code": 429,
+  "message": "Rate limit exceeded",
+  "errorKey": "RATE_LIMIT_EXCEEDED",
+  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+}
+```
+
+The response also includes:
+
+```http
+Retry-After: 32
+```
+
+Wait at least `Retry-After` seconds before retrying.
+
+## Integration guidance
+- Use pagination instead of large repeated requests.
+- Back off when `X-RateLimit-Remaining` is low.
+- Retry `429` responses only after `Retry-After`.
+- Include the `traceId` when contacting support about rate-limit behavior.

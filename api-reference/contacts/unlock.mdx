@@ -1,0 +1,100 @@
+---
+title: "Unlock contact emails"
+---
+
+Start an asynchronous job to unlock email addresses for one or more personnel records.
+
+Use this endpoint after finding contacts from personnel or contact search results.
+
+## When to use this endpoint
+
+Use `POST /external/contacts/unlock` when your integration already has selected personnel records and needs email addresses.
+
+This endpoint is intentionally asynchronous because email unlock can involve multiple records and credit checks. The create call returns a task identifier; your integration should poll [Get contact unlock task](/api-reference/contacts/unlock-task) until the job reaches a terminal state.
+
+<Note>
+  For best user experience, show the number of locked contacts and available credit balance before creating the unlock task.
+</Note>
+
+## Endpoint
+`POST /external/contacts/unlock`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `100` per request. |
+| `event_id` | Yes | string | Supports either event `id` or public `eventId`. |
+
+## Headers
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-call-source: api" \
+  -d '{"event_id":"139574","personnel_ids":["789","790"]}'
+```
+
+## Response example
+```json
+{
+  "status": "accepted",
+  "task_id": "321",
+  "job_id": "321"
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `status` | Initial task acceptance state. Usually `accepted` when the task was created. |
+| `task_id` | Identifier used to poll task status. Store this value. |
+| `job_id` | Alias for the background job identifier. In the current contract it matches `task_id`. |
+
+## Polling pattern
+
+After receiving `task_id`, poll the task endpoint:
+
+```bash
+curl "https://platform.lensmor.com/external/contacts/unlock-tasks/321" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Use backoff instead of a tight polling loop. A practical pattern is:
+
+1. Wait a few seconds after task creation.
+2. Poll every few seconds for short jobs.
+3. Increase the interval if the job remains in progress.
+4. Stop polling when the task completes or fails.
+
+## Credit behavior
+
+Contact email unlock currently costs `15` credits per chargeable contact.
+
+- Already unlocked contacts are not charged again.
+- The API rejects batches larger than `100` personnel IDs.
+- Insufficient balance returns `402 Payment Required`.
+- Retry behavior should be tied to the task state, not only the create response.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `402 Payment Required`
+- `404 Not Found`
+- `409 Conflict`
+- `429 Too Many Requests`
+
+## Notes
+- This endpoint creates an asynchronous unlock job. Poll [Get contact unlock task](/api-reference/contacts/unlock-task) with `task_id`.
+- See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

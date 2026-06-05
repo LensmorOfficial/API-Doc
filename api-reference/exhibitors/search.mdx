@@ -1,8 +1,23 @@
-# Exhibitors search
+---
+title: "Exhibitors search"
+---
 
-Search exhibitors using company context and optional event scope.
+Search exhibitors using company context.
 
-Use this endpoint when you want exhibitor results derived from company inputs such as a public company URL, a target audience description, or an optional event constraint.
+Use this endpoint when you want exhibitor results derived from company inputs such as a public company URL or target audience description.
+
+## When to use this endpoint
+
+Use `POST /external/exhibitors/search` when your integration starts from a company profile or buyer profile rather than a known event.
+
+Common use cases include:
+
+- Finding exhibitors similar to a target company.
+- Exploring companies that match a market or buyer description.
+- Creating a shortlist before checking which events those companies attend.
+- Powering a prospecting workflow where the user provides a website and asks "who should we look at?"
+
+If you already know the exact company name and want a precision-first lookup, use [Search exhibitors by company name](/api-reference/exhibitors/search-by-company-name). If you need events directly from a company name, use [Search exhibitor events](/api-reference/exhibitors/search-events).
 
 ## Endpoint
 `POST /external/exhibitors/search`
@@ -16,11 +31,31 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `company_url` | No | string | Company website URL used as an input hint. |
-| `target_audience` | No | string | Free-form audience description. |
-| `event_id` | No | string | Optional event scope. |
+| `company_url` | Conditionally | string | Company website URL used as an input hint. Provide at least one of `company_url` or `target_audience`. |
+| `target_audience` | Conditionally | string | Free-form audience description. Provide at least one of `company_url` or `target_audience`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"company_url":"https://acme.example","page":1,"pageSize":20}'
+```
+
+### Search by audience description
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_audience": "Retail operations leaders evaluating in-store analytics and workforce automation",
+    "page": 1,
+    "pageSize": 20
+  }'
+```
 
 ## Response example
 ```json
@@ -51,13 +86,47 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Matching exhibitor records for the requested page. |
+| `id` | Lensmor exhibitor identifier. |
+| `companyName` | Company or exhibitor display name. |
+| `domain`, `website` | Company domain and website URL when available. |
+| `description` | Short company description. |
+| `industry`, `employeeCount`, `country` | Enrichment fields that may be missing for some records. |
+| `linkedinUrl` | Company LinkedIn URL when available. |
+| `fundingRound` | Funding stage or funding metadata when available. |
+| `techStacks` | Technology stack signals. Always returned as an array. |
+| `matched_event_ids` | Related event identifiers from the search context. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## Matching behavior
+
+This endpoint is profile-style search. It can return useful results even when the input is a company website or natural-language audience description rather than an exact exhibitor name.
+
+No matches are represented as a successful empty paginated response:
+
+```json
+{
+  "items": [],
+  "total": 0,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 0,
+  "hasMore": false
+}
+```
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
-- `404 Not Found`
+- `429 Too Many Requests`
 
 ## Notes
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
-- When no `event_id` is supplied, the live service returns `matched_event_ids` as an empty array.
+- The live service returns `matched_event_ids` as an empty array for this heuristic search.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.

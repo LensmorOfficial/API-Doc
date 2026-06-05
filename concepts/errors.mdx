@@ -1,4 +1,6 @@
-# Error conventions
+---
+title: "Error conventions"
+---
 
 Lensmor API errors use real HTTP status codes.
 
@@ -13,12 +15,36 @@ Lensmor API errors use real HTTP status codes.
 ```
 
 ## Common status codes
-- `400 Bad Request` — invalid input or unsupported request shape
-- `401 Unauthorized` — missing or invalid API key
-- `404 Not Found` — requested resource does not exist
-- `409 Conflict` — business conflict, depending on route behavior
+| Status | Meaning | Recommended client behavior |
+| --- | --- | --- |
+| `400 Bad Request` | Invalid input or unsupported request shape. | Validate user input and fix the request before retrying. |
+| `401 Unauthorized` | Missing, malformed, revoked, or invalid API key. | Ask the user to reconnect or rotate the key. |
+| `402 Payment Required` | Insufficient credits or access for a credit-consuming operation. | Stop automatic retries and surface the credit requirement. |
+| `404 Not Found` | Requested resource does not exist or is not visible to the caller. | Re-check stored identifiers; do not retry indefinitely. |
+| `409 Conflict` | Business conflict, profile state conflict, or task/workflow state conflict. | Refresh state before retrying. |
+| `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
+
+## Trace fields
+
+Error responses include `traceId` for troubleshooting. The same value is also returned in the `X-Request-ID` response header when available.
+
+When contacting support, include:
+
+- endpoint path and method
+- response status
+- `traceId`
+- approximate request time
+- non-sensitive identifiers such as `event_id`, `exhibitor_id`, `personnel_id`, or `taskId`
+
+Do not include API keys or unlocked email addresses in support logs.
+
+## Retry guidance
+
+- Retry network failures and `429` responses with backoff.
+- Do not automatically retry `400` or `401` without changing the request.
+- Treat `402` as a product state, not a transient failure.
+- For asynchronous contact unlocks, retry polling the task endpoint rather than creating duplicate unlock tasks.
 
 ## Notes
-- API responses include `traceId` for troubleshooting.
 - Error bodies do not expose internal `data` or `details` fields.
 - Individual endpoint pages may list the subset of statuses most relevant to that route.

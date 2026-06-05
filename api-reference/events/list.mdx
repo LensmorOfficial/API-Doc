@@ -1,8 +1,21 @@
-# Events list
+---
+title: "Events list"
+---
 
 Browse events currently available through the Lensmor API.
 
 Use this endpoint when you need a paginated event catalog with basic filters such as keyword, country, city, and date range.
+
+## When to use this endpoint
+
+Use `GET /external/events/list` for broad discovery and browsing experiences:
+
+- Build an event search or browsing page.
+- Let users filter events by geography or date.
+- Retrieve stable event identifiers before calling detail, exhibitor, personnel, or unlock endpoints.
+- Create an initial shortlist before using profile matching or ranking endpoints.
+
+If you already have a company profile and want relevance-ranked results, start with [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) instead.
 
 ## Endpoint
 `GET /external/events/list`
@@ -23,6 +36,30 @@ See [Authentication](/authentication)
 | `city` | No | string | City filter. |
 | `date_start_from` | No | ISO date string | Inclusive lower bound for event date filtering. |
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
+| `event_type` | No | string[] | Event type filter. Comma-separated input is supported. |
+| `quality` | No | string[] | Quality label filter. Comma-separated input is supported. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/events/list?keyword=retail&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by geography and date
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?country=United%20States&city=New%20York&date_start_from=2026-01-01&date_start_to=2026-03-31&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by multi-value fields
+
+`event_type` and `quality` accept array-style inputs from clients and comma-separated inputs in query strings.
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?event_type=conference,expo&quality=verified,high&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## Response example
 ```json
@@ -41,9 +78,7 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
-      "attendeeCount": 40000,
       "exhibitorCount": 950,
-      "personnelCount": 6200,
       "image": null,
       "dataSource": "database"
     }
@@ -56,9 +91,29 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Event records for the requested page. |
+| `id` | Internal Lensmor event identifier. Store this if your integration uses database-style IDs. |
+| `eventId` | Public event identifier. Many event-scoped endpoints accept either `id` or `eventId`. |
+| `name` | Canonical event name. |
+| `nickname` | Optional short name or common alias. |
+| `description` | Short event description when available. |
+| `url` | Source or official event URL when available. |
+| `dateStart`, `dateEnd` | Event date range. |
+| `venue`, `city`, `region`, `country` | Location metadata. |
+| `exhibitorCount` | Known exhibitor count when available. |
+| `dataSource` | Source category for the returned record. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
 ## Error responses
 - `401 Unauthorized`
+- `429 Too Many Requests`
 
 ## Notes
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
+- Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
+- Store `eventId` from the response if the next step is an event-scoped call such as exhibitor list, personnel list, or event unlock.

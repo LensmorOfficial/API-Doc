@@ -12,10 +12,11 @@ This repository hosts the public documentation site for developers integrating w
 
 Use the API to:
 
+- Check credit balance before running credit-consuming workflows
 - Browse and inspect event data
 - Search exhibitors using company context and optional event scope
 - Retrieve exhibitor and personnel profiles
-- Search contacts with company-based inputs
+- Search contacts with company-based inputs and unlock contact emails
 - Request profile-matching recommendations for discovery workflows
 
 ## Base URL
@@ -49,12 +50,17 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 - `index.mdx` — overview and quick start
 - `authentication.mdx` — authentication and authorization format
+- `api-reference/openapi.json` — OpenAPI 3.1 specification for customer-facing endpoints
+- `api-reference/credits/` — credit balance endpoint
 - `concepts/errors.mdx` — shared error conventions
 - `concepts/pagination.mdx` — pagination behavior
+- `concepts/identifiers.mdx` — public identifier conventions
+- `concepts/credits-and-access.mdx` — credit costs, preview access, and unlock behavior
+- `concepts/rate-limits.mdx` — rate-limit headers and `429` behavior
 - `api-reference/events/` — event endpoints
 - `api-reference/exhibitors/` — exhibitor endpoints
 - `api-reference/personnel/` — personnel endpoints
-- `api-reference/contacts/` — contact search endpoints
+- `api-reference/contacts/` — contact search and email unlock endpoints
 - `api-reference/profile-matching/` — recommendation endpoints
 
 ## Typical use cases
@@ -72,7 +78,7 @@ pnpm dlx mintlify dev
 
 ## Scope
 
-This documentation reflects the current public API contract only. It excludes internal implementation details and historical draft references that are not part of the external developer experience.
+This documentation reflects the current customer-facing public API contract only. It excludes agent-only, debug, deprecated, internal, and historical draft references that are not part of the external developer experience.
 
 ---
 

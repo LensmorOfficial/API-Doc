@@ -1,0 +1,10 @@
+{
+  "apis": [
+    {
+      "name": "Lensmor API",
+      "description": "Customer-facing Lensmor Event Intelligence API.",
+      "baseUrl": "https://platform.lensmor.com",
+      "openapi": "https://api.lensmor.com/api-reference/openapi.json"
+    }
+  ]
+}

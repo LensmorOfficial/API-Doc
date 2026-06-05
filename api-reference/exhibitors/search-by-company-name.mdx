@@ -1,0 +1,104 @@
+---
+title: "Exhibitor company search"
+---
+
+Search exhibitors by company name using a precision-first matcher.
+
+Use this endpoint when you have a company name and want matching exhibitor records, not event results.
+
+## When to use this endpoint
+
+Use `POST /external/exhibitors/search-by-company-name` when the user enters a company name and expects company records back.
+
+Choose this endpoint when:
+
+- the input is a company name, not a website or ICP description
+- you need exhibitor IDs for follow-up profile calls
+- you want an empty result instead of broad fuzzy matches when the name is ambiguous
+
+Use [Exhibitor event search](/api-reference/exhibitors/search-events) instead when the desired output is events related to a company name.
+
+## Endpoint
+`POST /external/exhibitors/search-by-company-name`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_name` | Yes | string | Company name input, length `1` to `200`. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company-name" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"company_name":"Acme","page":1,"pageSize":20}'
+```
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "domain": "acme.example",
+      "description": "Retail analytics platform",
+      "website": "https://acme.example",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "country": "United States",
+      "logo": null,
+      "dataSource": "database",
+      "linkedinUrl": null,
+      "fundingRound": "Series B",
+      "matched_event_ids": [],
+      "isRecommended": false,
+      "recommendationRank": null,
+      "matchStatus": null,
+      "matchScore": null,
+      "matchTier": null,
+      "matchReason": null,
+      "techStacks": ["Cloudflare", "Nginx"]
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Matching exhibitor records. |
+| `id` | Exhibitor identifier. |
+| `companyName`, `domain`, `website` | Company identity fields. |
+| `description`, `industry`, `employeeCount`, `country` | Company metadata. |
+| `linkedinUrl`, `fundingRound`, `techStacks` | Optional enrichment fields. |
+| `matched_event_ids` | Related event identifiers when available. |
+| `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## Matching behavior
+
+This endpoint is precision-first. It is designed to avoid surprising broad matches for short or ambiguous company names. If no company passes matching rules, the API returns a successful empty paginated response.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `429 Too Many Requests`
+
+## Notes
+- No matches return an empty paginated success response rather than `404 Not Found`.
+- If you need event results for a company name, use `POST /external/exhibitors/search-events`.

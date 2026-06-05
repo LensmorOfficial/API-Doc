@@ -1,8 +1,16 @@
-# Personnel related events
+---
+title: "Personnel related events"
+---
 
 List events related to a single person.
 
 Use this endpoint when you want the event associations for one personnel profile in a paginated event-item response.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/events` when you already have a `personnel_id` and want to understand which events are associated with that person.
+
+If your starting point is a LinkedIn URL rather than a Lensmor personnel ID, use [Personnel events by LinkedIn](/api-reference/personnel/events-by-linkedin).
 
 ## Endpoint
 `GET /external/personnel/events`
@@ -19,6 +27,12 @@ See [Authentication](/authentication)
 | `personnel_id` | Yes | string | Numeric-string personnel identifier. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## Response example
 ```json
@@ -37,9 +51,7 @@ See [Authentication](/authentication)
       "city": "New York",
       "region": "NY",
       "country": "United States",
-      "attendeeCount": 40000,
       "exhibitorCount": 950,
-      "personnelCount": 6200,
       "image": null,
       "dataSource": "database"
     }
@@ -52,10 +64,24 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Events associated with the selected person. |
+| `id`, `eventId` | Internal and public event identifiers. |
+| `name`, `nickname`, `description`, `url` | Event display and source fields. |
+| `dateStart`, `dateEnd` | Event date range. |
+| `venue`, `city`, `region`, `country` | Location metadata. |
+| `exhibitorCount` | Known exhibitor count when available. |
+| `image`, `dataSource` | Media and source metadata. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `429 Too Many Requests`
 
 ## Notes
 - Event items reuse the shared public event-item shape.

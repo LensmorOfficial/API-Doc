@@ -1,0 +1,110 @@
+---
+title: "Personnel events by LinkedIn"
+---
+
+Find a person by LinkedIn URL and list related events.
+
+Use this endpoint when your workflow starts from a LinkedIn profile URL instead of a Lensmor `personnel_id`.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/events/by-linkedin` when the only stable identifier you have is a LinkedIn profile URL.
+
+Common use cases:
+
+- browser extension workflow from a LinkedIn profile
+- CRM enrichment from stored LinkedIn URLs
+- discovering events connected to a person before deciding whether to unlock contact details
+- resolving a person to Lensmor `personnel.id`
+
+## Endpoint
+`GET /external/personnel/events/by-linkedin`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `linkedin_url` | Yes | string | LinkedIn profile URL used for normalized matching. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith%2F" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "personnel": {
+    "id": "789",
+    "fullName": "Jane Smith",
+    "title": "VP of Retail Technology",
+    "department": "Technology",
+    "seniorityLevel": "vp",
+    "linkedinUrl": "https://www.linkedin.com/in/jane-smith/",
+    "companyName": "Acme Retail Systems",
+    "sourceType": "exhibitor",
+    "email": null,
+    "contactUnlockStatus": "locked"
+  },
+  "events": {
+    "items": [
+      {
+        "id": "123",
+        "eventId": "139574",
+        "name": "NRF 2026",
+        "nickname": null,
+        "description": "Retail industry event",
+        "url": "https://example.com/events/nrf-2026",
+        "dateStart": "2026-01-12",
+        "dateEnd": "2026-01-15",
+        "venue": "Javits Center",
+        "city": "New York",
+        "region": "NY",
+        "country": "United States",
+        "exhibitorCount": 950,
+        "image": null,
+        "dataSource": "database"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 20,
+    "totalPages": 1,
+    "hasMore": false
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `personnel` | Matched person record using the public contact-style shape. |
+| `personnel.id` | Personnel identifier for profile and email unlock workflows. |
+| `personnel.email` | Email if already unlocked for the caller; otherwise `null`. |
+| `personnel.contactUnlockStatus` | Current contact access state. |
+| `events` | Paginated event results connected to the matched person. |
+| `events.items[].eventId` | Public event identifier for event-scoped follow-up calls. |
+| `events.total`, `events.page`, `events.pageSize`, `events.totalPages`, `events.hasMore` | Pagination metadata. |
+
+## URL normalization
+
+Send the full LinkedIn URL and URL-encode it in the query string. The API performs normalized matching internally, but clients should avoid sending partial names or non-LinkedIn URLs.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- The returned `personnel` object uses the same public contact-style shape as personnel profile responses.
+- Emails are returned only when the contact is already unlocked for the caller.
