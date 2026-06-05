@@ -1,8 +1,21 @@
-# Personnel list
+---
+title: "Personnel list"
+---
 
 List personnel records for a specific event.
 
 Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/list` after selecting an event and, optionally, an exhibitor. It is the main endpoint for building attendee or exhibitor-personnel exploration workflows.
+
+Common use cases:
+
+- browse people associated with an event
+- filter by department or seniority
+- find contacts for a selected exhibitor
+- collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock)
 
 ## Endpoint
 `GET /external/personnel/list`
@@ -22,7 +35,20 @@ See [Authentication](/authentication)
 | `level` | No | string | Seniority-level filter. |
 | `search_query` | No | string | Name or job-title search. |
 | `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `pageSize` | No | integer | Defaults to `50`; maximum `50`. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by role context
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&department=marketing&level=vp&search_query=partnership&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## Response example
 ```json
@@ -36,22 +62,74 @@ See [Authentication](/authentication)
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane-smith",
       "companyName": "Acme Retail Systems",
-      "sourceType": "exhibitor"
+      "sourceType": "exhibitor",
+      "email": null,
+      "contactUnlockStatus": "locked"
     }
   ],
   "total": 3,
   "page": 1,
-  "pageSize": 20,
+  "pageSize": 50,
   "totalPages": 1,
-  "hasMore": false
+  "hasMore": false,
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 3,
+      "visibleTotal": 3,
+      "remainingLockedCount": 0
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": false,
+      "actionType": null,
+      "credits": null
+    },
+    "guidance": {
+      "code": "preview_complete_for_query",
+      "message": "This event is locked, but all matching personnel for the current query are already accessible."
+    }
+  }
 }
 ```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Personnel records for the requested event and filters. |
+| `id` | Personnel identifier. Use this for profile fetches and email unlocks. |
+| `fullName`, `title` | Person display name and job title. |
+| `department`, `seniorityLevel` | Normalized role metadata when available. |
+| `linkedinUrl` | LinkedIn profile URL when available. |
+| `companyName` | Associated company or exhibitor name. |
+| `sourceType` | Source context for the person record. |
+| `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
+| `semantics` | Access metadata for preview/full event coverage. |
+
+## Access semantics
+
+Locked events can still return preview personnel results. Read `semantics` before deciding whether to unlock the event:
+
+- `accessMode` tells you whether the response is preview or full access.
+- `counts.remainingLockedCount` tells you whether more records are hidden.
+- `unlock.requiredForMoreResults` tells you whether event unlock is useful for this query.
+- `guidance.message` provides a user-facing explanation.
 
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `429 Too Many Requests`
 
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style public shape.
+- Emails are returned only when the contact is already unlocked for the caller.
+- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).

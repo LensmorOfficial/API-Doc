@@ -1,8 +1,22 @@
-# Recommended exhibitors for event
+---
+title: "Recommended exhibitors for event"
+---
 
 Return recommended exhibitors for a single event.
 
 Use this endpoint when you already know the target event and want exhibitor recommendations under the caller's current recommendation state.
+
+## When to use this endpoint
+
+Use `GET /external/profile-matching/recommendations/exhibitors` when you want recommended exhibitors for one event, not the neutral event exhibitor catalog.
+
+Choose this endpoint when:
+
+- the user has already selected an event
+- your product has profile or recommendation state for the caller
+- you want exhibitor results filtered and ordered for relevance
+
+Use [Exhibitors list](/api-reference/exhibitors/list) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
 
 ## Endpoint
 `GET /external/profile-matching/recommendations/exhibitors`
@@ -19,12 +33,26 @@ See [Authentication](/authentication)
 | `event_id` | Yes | string | Event identifier. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
-| `location` | No | string | Country or region filter. |
+| `location` | No | string[] | Country or region filter. Repeated query parameters are supported. |
 | `searchQuery` | No | string | Company-name or description search. |
 | `exhibitorName` | No | string[] | Exact-name filter; repeated query params are normalized into arrays. |
 | `category` | No | string[] | Category filter. |
+| `industry` | No | string[] | Industry filter. Repeated query parameters are supported. |
 | `employeesMin` | No | integer | Minimum employee count. |
 | `employeesMax` | No | integer | Maximum employee count. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/profile-matching/recommendations/exhibitors?event_id=139574&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter recommended exhibitors
+
+```bash
+curl "https://platform.lensmor.com/external/profile-matching/recommendations/exhibitors?event_id=139574&industry=Retail%20Technology&employeesMin=100&employeesMax=1000&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## Response example
 ```json
@@ -52,10 +80,26 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Recommended exhibitor records. |
+| `id` | Exhibitor identifier. |
+| `companyName`, `description`, `website` | Display and web presence fields. |
+| `country`, `industry`, `categories` | Classification fields. |
+| `employeeCount`, `fundingRound`, `techStacks` | Enrichment and firmographic signals. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## Filtering behavior
+
+Use filters to narrow recommended exhibitors after recommendation state is established. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `429 Too Many Requests`
 
 ## Notes
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.

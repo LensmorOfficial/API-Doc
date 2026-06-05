@@ -1,0 +1,103 @@
+---
+title: "Event detail"
+---
+
+Get detailed information for a single event.
+
+Use this endpoint after event discovery when you need venue, category, topic, attendee, and event-type metadata for a specific event.
+
+## When to use this endpoint
+
+Use `GET /external/events/:id` when the user has selected an event and your integration needs a canonical event profile before taking follow-up action.
+
+Good follow-up actions include:
+
+- showing a detailed event page
+- deciding whether to preview exhibitors or personnel
+- confirming event identity before an unlock
+- syncing selected event metadata into a CRM or internal planning tool
+
+## Endpoint
+`GET /external/events/:id`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports either event `id` or public `eventId`. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "event": {
+    "id": "123",
+    "eventId": "139574",
+    "name": "NRF 2026",
+    "nickname": null,
+    "description": "Retail industry event",
+    "url": "https://example.com/events/nrf-2026",
+    "dateStart": "2026-01-12",
+    "dateEnd": "2026-01-15",
+    "venue": "Javits Center",
+    "city": "New York",
+    "region": "NY",
+    "country": "United States",
+    "latitude": null,
+    "longitude": null,
+    "attendeeCount": 40000,
+    "priceLower": null,
+    "priceUpper": null,
+    "eventType": null,
+    "categories": [],
+    "topics": [],
+    "topicsCount": 0,
+    "verified": 1,
+    "future": 1,
+    "historic": 0,
+    "historicEvent": null,
+    "image": null,
+    "dataSource": "database",
+    "exhibitorCount": 950,
+    "personnelCount": 6200,
+    "eventTypes": []
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `event` | Event detail object. |
+| `id` | Internal Lensmor event identifier. |
+| `eventId` | Public event identifier accepted by many event-scoped endpoints. |
+| `name`, `nickname`, `description` | Human-readable event identity and description fields. |
+| `url` | Source or official event URL when available. |
+| `dateStart`, `dateEnd` | Event date range. |
+| `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates can be `null`. |
+| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known scale and coverage fields when available. |
+| `priceLower`, `priceUpper` | Price range metadata when available. |
+| `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. |
+| `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
+| `image`, `dataSource` | Media and source metadata. |
+
+## Error responses
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- For event identifiers, see [Identifiers](/concepts/identifiers).
+- Some fields can be `null` when the underlying source does not provide that data.
+- This endpoint does not unlock event-scoped exhibitor or personnel access by itself.

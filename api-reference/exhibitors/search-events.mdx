@@ -1,8 +1,25 @@
-# Exhibitor event search
+---
+title: "Exhibitor event search"
+---
 
 Search events directly from an exhibitor company name using a precision-first matcher.
 
 Use this endpoint when you have a company name, possibly incomplete, and want deduplicated event results without resolving `exhibitor_id` first.
+
+## When to use this endpoint
+
+Use `POST /external/exhibitors/search-events` when your user asks "which events is this company associated with?"
+
+This endpoint returns events, not exhibitor records. It is useful for:
+
+- account planning from a company name
+- finding events where a target account appears as an exhibitor
+- enriching CRM accounts with event participation
+- starting an event workflow without first calling exhibitor search
+
+<Warning>
+  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/balance) before running it in bulk.
+</Warning>
 
 ## Endpoint
 `POST /external/exhibitors/search-events`
@@ -19,6 +36,20 @@ See [Authentication](/authentication)
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Headers
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-call-source: api" \
+  -d '{"company_name":"Acme","page":1,"pageSize":20}'
+```
 
 ## Response example
 ```json
@@ -58,12 +89,32 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Events associated with matched exhibitors. |
+| `id`, `eventId` | Internal and public event identifiers. |
+| `name`, `nickname`, `description`, `url` | Event display and source fields. |
+| `dateStart`, `dateEnd` | Event date range. |
+| `venue`, `city`, `region`, `country` | Event location fields. |
+| `attendeeCount`, `exhibitorCount`, `personnelCount` | Event scale and coverage fields when available. |
+| `matchedExhibitors` | Matched company records that connect the input to the returned event. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## Credit behavior
+
+This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
+- `402 Payment Required`
+- `429 Too Many Requests`
 
 ## Notes
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
+- This endpoint currently consumes `50` credits per successful search attempt. See [Credits and access](/concepts/credits-and-access).
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
 - Longer queries use strict token or prefix admission instead of permissive `contains` matching.
 - No matches return an empty paginated success response rather than `404 Not Found`.

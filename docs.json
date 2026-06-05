@@ -1,13 +1,40 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Lensmor",
-  "theme": "mint",
+  "theme": "maple",
   "favicon": "/logo.svg",
   "colors": {
-    "primary": "#6B75FF",
-    "light": "#334155",
-    "dark": "#E2E8F0"
+    "primary": "#6C7CFF",
+    "light": "#4F46E5",
+    "dark": "#8EA0FF"
   },
+  "appearance": {
+    "default": "light"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "background": {
+    "decoration": "gradient"
+  },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "github-light",
+        "dark": "github-dark"
+      }
+    }
+  },
+  "redirects": [
+    {
+      "source": "/openapi.json",
+      "destination": "/api-reference/openapi.json",
+      "permanent": false
+    }
+  ],
   "navigation": {
     "tabs": [
       {
@@ -21,15 +48,33 @@
             ]
           },
           {
+            "group": "Guides",
+            "pages": [
+              "guides/quickstart",
+              "guides/build-event-recommendations",
+              "guides/find-and-unlock-event",
+              "guides/unlock-contact-emails",
+              "guides/production-readiness"
+            ]
+          },
+          {
             "group": "API Reference",
             "pages": [
+              {
+                "group": "Credits",
+                "pages": [
+                  "api-reference/credits/balance"
+                ]
+              },
               {
                 "group": "Events",
                 "pages": [
                   "api-reference/events/list",
+                  "api-reference/events/detail",
+                  "api-reference/events/brief",
                   "api-reference/events/fit-score",
                   "api-reference/events/rank",
-                  "api-reference/events/brief"
+                  "api-reference/events/unlock"
                 ]
               },
               {
@@ -37,6 +82,7 @@
                 "pages": [
                   "api-reference/exhibitors/list",
                   "api-reference/exhibitors/search",
+                  "api-reference/exhibitors/search-by-company-name",
                   "api-reference/exhibitors/search-events",
                   "api-reference/exhibitors/profile",
                   "api-reference/exhibitors/events"
@@ -47,19 +93,22 @@
                 "pages": [
                   "api-reference/personnel/list",
                   "api-reference/personnel/profile",
-                  "api-reference/personnel/events"
+                  "api-reference/personnel/events",
+                  "api-reference/personnel/events-by-linkedin"
                 ]
               },
               {
                 "group": "Contacts",
                 "pages": [
-                  "api-reference/contacts/search"
+                  "api-reference/contacts/search",
+                  "api-reference/contacts/unlock",
+                  "api-reference/contacts/unlock-task"
                 ]
               },
               {
                 "group": "Profile Matching",
                 "pages": [
-                  "api-reference/profile-matching/recommendations-events-paged",
+                  "api-reference/profile-matching/actions-apply-recommended-events-paged",
                   "api-reference/profile-matching/recommendations-exhibitors"
                 ]
               }
@@ -69,7 +118,10 @@
             "group": "Concepts",
             "pages": [
               "concepts/errors",
-              "concepts/pagination"
+              "concepts/pagination",
+              "concepts/identifiers",
+              "concepts/credits-and-access",
+              "concepts/rate-limits"
             ]
           }
         ]

@@ -1,8 +1,16 @@
-# Exhibitor profile details
+---
+title: "Exhibitor profile details"
+---
 
 Fetch the profile for a single exhibitor.
 
 Use this endpoint when you already know the exhibitor identifier and need a profile-style response with related event references.
+
+## When to use this endpoint
+
+Use `GET /external/exhibitors/profile` after an exhibitor has been selected from an event list, company search, or recommendation result.
+
+This endpoint is best for showing a company profile card and retrieving the compact event references embedded on that profile. Use [Exhibitor related events](/api-reference/exhibitors/events) if you need a paginated event list.
 
 ## Endpoint
 `GET /external/exhibitors/profile`
@@ -17,6 +25,12 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/exhibitors/profile?exhibitor_id=456" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## Response example
 ```json
@@ -44,12 +58,25 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `id` | Exhibitor identifier. |
+| `companyName`, `domain`, `website` | Company identity and web presence fields. |
+| `description`, `industry`, `employeeCount`, `country` | Company metadata. |
+| `logo`, `linkedinUrl`, `fundingRound` | Optional enrichment fields. |
+| `matched_event_ids` | Event identifiers connected to the exhibitor when available. |
+| `events` | Compact related event references. |
+| `events[].eventId` | Public event identifier to use when another endpoint asks for `event_id`. |
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `429 Too Many Requests`
 
 ## Notes
 - The current public query contract supports `exhibitor_id` only.
 - In embedded event objects, the event identifier is returned as `eventId`. Use that value when another endpoint asks for `event_id`.
-- Older PM text that implies `company_name` lookup should not be treated as current behavior.
+- Older examples that imply `company_name` lookup should not be treated as current behavior.

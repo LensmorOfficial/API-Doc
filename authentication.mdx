@@ -1,16 +1,25 @@
-# Authentication
+---
+title: "Authentication"
+---
 
 All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
+
+## Base URL
+`https://platform.lensmor.com`
+
+Combine this base URL with the endpoint paths documented in the API reference. For example, `GET /external/events/list` becomes `GET https://platform.lensmor.com/external/events/list`.
 
 ## Header format
 ```http
 Authorization: Bearer uak_your_api_key
 ```
 
-## Base URL
-`https://platform.lensmor.com`
+## Example request
 
-Combine this base URL with the endpoint paths documented in the API reference. For example, `GET /external/events/list` becomes `GET https://platform.lensmor.com/external/events/list`.
+```bash
+curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
 
 ## How it works
 - The public contract uses a Bearer token in the `Authorization` header.
@@ -22,6 +31,18 @@ Combine this base URL with the endpoint paths documented in the API reference. F
 - Send the header on every request.
 - Expect `401 Unauthorized` when the key is missing, malformed, revoked, or otherwise invalid.
 
+## Security recommendations
+
+- Store API keys in a secret manager or server-side environment variable.
+- Do not expose API keys in browser JavaScript, mobile app bundles, public repos, or analytics payloads.
+- Rotate keys if they are accidentally logged or shared.
+- Avoid logging full `Authorization` headers.
+- Use your own server as a proxy when building browser-based experiences.
+
+<Warning>
+  Treat user API keys like credentials. They can access customer-facing data and initiate credit-consuming workflows.
+</Warning>
+
 ## Notes
-- Older PM and Swagger references to `sk_...` are historical and are not the source of truth for this public-doc phase.
+- Older examples that show `sk_...` are historical and are not the current public API key format.
 - Invalid or missing keys return the shared API error contract described in [Error conventions](/concepts/errors).

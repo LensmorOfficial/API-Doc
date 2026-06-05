@@ -1,8 +1,16 @@
-# Events fit score
+---
+title: "Events fit score"
+---
 
 Score a single event against the authenticated caller's current profile context.
 
 Use this endpoint when you already know the target event and want a compact compatibility result instead of a full ranked list.
+
+## When to use this endpoint
+
+Use `POST /external/events/fit-score` when your UI needs to answer a focused question: "Is this event a good fit for the current profile?"
+
+It works best after an event has already been selected from search, profile recommendations, or a saved shortlist. If you need to rank multiple candidates, use [Events rank](/api-reference/events/rank). If you need a full recommendation page from profile inputs, use [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged).
 
 ## Endpoint
 `POST /external/events/fit-score`
@@ -17,6 +25,14 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `event_id` | Yes | string | Event identifier. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"event_id":"139574"}'
+```
 
 ## Response example
 ```json
@@ -34,9 +50,7 @@ See [Authentication](/authentication)
     "city": "New York",
     "region": "NY",
     "country": "United States",
-    "attendeeCount": 40000,
     "exhibitorCount": 950,
-    "personnelCount": 6200,
     "image": null,
     "dataSource": "database"
   },
@@ -50,12 +64,30 @@ See [Authentication](/authentication)
 }
 ```
 
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `event` | Compact event object for the scored event. |
+| `score` | Numeric compatibility score for the authenticated caller's current profile context. |
+| `recommendation` | Human-readable recommendation category. |
+| `breakdown.profile_match` | Profile-context compatibility component. |
+| `breakdown.matched_exhibitor_density` | Signal based on relevant exhibitor overlap or density. |
+| `breakdown.event_scale` | Signal based on event size and scale. |
+
+## Interpretation guidance
+
+- Use `score` for display and ordering, but avoid treating small differences as exact truth.
+- Use `recommendation` as the primary user-facing label.
+- Use `breakdown` to explain why an event is strong or weak when your UI has space for detail.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
 - `409 Conflict`
+- `429 Too Many Requests`
 
 ## Notes
 - The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
-- Older PM draft fields such as `breakdown_details` are not part of the live response.
+- Older draft fields such as `breakdown_details` are not part of the live response.

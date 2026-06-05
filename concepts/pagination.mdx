@@ -1,19 +1,62 @@
-# Pagination conventions
+---
+title: "Pagination conventions"
+---
 
 Many list endpoints return a shared pagination envelope.
 
 ## Common fields
-- `page` — current page number
-- `pageSize` — number of items requested per page
-- `total` — total matching items
-- `totalPages` — total number of pages
-- `hasMore` — whether another page is available
+| Field | Description |
+| --- | --- |
+| `items` | Records for the current page. Item shape varies by endpoint. |
+| `page` | Current page number. |
+| `pageSize` | Number of items requested per page. |
+| `total` | Total matching items. |
+| `totalPages` | Total number of pages. |
+| `hasMore` | Whether another page is available. |
+
+## Request pattern
+
+Most list endpoints accept `page` and `pageSize`.
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Use explicit values instead of relying on defaults in production clients.
 
 ## What to expect
 - Exact item fields vary by endpoint family.
 - Some endpoints return extra route-specific metadata in addition to the shared pagination fields.
+- Event-scoped exhibitor and personnel list endpoints can include `semantics` metadata that explains preview access and unlock guidance.
 - Identifiers such as `event_id`, `exhibitor_id`, and `personnel_id` are string values in the public contract.
 - Parameter naming is route-specific. Treat each endpoint page as the source of truth for casing and field names.
 
+## Preview semantics
+
+Event-scoped exhibitor and personnel lists can return an additional `semantics` object:
+
+```json
+{
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 87,
+      "visibleTotal": 50,
+      "remainingLockedCount": 37
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "credits": 2000
+    }
+  }
+}
+```
+
+Use `semantics` to decide whether a page is fully accessible or whether the user should unlock the event for more records.
+
 ## Notes
-Use each endpoint page as the source of truth for route-specific filters, item fields, and any additional metadata returned with paginated results.
+- Most endpoints use a maximum `pageSize` of `100`.
+- Personnel list endpoints use a maximum `pageSize` of `50`.
+- Use each endpoint page as the source of truth for route-specific filters, item fields, and any additional metadata returned with paginated results.

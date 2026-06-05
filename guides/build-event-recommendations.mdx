@@ -1,0 +1,87 @@
+---
+title: "Build event recommendations"
+---
+
+Use this guide when your product needs to recommend trade shows from a company website, ICP description, target audience, or existing event shortlist.
+
+Lensmor exposes more than one event-discovery endpoint because recommendation workflows differ by starting point. The main design choice is whether you already know the candidate event set.
+
+## Choose the right endpoint
+
+| Starting point | Recommended endpoint | Why |
+| --- | --- | --- |
+| User wants to browse events by keyword, country, city, or date | [Events list](/api-reference/events/list) | Returns a neutral paginated catalog. |
+| User provides a company website or target audience and wants recommended events | [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) | Applies profile context and returns scored event recommendations. |
+| User already has one event and wants a compact fit result | [Events fit score](/api-reference/events/fit-score) | Scores one event without returning a full recommendation page. |
+| User already has several candidate event IDs and wants them sorted | [Events rank](/api-reference/events/rank) | Ranks a known shortlist. |
+| User knows an exhibitor company name and wants related events | [Exhibitor event search](/api-reference/exhibitors/search-events) | Reverse-lookups events from company name context. |
+
+## Recommendation-first workflow
+
+<Steps>
+  <Step title="Collect profile inputs">
+    Ask for a company website, target audience description, or both. Better input context usually produces better recommendations.
+  </Step>
+  <Step title="Apply profile matching">
+    Call `POST /external/profile-matching/actions/apply-recommended-events/paged` with filters such as country, category, date range, or attendee count.
+  </Step>
+  <Step title="Review event metadata">
+    Use `match_score`, `matched_exhibitor_count`, geography, dates, and event size fields to decide what to show first.
+  </Step>
+  <Step title="Drill into the chosen event">
+    Fetch event detail, preview exhibitors/personnel, and unlock event coverage only when needed.
+  </Step>
+</Steps>
+
+## Example: recommend events from a company website
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/apply-recommended-events/paged" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_url": "https://acme.example",
+    "country": "United States",
+    "future": 1,
+    "page": 1,
+    "pageSize": 20
+  }'
+```
+
+## Example: rank a shortlist
+
+Use ranking after your product has already narrowed the event universe.
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/rank" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_ids": ["139574", "139575", "139576"]
+  }'
+```
+
+## Interpreting recommendation data
+
+- `match_score` is useful for ordering and visual ranking. Avoid treating small score differences as exact mathematical truth.
+- `matched_exhibitor_count` indicates whether an event has account overlap with the profile context.
+- `unlocked` tells you whether full event-scoped coverage is already available.
+- `profile_version` and `active_result_version` help clients understand result freshness.
+
+## UX recommendations
+
+- Let users edit profile inputs and rerun matching.
+- Show enough event metadata to make the recommendation explainable: location, date, scale, and matched exhibitor count.
+- Avoid spending credits during the recommendation step. Use unlock flows only after the user selects an event.
+- Keep pagination controls visible. Recommendation results can span multiple pages.
+
+## Related concepts
+
+<CardGroup cols={2}>
+  <Card title="Identifiers" icon="fingerprint" href="/concepts/identifiers">
+    Understand `id`, `eventId`, and event-scoped identifiers.
+  </Card>
+  <Card title="Credits and access" icon="coins" href="/concepts/credits-and-access">
+    Learn which follow-up workflows can consume credits.
+  </Card>
+</CardGroup>

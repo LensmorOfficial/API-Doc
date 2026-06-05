@@ -1,0 +1,91 @@
+---
+title: "Production readiness"
+---
+
+Use this checklist before putting a Lensmor API integration in front of customers or internal sales teams.
+
+Production integrations should handle authentication, pagination, credit-aware actions, asynchronous jobs, and rate limits explicitly. This keeps workflows predictable and prevents accidental credit spend.
+
+## Request checklist
+
+<Steps>
+  <Step title="Send authentication on every request">
+    Include `Authorization: Bearer uak_your_api_key`. Treat `401 Unauthorized` as a key or account configuration issue.
+  </Step>
+  <Step title="Use pagination consistently">
+    Always pass `page` and `pageSize` for list endpoints. Do not assume all records fit in the first response.
+  </Step>
+  <Step title="Check credits before paid actions">
+    Use `GET /external/credits/balance` before event unlocks, email unlocks, or exhibitor event searches.
+  </Step>
+  <Step title="Make asynchronous jobs resumable">
+    Store `task_id` from contact unlock responses so polling can continue after page refreshes, worker restarts, or network failures.
+  </Step>
+  <Step title="Back off on rate limits">
+    Respect `Retry-After` for `429 Too Many Requests` and use `X-RateLimit-*` headers for proactive throttling.
+  </Step>
+</Steps>
+
+## Error handling matrix
+
+| Status | Meaning | Recommended behavior |
+| --- | --- | --- |
+| `400 Bad Request` | Request shape or validation failed. | Fix client-side input and show a validation message. |
+| `401 Unauthorized` | API key is missing, invalid, revoked, or not visible to the caller. | Ask the user to reconnect or rotate the key. |
+| `402 Payment Required` | The operation needs credits or access that is not currently available. | Pause the workflow, show credit context, and let the user decide. |
+| `404 Not Found` | The requested event, exhibitor, person, or task was not found. | Re-check stored identifiers and avoid retry loops. |
+| `409 Conflict` | The request conflicts with current profile, task, or workflow state. | Refresh current state before retrying. |
+| `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
+
+## Credit-safe UI pattern
+
+For credit-consuming actions, use a two-step confirmation pattern:
+
+1. Show what the user is about to unlock or search.
+2. Show the expected credit cost when known.
+3. Check current balance.
+4. Ask the user to confirm.
+5. Execute the API call.
+6. Refresh balance and result state.
+
+This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+
+## Rate-limit friendly polling
+
+For contact unlock tasks, avoid tight polling loops.
+
+```text
+Create task -> wait 3s -> poll -> wait 5s -> poll -> wait 10s -> poll
+```
+
+Stop polling when the task is completed or failed. If the user leaves the page, store the task ID and resume later.
+
+## Logging and support
+
+Log enough context to investigate issues without storing sensitive data:
+
+- endpoint path and method
+- response status
+- `traceId` from error responses when available
+- `X-Request-ID` if your client sends one
+- task ID for asynchronous jobs
+- event or personnel identifiers involved in the workflow
+
+Do not log API keys or unlocked email addresses in plaintext application logs.
+
+## Related concepts
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key-round" href="/authentication">
+    How to authenticate public API requests.
+  </Card>
+  <Card title="Error conventions" icon="triangle-alert" href="/concepts/errors">
+    Shared error response shape and tracing fields.
+  </Card>
+  <Card title="Pagination conventions" icon="list" href="/concepts/pagination">
+    Standard pagination fields and page-size limits.
+  </Card>
+  <Card title="Rate limits" icon="gauge" href="/concepts/rate-limits">
+    Headers, retry behavior, and integration guidance.
+  </Card>
+</CardGroup>

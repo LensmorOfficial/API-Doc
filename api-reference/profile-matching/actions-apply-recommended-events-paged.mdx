@@ -1,0 +1,138 @@
+---
+title: "Apply profile and get recommended events"
+---
+
+Apply company profile inputs and return paged recommended events synchronously.
+
+Use this endpoint when you want to rank events for a company website or target audience and retrieve the first page of results in one request.
+
+## When to use this endpoint
+
+Use this endpoint when the integration starts from "who we sell to" rather than from a known event.
+
+Good fits include:
+
+- A CRM workflow where the user enters a company website and wants recommended trade shows.
+- A sales planning workflow that ranks events for a specific ICP.
+- A dashboard that combines event metadata with match score and matched exhibitor counts.
+- A one-request onboarding flow where users provide profile inputs and immediately see recommendations.
+
+If you need a neutral event catalog without profile scoring, use [Events list](/api-reference/events/list).
+
+## Endpoint
+`POST /external/profile-matching/actions/apply-recommended-events/paged`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
+| `target_audience` | Conditionally | string | Audience description. Provide at least one of `company_url` or `target_audience`. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `autoRecommendTop3EventsEnabled` | No | boolean | Override synchronous top-3 recommendation reason generation for this request. |
+| `city` | No | string | City filter. |
+| `region` | No | string | Region filter. |
+| `country` | No | string | Country filter. |
+| `category` | No | string[] | Category filter; arrays and comma-separated inputs are normalized. |
+| `eventTypeIds` | No | integer[] | Event type ID filter; arrays and comma-separated inputs are normalized. |
+| `dateStartFrom` | No | ISO date string | Lower date bound. |
+| `dateStartTo` | No | ISO date string | Upper date bound. |
+| `future` | No | integer | Future-event flag. |
+| `attendeeCountMin` | No | integer | Minimum attendee count. |
+| `attendeeCountMax` | No | integer | Maximum attendee count. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/apply-recommended-events/paged" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"company_url":"https://acme.example","page":1,"pageSize":20,"future":1}'
+```
+
+### Recommend from an ICP description
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/apply-recommended-events/paged" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_audience": "Enterprise retailers and store operations leaders looking for workforce analytics software",
+    "country": "United States",
+    "future": 1,
+    "page": 1,
+    "pageSize": 20
+  }'
+```
+
+## Response example
+```json
+{
+  "status": "completed",
+  "items": [
+    {
+      "id": "123",
+      "eventId": "139574",
+      "name": "NRF 2026",
+      "nickname": null,
+      "description": "Retail industry event",
+      "url": "https://example.com/events/nrf-2026",
+      "dateStart": "2026-01-12",
+      "dateEnd": "2026-01-15",
+      "venue": "Javits Center",
+      "city": "New York",
+      "region": "NY",
+      "country": "United States",
+      "attendeeCount": 40000,
+      "exhibitorCount": 950,
+      "personnelCount": 6200,
+      "matched_exhibitor_count": 19,
+      "match_score": 0.84,
+      "unlocked": false
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 3,
+  "hasMore": true,
+  "condition_tags": {},
+  "profile_version": 12,
+  "active_result_version": 12,
+  "is_stale": false
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `status` | Profile-matching execution state for the request. |
+| `items` | Recommended event records for the requested page. |
+| `match_score` | Event relevance score for the supplied profile inputs. |
+| `matched_exhibitor_count` | Number of exhibitors that matched the profile context when available. |
+| `unlocked` | Whether the API key owner already has full event access. |
+| `condition_tags` | Normalized matching/filter metadata returned by the current profile version. |
+| `profile_version`, `active_result_version` | Version metadata for the profile-matching result set. |
+| `is_stale` | Indicates whether the current result set is stale relative to the active profile state. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## Result freshness
+
+`profile_version`, `active_result_version`, and `is_stale` help clients decide whether to refresh recommendations after profile inputs change. For most UI integrations, show the current results and re-run the endpoint when the user edits the company URL, audience description, filters, or geography.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `409 Conflict`
+- `429 Too Many Requests`
+
+## Notes
+- This route is the recommended current public profile-matching endpoint for event recommendations.
+- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
