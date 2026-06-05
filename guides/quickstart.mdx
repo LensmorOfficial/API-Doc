@@ -65,11 +65,11 @@ Use the detail response to confirm event dates, venue, geography, source URL, an
 Event-scoped lists may return preview results if the event is locked.
 
 ```bash
-curl "https://platform.lensmor.com/external/events/139574/exhibitors?page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-When the response contains `semantics.accessLevel: "preview"`, read the `semantics.unlock` object before calling an unlock endpoint. It tells you whether more data is available and which action unlocks it.
+When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields tell you whether more data is available and which action unlocks it.
 
 ## 5. Handle errors and limits
 

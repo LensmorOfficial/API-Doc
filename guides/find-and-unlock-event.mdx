@@ -44,7 +44,7 @@ Confirm that the event is the one your team expects before unlocking. For exampl
 ## 3. Preview event-scoped data
 
 ```bash
-curl "https://platform.lensmor.com/external/events/139574/personnel?page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -67,12 +67,26 @@ Locked events can return a response like this:
   "pageSize": 20,
   "hasMore": true,
   "semantics": {
-    "accessLevel": "preview",
-    "visibleRecords": 20,
-    "requiresUnlockForMore": true,
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 120,
+      "visibleTotal": 20,
+      "remainingLockedCount": 100
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
     "unlock": {
-      "action": "event_unlock",
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_personnel",
       "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_results_truncated",
+      "message": "This event is locked. Unlock the event to access the remaining matching results."
     }
   }
 }

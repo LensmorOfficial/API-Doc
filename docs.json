@@ -20,6 +20,21 @@
   "background": {
     "decoration": "gradient"
   },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "github-light",
+        "dark": "github-dark"
+      }
+    }
+  },
+  "redirects": [
+    {
+      "source": "/openapi.json",
+      "destination": "/api-reference/openapi.json",
+      "permanent": false
+    }
+  ],
   "navigation": {
     "tabs": [
       {
