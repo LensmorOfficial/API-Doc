@@ -22,10 +22,7 @@
   },
   "styling": {
     "codeblocks": {
-      "theme": {
-        "light": "github-light",
-        "dark": "github-dark"
-      }
+      "theme": "github-dark"
     }
   },
   "redirects": [
