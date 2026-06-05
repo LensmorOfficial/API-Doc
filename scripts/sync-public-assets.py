@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Generate a custom llms-full.txt from Mintlify MDX sources.
-
-Mintlify's automatic llms-full.txt can emit framework-specific code fence
-metadata. A custom root llms-full.txt overrides that output while preserving
-normal Markdown code fences for LLM and agent consumers.
-"""
+"""Sync public static assets derived from the Mintlify docs source."""
 
 from __future__ import annotations
 
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS_JSON = ROOT / "docs.json"
-OUTPUT = ROOT / "llms-full.txt"
+OPENAPI_SOURCE = ROOT / "api-reference" / "openapi.json"
+OPENAPI_ROOT = ROOT / "openapi.json"
+LLMS_FULL = ROOT / "llms-full.txt"
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n?", re.DOTALL)
 TITLE_RE = re.compile(r"^title:\s*(.+?)\s*$", re.MULTILINE)
 
@@ -61,14 +59,23 @@ def page_to_markdown(page: str) -> str:
     return f"## {title}\n\nSource: /{page}\n\n{body}\n"
 
 
-def main() -> None:
+def sync_openapi_root() -> None:
+    shutil.copyfile(OPENAPI_SOURCE, OPENAPI_ROOT)
+
+
+def sync_llms_full() -> None:
     config = json.loads(DOCS_JSON.read_text(encoding="utf-8"))
     sections = [page_to_markdown(page) for page in navigation_pages(config)]
     content = "# Lensmor API Documentation\n\n"
     content += "This file is generated from the public Mintlify MDX sources for LLM and agent consumption.\n"
-    content += "It intentionally uses plain Markdown code fences without Mintlify-generated theme metadata.\n\n"
+    content += "It intentionally uses plain Markdown code fences without Mintlify-specific metadata.\n\n"
     content += "\n---\n\n".join(sections).rstrip() + "\n"
-    OUTPUT.write_text(content, encoding="utf-8")
+    LLMS_FULL.write_text(content, encoding="utf-8")
+
+
+def main() -> None:
+    sync_openapi_root()
+    sync_llms_full()
 
 
 if __name__ == "__main__":
