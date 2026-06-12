@@ -5,7 +5,7 @@ description: "Retrieve a Lensmor personnel profile with company context, role me
 
 Fetch the profile for a single person.
 
-Use this endpoint when you already know the personnel identifier and need the public profile shape for that person.
+Use this endpoint when you already know the personnel identifier and need profile details for that person.
 
 ## When to use this endpoint
 
@@ -73,6 +73,6 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 - `429 Too Many Requests`
 
 ## Notes
-- The public contract stays lightweight.
+- This response stays intentionally lightweight.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.

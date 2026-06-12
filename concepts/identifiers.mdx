@@ -8,9 +8,9 @@ Lensmor API responses expose string identifiers so clients can pass values safel
 ## Event identifiers
 Many event-scoped request parameters are named `event_id`.
 
-For customer-facing endpoints, `event_id`cepts either:
+In event-scoped requests, `event_id` accepts either:
 
-- `eventId` — the public event identifier returned in event responses.
+- `eventId` — the event identifier returned in event responses.
 - `id` — the Lensmor event identifier returned as a string in event responses.
 
 <Note>
@@ -31,5 +31,5 @@ Use the identifier returned by the matching resource endpoint:
 
 ## Naming conventions
 - Request parameters use the casing shown on each endpoint page.
-- Response fields preserve the current API contract. For example, event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`.
+- Event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`. Use the field names shown on each endpoint page.
 - Array parameters are route-specific. Some body fields accept arrays directly; some query filters use repeated query parameters. Follow the endpoint page for each route.

@@ -1,6 +1,6 @@
 # Lensmor API Documentation
 
-> Customer-facing Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
+> Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
 
 ## Primary Resources
 
@@ -12,4 +12,4 @@
 
 `https://platform.lensmor.com`
 
-All public API paths are under `/external/*` and require `Authorization: Bearer uak_your_api_key`.
+Send requests to `https://platform.lensmor.com` with `Authorization: Bearer uak_your_api_key`.

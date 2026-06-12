@@ -70,7 +70,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | Field | Description |
 | --- | --- |
 | `items` | Events associated with the exhibitor. |
-| `id`, `eventId` | Internal and public event identifiers. |
+| `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
@@ -85,6 +85,6 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the shared public event-item shape.
+- Event items reuse the standard event-item response shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.

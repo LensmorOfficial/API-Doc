@@ -30,7 +30,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `100` per request. |
-| `event_id` | Yes | string | Supports either event `id` or public `eventId`. |
+| `event_id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
 
 ## Headers
 | Name | Required | Type | Notes |
@@ -61,7 +61,7 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
 | --- | --- |
 | `status` | Initial task acceptance state. Usually `accepted` when the task was created. |
 | `task_id` | Identifier used to poll task status. Store this value. |
-| `job_id` | Alias for the background job identifier. In the current contract it matches `task_id`. |
+| `job_id` | Alias for the background job identifier. It currently matches `task_id`. |
 
 ## Polling pattern
 

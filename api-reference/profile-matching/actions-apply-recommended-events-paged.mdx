@@ -224,8 +224,8 @@ Each event item includes the full event detail shape:
 - `429 Too Many Requests`
 
 ## Notes
-- This route is the recommended current public profile-matching endpoint for event recommendations.
+- Use this endpoint for profile-based event recommendations.
 - Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
 - `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
 - `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
-- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` describes the current paged result set.
