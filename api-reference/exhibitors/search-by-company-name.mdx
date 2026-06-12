@@ -107,5 +107,6 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because company name matching may evolve to accept additional body parameters. It does not create a persistent resource.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need event results for a company name, use `POST /external/exhibitors/search-events`.

@@ -19,6 +19,9 @@ Production integrations should handle authentication, pagination, credit-aware a
   <Step title="Check credits before paid actions">
     Use `GET /external/credits/balance` before event unlocks, email unlocks, or exhibitor event searches.
   </Step>
+  <Step title="Precheck when the next action depends on access state">
+    Use `POST /external/actions/precheck` before workflows where you need to know whether an action is allowed, whether it should charge credits, or which unlock path applies.
+  </Step>
   <Step title="Make asynchronous jobs resumable">
     Store `task_id` from contact unlock responses so polling can continue after page refreshes, worker restarts, or network failures.
   </Step>
@@ -50,6 +53,16 @@ For credit-consuming actions, use a two-step confirmation pattern:
 6. Refresh balance and result state.
 
 This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+
+## Credit-consuming actions
+
+| Action | Endpoint | Current behavior |
+| --- | --- | --- |
+| Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
+| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. |
+| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
+
+Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
 
 ## Rate-limit friendly polling
 

@@ -12,6 +12,16 @@ This documentation covers the public `external/*` contract exposed from `https:/
 
 All endpoint paths in this documentation are relative to this base URL. For example, `GET /external/events/list` resolves to `GET https://platform.lensmor.com/external/events/list`.
 
+## Get an API key
+
+Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create a user API key from **Settings → API Keys**.
+
+Use the key with the API base URL above:
+
+```http
+Authorization: Bearer uak_your_api_key
+```
+
 ## What you can build
 
 <CardGroup cols={2}>
@@ -28,6 +38,17 @@ All endpoint paths in this documentation are relative to this base URL. For exam
     Start asynchronous email unlock jobs and poll task status until contact data is ready.
   </Card>
 </CardGroup>
+
+## Which endpoint should I use?
+
+| If you have... | Start with | Why |
+| --- | --- | --- |
+| A keyword, geography, or date range | [Events list](/api-reference/events/list) | Broad event catalog search. |
+| A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) | Returns ranked events from profile context. |
+| A known event ID | [Exhibitors list](/api-reference/exhibitors/list) or [Personnel list](/api-reference/personnel/list) | Shows event-scoped companies and people, with preview/full access semantics. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-by-company-name) | Precision-first company lookup. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events) | Finds events associated with that company. This can consume credits. |
+| Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock) | Starts an async email unlock task. |
 
 ## Recommended integration path
 

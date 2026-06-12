@@ -16,6 +16,8 @@ Lensmor's public API is designed around a typical event-intelligence workflow:
 
 You need a valid user API key and an environment capable of sending HTTPS requests.
 
+Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create an API key from **Settings → API Keys**.
+
 ```bash
 export LENSMOR_API_KEY="uak_your_api_key"
 ```
@@ -33,7 +35,19 @@ curl "https://platform.lensmor.com/external/credits/balance" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-The response includes subscription credits, gift credits, the total balance, and the next reset timestamp when available.
+The response includes subscription credits, gift credits, the total balance, and the next reset timestamp when available. This is the same credit pool used by the Lensmor SaaS app.
+
+## Choose the right starting point
+
+| User goal | First endpoint |
+| --- | --- |
+| Search for events by keyword, country, city, or date | `GET /external/events/list` |
+| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` |
+| Browse companies inside a selected event | `GET /external/exhibitors/list` |
+| Browse people inside a selected event | `GET /external/personnel/list` |
+| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` |
+| Find events associated with a company name | `POST /external/exhibitors/search-events` |
+| Unlock selected contact emails | `POST /external/contacts/unlock` |
 
 ## 2. Search the event catalog
 
@@ -44,10 +58,10 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=U
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-The event list is paginated. Store both `id` and `eventId` when possible:
+The event list is paginated. Use the `eventId` field from responses when calling other endpoints:
 
-- `id` is the database identifier.
-- `eventId` is the public event identifier that may be easier to share across tools.
+- `id` and `eventId` currently return the same value for all events.
+- Use `eventId` when passing to endpoints that accept `event_id`.
 - Many event-scoped endpoints accept either value.
 
 ## 3. Inspect a specific event

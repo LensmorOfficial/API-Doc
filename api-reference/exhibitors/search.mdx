@@ -147,6 +147,7 @@ No matches are represented as a successful empty paginated response:
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body contains structured profile inputs (URLs, audience descriptions) that do not fit cleanly in query parameters. It does not create a persistent resource.
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - The live service returns `matched_event_ids` as an empty array for this heuristic search.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.

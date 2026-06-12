@@ -13,7 +13,12 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS_JSON = ROOT / "docs.json"
 OPENAPI_SOURCE = ROOT / "api-reference" / "openapi.json"
 OPENAPI_ROOT = ROOT / "openapi.json"
+OPENAPI_WELL_KNOWN = ROOT / ".well-known" / "openapi"
+API_CATALOG = ROOT / ".well-known" / "api-catalog"
+LLMS_INDEX = ROOT / "llms.txt"
 LLMS_FULL = ROOT / "llms-full.txt"
+DOCS_BASE_URL = "https://api.lensmor.com"
+API_BASE_URL = "https://platform.lensmor.com"
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n?", re.DOTALL)
 TITLE_RE = re.compile(r"^title:\s*(.+?)\s*$", re.MULTILINE)
 
@@ -61,6 +66,43 @@ def page_to_markdown(page: str) -> str:
 
 def sync_openapi_root() -> None:
     shutil.copyfile(OPENAPI_SOURCE, OPENAPI_ROOT)
+    OPENAPI_WELL_KNOWN.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(OPENAPI_SOURCE, OPENAPI_WELL_KNOWN)
+
+
+def sync_api_catalog() -> None:
+    API_CATALOG.parent.mkdir(parents=True, exist_ok=True)
+    catalog = {
+        "apis": [
+            {
+                "name": "Lensmor API",
+                "description": "Customer-facing Lensmor Event Intelligence API.",
+                "baseUrl": API_BASE_URL,
+                "openapi": f"{DOCS_BASE_URL}/.well-known/openapi",
+            }
+        ]
+    }
+    API_CATALOG.write_text(json.dumps(catalog, indent=2) + "\n", encoding="utf-8")
+
+
+def sync_llms_index() -> None:
+    content = f"""# Lensmor API Documentation
+
+> Customer-facing Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
+
+## Primary Resources
+
+- [Full documentation export]({DOCS_BASE_URL}/llms-full.txt)
+- [OpenAPI specification]({DOCS_BASE_URL}/.well-known/openapi)
+- [API catalog]({DOCS_BASE_URL}/.well-known/api-catalog)
+
+## API Base URL
+
+`{API_BASE_URL}`
+
+All public API paths are under `/external/*` and require `Authorization: Bearer uak_your_api_key`.
+"""
+    LLMS_INDEX.write_text(content, encoding="utf-8")
 
 
 def sync_llms_full() -> None:
@@ -75,6 +117,8 @@ def sync_llms_full() -> None:
 
 def main() -> None:
     sync_openapi_root()
+    sync_api_catalog()
+    sync_llms_index()
     sync_llms_full()
 
 

@@ -54,11 +54,16 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
   "success": true,
   "alreadyUnlocked": false,
   "creditsUsed": 2000,
-  "balanceAfter": 28050,
+  "balanceAfter": {
+    "subscriptionBalance": 0,
+    "permanentBalance": 451021,
+    "totalBalance": 451021,
+    "unlimited": false
+  },
   "event": {
-    "id": "123",
-    "eventId": "139574",
-    "name": "NRF 2026"
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025"
   }
 }
 ```
@@ -70,7 +75,11 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
 | `success` | Whether the unlock request completed successfully. |
 | `alreadyUnlocked` | `true` when the API key owner already had full access to the event. |
 | `creditsUsed` | Number of credits charged by this request. `0` when the event was already unlocked. |
-| `balanceAfter` | Remaining balance after the unlock operation. |
+| `balanceAfter` | Remaining balance snapshot after a paid unlock. `null` when no credits were charged, such as an already-unlocked event. |
+| `balanceAfter.subscriptionBalance` | Remaining subscription credits. |
+| `balanceAfter.permanentBalance` | Remaining gift/permanent credits. |
+| `balanceAfter.totalBalance` | Total remaining credits. |
+| `balanceAfter.unlimited` | Whether the account has unlimited access semantics. |
 | `event` | Minimal event identity for confirmation and audit logs. |
 
 ## Idempotency behavior

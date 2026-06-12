@@ -90,5 +90,6 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body can contain structured profile context that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
 - Older draft fields such as `breakdown_details` are not part of the live response.

@@ -1,0 +1,80 @@
+---
+title: "Actions precheck"
+description: "Check whether a Lensmor external API action is allowed, whether it will charge credits, and which execution path applies before running the action."
+---
+
+Precheck an external API action before executing a workflow that may depend on event access, contact availability, credits, or action-specific policy.
+
+Use this endpoint when your integration needs a credit-safe confirmation step before calling an unlock or charged execution endpoint.
+
+## Endpoint
+`POST /external/actions/precheck`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `action_type` | Yes | string | Supported values include `query_event_personnel`, `unlock_event_contacts`, `unlock_contact_emails`, `search_exhibitor_events`, and `others`. |
+| `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
+| `call_source` | No | string | Source label such as `api` or `agent`. |
+| `locale` | No | string | Optional locale, such as `en-US`. |
+| `trace_id` | No | string | Caller-provided trace id for support/debug correlation. |
+| `conversation_id` | No | string | Optional conversation id for agent workflows. |
+| `channel_message_id` | No | string | Optional message id for agent workflows. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "query_event_personnel",
+    "call_source": "api",
+    "params": {
+      "event_id": "26855"
+    }
+  }'
+```
+
+## Response example
+```json
+{
+  "ok": true,
+  "action_type": "query_event_personnel",
+  "allowed": true,
+  "should_charge": false,
+  "credits": 0,
+  "reason_code": "ok",
+  "biz_code": "",
+  "detail": {
+    "event_id": "26855",
+    "access_mode": "preview",
+    "preview_limit": 50,
+    "unlock_action_type": "unlock_event_contacts",
+    "unlock_credits": 2000
+  }
+}
+```
+
+## Response fields
+| Field | Description |
+| --- | --- |
+| `ok` | Always `true` for a handled precheck envelope. |
+| `action_type` | Normalized action type that was evaluated. |
+| `allowed` | Whether the action can proceed under current account, access, and balance state. |
+| `should_charge` | Whether executing the related action is expected to consume credits. |
+| `credits` | Expected credit amount for the action. |
+| `reason_code` | Machine-readable decision reason. Examples include `ok`, `already_unlocked`, `insufficient_balance`, `not_found`, and `unsupported_action`. |
+| `biz_code` | Billing/business code used by the execution path when applicable. |
+| `detail` | Action-specific metadata. Shape varies by `action_type`. |
+
+## Notes
+- Precheck is read-only. It does not unlock records, create tasks, or consume credits.
+- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list).
+- Once a list endpoint returns `semantics`, treat that response as the authoritative explanation for the actual list result.
+- Precheck decisions can change as credits, event access, or underlying data changes. Recheck before executing a paid action.

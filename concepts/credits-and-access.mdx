@@ -5,6 +5,8 @@ description: "Learn how Lensmor credits, locked event access, preview limits, un
 
 Some Lensmor API operations are credit-aware. Read-only discovery endpoints are available with a valid API key, while unlock and reverse-lookup workflows may consume credits.
 
+API credits are shared with the Lensmor SaaS app. The API key belongs to a subscribed Lensmor user account, and API usage draws from the same credit pool as product usage in the app.
+
 ## Credit balance
 Use `GET /external/credits/balance` to inspect the API key owner's current balance before running credit-consuming workflows.
 
@@ -33,6 +35,7 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
 | Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
+| LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
 
@@ -57,6 +60,8 @@ Use a confirmation step for operations that can spend credits:
     Update balance, access state, and list results after the response.
   </Step>
 </Steps>
+
+For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
 Some credit-consuming routes accept `x-call-source`.

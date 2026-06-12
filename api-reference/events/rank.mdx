@@ -89,5 +89,6 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body contains an array of event IDs that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current service returns an ordered `items` array with `rank` and `match_score`.
 - `reasons` is currently emitted as an empty array by the live service.

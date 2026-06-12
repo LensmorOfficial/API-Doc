@@ -20,6 +20,9 @@
       "name": "Credits"
     },
     {
+      "name": "Actions"
+    },
+    {
       "name": "Events"
     },
     {
@@ -53,6 +56,46 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/actions/precheck": {
+      "post": {
+        "tags": [
+          "Actions"
+        ],
+        "summary": "Precheck an external action",
+        "operationId": "precheckExternalAction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionPrecheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Precheck decision envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionPrecheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -896,6 +939,49 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/unlock-linkedin-activity": {
+      "post": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Unlock LinkedIn activity",
+        "operationId": "unlockLinkedinActivity",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkedinActivityUnlockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Per-personnel LinkedIn activity unlock result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkedinActivityUnlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -1975,9 +2061,34 @@
             "type": "number"
           },
           "balanceAfter": {
-            "type": [
-              "number",
-              "null"
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "subscriptionBalance",
+                  "permanentBalance",
+                  "totalBalance",
+                  "unlimited"
+                ],
+                "properties": {
+                  "subscriptionBalance": {
+                    "type": "number"
+                  },
+                  "permanentBalance": {
+                    "type": "number"
+                  },
+                  "totalBalance": {
+                    "type": "number"
+                  },
+                  "unlimited": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "event": {
@@ -2318,6 +2429,12 @@
               },
               "semantics": {
                 "$ref": "#/components/schemas/AccessSemantics"
+              },
+              "recommendationProcessingFeature": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             }
           }
@@ -2480,18 +2597,65 @@
           },
           "counts": {
             "type": "object",
+            "properties": {
+              "actualTotal": {
+                "type": "integer"
+              },
+              "visibleTotal": {
+                "type": "integer"
+              },
+              "remainingLockedCount": {
+                "type": "integer"
+              }
+            },
             "additionalProperties": true
           },
           "pageState": {
             "type": "object",
+            "properties": {
+              "requestedPage": {
+                "type": "integer"
+              },
+              "accessible": {
+                "type": "boolean"
+              },
+              "maxAccessiblePage": {
+                "type": "integer"
+              }
+            },
             "additionalProperties": true
           },
           "unlock": {
             "type": "object",
+            "properties": {
+              "requiredForMoreResults": {
+                "type": "boolean"
+              },
+              "actionType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "credits": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
             "additionalProperties": true
           },
           "guidance": {
             "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
             "additionalProperties": true
           }
         },
@@ -2606,6 +2770,171 @@
             "additionalProperties": true
           }
         ]
+      },
+      "ActionPrecheckRequest": {
+        "type": "object",
+        "required": [
+          "action_type",
+          "params"
+        ],
+        "properties": {
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "query_event_personnel",
+              "unlock_event_contacts",
+              "unlock_contact_emails",
+              "search_exhibitor_events",
+              "others"
+            ]
+          },
+          "call_source": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "locale": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": "string"
+          },
+          "conversation_id": {
+            "type": "string"
+          },
+          "channel_message_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionPrecheckResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "action_type",
+          "allowed",
+          "should_charge",
+          "credits",
+          "reason_code",
+          "biz_code",
+          "detail"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "action_type": {
+            "type": "string"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "should_charge": {
+            "type": "boolean"
+          },
+          "credits": {
+            "type": "integer"
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "already_unlocked",
+              "unlock_in_progress",
+              "state_conflict",
+              "insufficient_balance",
+              "no_contacts_available",
+              "exceed_max_unlock_limit",
+              "invalid_subject",
+              "unsupported_action",
+              "not_found",
+              "forbidden",
+              "system_error"
+            ]
+          },
+          "biz_code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "LinkedinActivityUnlockRequest": {
+        "type": "object",
+        "required": [
+          "personnel_ids",
+          "event_id"
+        ],
+        "properties": {
+          "personnel_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "string"
+            }
+          },
+          "event_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          }
+        },
+        "additionalProperties": false
+      },
+      "LinkedinActivityUnlockItem": {
+        "type": "object",
+        "required": [
+          "personnel_id",
+          "success",
+          "alreadyUnlocked",
+          "taskId",
+          "error"
+        ],
+        "properties": {
+          "personnel_id": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "alreadyUnlocked": {
+            "type": "boolean"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "LinkedinActivityUnlockResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LinkedinActivityUnlockItem"
+            }
+          }
+        }
       }
     }
   }

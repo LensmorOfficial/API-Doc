@@ -77,24 +77,55 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
   "status": "completed",
   "items": [
     {
-      "id": "123",
-      "eventId": "139574",
-      "name": "NRF 2026",
-      "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "id": "10067",
+      "eventId": "10067",
+      "name": "American Banker Digital Banking 2026",
+      "nickname": "",
+      "description": "American Banker Digital Banking explores the future of finance...",
+      "url": "https://digital-banking.americanbanker.com/",
+      "dateStart": "2026-06-15",
+      "dateEnd": "2026-06-17",
+      "venue": "Hilton Orlando",
+      "city": "Orlando",
+      "region": "Florida",
       "country": "United States",
-      "attendeeCount": 40000,
-      "exhibitorCount": 950,
-      "personnelCount": 6200,
+      "latitude": "28.4246951",
+      "longitude": "-81.4591377",
+      "attendeeCount": 1825,
+      "declaredExpectedAttendees": 600,
+      "priceLower": "1295",
+      "priceUpper": "2395",
+      "eventType": "conference_led",
+      "quality": "Standard",
+      "sourceTags": [],
+      "categories": [
+        {
+          "id": 7,
+          "code": "banking_finance",
+          "name": "Banking & Finance",
+          "description": null,
+          "confidence": "1"
+        }
+      ],
+      "topics": ["Banking", "Digital Banking"],
+      "topicsCount": 8,
+      "verified": 0,
+      "future": 1,
+      "historic": 1,
+      "historicEvent": "American Banker Digital Banking",
+      "image": "https://example.com/event-image.png",
+      "dataSource": "Lensmor",
+      "exhibitorCount": 120,
+      "personnelCount": 450,
+      "eventTypes": [],
+      "createTime": "1700000000000",
+      "updateTime": "1710000000000",
       "matched_exhibitor_count": 19,
+      "matched_personnel_count": 85,
       "match_score": 0.84,
-      "unlocked": false
+      "unlocked": false,
+      "relevanceReason": null,
+      "rank": 1
     }
   ],
   "total": 42,
@@ -111,17 +142,76 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
 
 ## Response fields
 
+### Top-level fields
+
 | Field | Description |
 | --- | --- |
 | `status` | Profile-matching execution state for the request. |
-| `items` | Recommended event records for the requested page. |
-| `match_score` | Event relevance score for the supplied profile inputs. |
-| `matched_exhibitor_count` | Number of exhibitors that matched the profile context when available. |
-| `unlocked` | Whether the API key owner already has full event access. |
+| `items` | Recommended event records for the requested page. Each item contains full event metadata plus recommendation signals. |
 | `condition_tags` | Normalized matching/filter metadata returned by the current profile version. |
 | `profile_version`, `active_result_version` | Version metadata for the profile-matching result set. |
 | `is_stale` | Indicates whether the current result set is stale relative to the active profile state. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+### Recommendation fields (per item)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `match_score` | number | Event relevance score (0–1 scale) for the supplied profile inputs. |
+| `matched_exhibitor_count` | integer \| null | Number of exhibitors that matched the profile context. |
+| `matched_personnel_count` | integer \| null | Number of personnel that matched the profile context. |
+| `unlocked` | boolean | Whether the API key owner already has full event access. |
+| `relevanceReason` | string \| null | Human-readable explanation. `null` when not yet generated. |
+| `rank` | integer | One-based rank position in the result set. |
+
+### Event metadata fields (per item)
+
+Each event item includes the full event detail shape:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id`, `eventId` | string | Event identifiers (currently identical values). |
+| `name`, `nickname`, `description` | string | Event identity fields. |
+| `url` | string \| null | Source or official event URL. |
+| `dateStart`, `dateEnd` | string | ISO date strings. |
+| `venue`, `city`, `region`, `country` | string | Location metadata. |
+| `latitude`, `longitude` | string \| null | Geographic coordinates as string values when available. |
+| `attendeeCount` | integer \| null | Known attendee count. |
+| `declaredExpectedAttendees` | integer \| null | Organizer-declared expected attendees. |
+| `priceLower`, `priceUpper` | string \| null | Price range as string values. |
+| `eventType` | string \| null | Event format classification (e.g. `"conference_led"`, `"In-person"`). |
+| `quality` | string \| null | Quality label (e.g. `"Standard"`, `"Verified"`). |
+| `sourceTags` | string[] | Source classification tags. |
+| `categories` | object[] | Category objects with `id`, `code`, `name`, `description`, `confidence`. See [Category object](#category-object). |
+| `topics` | string[] | Topic keywords. |
+| `topicsCount` | integer | Total topic count. |
+| `verified`, `future`, `historic` | integer | Status flags (0 or 1). |
+| `historicEvent` | string \| null | Name of the recurring event series. |
+| `image` | string \| null | Event image URL. |
+| `dataSource` | string | Source label (e.g. `"Lensmor"`, `"local_import"`). |
+| `exhibitorCount`, `personnelCount` | integer \| null | Known counts when available. |
+| `eventTypes` | array | Event type metadata. |
+| `createTime`, `updateTime` | string | Unix timestamps in milliseconds as strings. |
+
+### Category object
+
+```json
+{
+  "id": 7,
+  "code": "banking_finance",
+  "name": "Banking & Finance",
+  "description": null,
+  "confidence": "1"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | integer | Category identifier. |
+| `code` | string | Machine-readable category code. |
+| `name` | string | Human-readable category name. |
+| `description` | string \| null | Category description when available. |
+| `confidence` | string | Match confidence as a string value. |
 
 ## Result freshness
 
@@ -135,5 +225,7 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
 
 ## Notes
 - This route is the recommended current public profile-matching endpoint for event recommendations.
-- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
+- Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
+- `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
+- `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
 - Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.

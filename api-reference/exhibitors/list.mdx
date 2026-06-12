@@ -69,7 +69,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "employeeCount": 220,
       "country": "United States",
       "logo": null,
-      "dataSource": "database",
+      "dataSource": "local_import",
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "matched_event_ids": ["139574"],
@@ -79,6 +79,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
+      "categories": ["Retail", "POS", "Analytics"],
       "techStacks": ["Cloudflare", "Nginx"],
       "buyingSignalTags": ["funding_round", "new_hire"],
       "buyingSignalStatus": "ready",
@@ -106,6 +107,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
   "totalPages": 5,
   "hasMore": true,
   "recommendationProcessing": false,
+  "recommendationProcessingFeature": "none",
   "semantics": {
     "accessMode": "preview",
     "previewLimit": 50,
@@ -140,6 +142,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `id` | Exhibitor identifier. Use it for exhibitor profile and related-event lookups. |
 | `companyName`, `domain`, `website` | Company identity and web presence fields. |
 | `description`, `industry`, `employeeCount`, `country` | Company enrichment metadata. |
+| `categories` | Exhibitor category labels as a string array (e.g. `["Artificial Intelligence", "Digital Health"]`). `[]` when none. |
 | `linkedinUrl`, `fundingRound`, `techStacks` | Additional enrichment signals when available. |
 | `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
 | `buyingSignalStatus` | Latest buying-signal batch state: `ready`, `processing`, `pending`, or `null`. |
@@ -147,6 +150,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `matched_event_ids` | Event identifiers connected to the result. For event-scoped list calls, this reflects the requested event scope. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
 | `recommendationProcessing` | Whether recommendation metadata is still being prepared. |
+| `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
 | `semantics` | Preview/full access metadata for the selected event. |
 
 ## Access semantics

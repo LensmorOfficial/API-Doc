@@ -63,7 +63,9 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
       "companyName": "Acme",
       "sourceType": "exhibitor",
       "email": null,
-      "contactUnlockStatus": "locked"
+      "contactUnlockStatus": "locked",
+      "linkedinActivity": null,
+      "linkedinActivityStatus": null
     }
   ],
   "total": 1,
@@ -87,6 +89,8 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `sourceType` | Source context for the contact record. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
+| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data. |
+| `linkedinActivityStatus` | Always `null` on this endpoint. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## No results
