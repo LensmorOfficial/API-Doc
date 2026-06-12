@@ -73,7 +73,7 @@ def sync_api_catalog() -> None:
         "apis": [
             {
                 "name": "Lensmor API",
-                "description": "Customer-facing Lensmor Event Intelligence API.",
+                "description": "Lensmor Event Intelligence API.",
                 "baseUrl": API_BASE_URL,
                 "openapi": f"{DOCS_BASE_URL}/openapi.json",
             }
@@ -85,7 +85,7 @@ def sync_api_catalog() -> None:
 def sync_llms_index() -> None:
     content = f"""# Lensmor API Documentation
 
-> Customer-facing Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
+> Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
 
 ## Primary Resources
 
@@ -97,7 +97,7 @@ def sync_llms_index() -> None:
 
 `{API_BASE_URL}`
 
-All public API paths are under `/external/*` and require `Authorization: Bearer uak_your_api_key`.
+Send requests to `{API_BASE_URL}` with `Authorization: Bearer uak_your_api_key`.
 """
     LLMS_INDEX.write_text(content, encoding="utf-8")
 

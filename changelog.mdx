@@ -1,0 +1,30 @@
+---
+title: "Changelog"
+description: "Versioned Lensmor API documentation updates, newly documented endpoints, behavior clarifications, and machine-readable resource changes."
+---
+
+Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.21.0
+
+Released June 12, 2026.
+
+### Added
+
+- Added documentation for `POST /external/actions/precheck`.
+- Added documentation for `POST /external/personnel/unlock-linkedin-activity`.
+- Added `api-catalog.json` as the machine-readable API catalog.
+
+### Changed
+
+- Updated API key guidance to direct users to [app.lensmor.com](https://app.lensmor.com), where subscribed accounts can create keys from **Settings -> API Keys**.
+- Clarified that API calls use `https://platform.lensmor.com` as the base URL.
+- Clarified that API usage and Lensmor SaaS usage share the same credit balance.
+- Updated event unlock examples so `balanceAfter` matches the production response shape.
+- Updated pagination guidance for locked event preview pages.
+- Updated OpenAPI metadata to version `0.21.0`.
+
+### Verified
+
+- Verified all documented endpoints against the production API.
+- Verified `openapi.json`, `api-catalog.json`, `llms.txt`, and `llms-full.txt` as machine-readable documentation resources.

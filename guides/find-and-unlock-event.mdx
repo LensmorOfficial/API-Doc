@@ -131,7 +131,7 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 - Unlocking before checking preview results. Preview first to verify the event has relevant records.
 - Using only the event name as your local key. Store `id` or `eventId` so follow-up calls are deterministic.
 - Treating `402 Payment Required` as a generic failure. It usually means your integration needs to pause, notify the user, or ask them to add credits.
-- Ignoring `semantics`. It is the contract that tells you whether a list is preview or full access.
+- Ignoring `semantics`. It tells you whether a list is in preview mode or has full access.
 
 ## Related endpoints
 

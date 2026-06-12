@@ -7,9 +7,11 @@ It intentionally uses plain Markdown code fences without Mintlify-specific metad
 
 Source: /index
 
-Build event intelligence workflows on top of Lensmor's customer-facing API. Use the API to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
+Build event intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
 
-This documentation covers the public `external/*` contract exposed from `https://platform.lensmor.com`. It focuses on APIs that are useful for customer integrations. If an endpoint is not listed here, treat it as unsupported for public integrations.
+Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
+
+Current documentation version: `v0.21.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -96,15 +98,11 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - [Credits and access](/concepts/credits-and-access)
 - [Rate limits](/concepts/rate-limits)
 
-## Scope of this documentation
-This documentation follows the current customer-facing public API contract.
+## Stay current
 
-It does **not** include:
-- Non-public, debug, or operational endpoints
-- Deprecated compatibility paths that are not recommended for new integrations
-- Draft endpoints that are not implemented in the current public contract
-- Historical auth examples that still show `sk_...`
-- Internal-only implementation details that are not part of the caller contract
+Review the [Changelog](/changelog) for newly documented endpoints, behavior clarifications, and machine-readable resource updates.
+
+If your integration needs a workflow that is not covered here, contact Lensmor support.
 
 ---
 
@@ -112,7 +110,7 @@ It does **not** include:
 
 Source: /authentication
 
-All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
+Lensmor API requests require a user API key.
 
 ## Getting your API key
 
@@ -155,9 +153,9 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 ```
 
 ## How it works
-- The public contract uses a Bearer token in the `Authorization` header.
+- Send a Bearer token in the `Authorization` header.
 - Bearer scheme matching is case-insensitive at runtime.
-- These docs follow the current public API contract.
+- Use the examples on each endpoint page for the expected request path, parameters, and response shape.
 
 ## Before you call the API
 - Use a valid user API key.
@@ -173,7 +171,7 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 - Use your own server as a proxy when building browser-based experiences.
 
 <Warning>
-  Treat user API keys like credentials. They can access customer-facing data and initiate workflows that use the same credits as the Lensmor SaaS app.
+  Treat user API keys like credentials. They can access Lensmor data and initiate workflows that use the same credits as the Lensmor SaaS app.
 </Warning>
 
 ## Test and production usage
@@ -192,8 +190,40 @@ To test your integration safely:
 </Tip>
 
 ## Notes
-- Older examples that show `sk_...` are historical and are not the current public API key format.
-- Invalid or missing keys return the shared API error contract described in [Error conventions](/concepts/errors).
+- Older examples that show `sk_...` are historical and are not the current API key format.
+- Invalid or missing keys return the shared API error format described in [Error conventions](/concepts/errors).
+
+---
+
+## Changelog
+
+Source: /changelog
+
+Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.21.0
+
+Released June 12, 2026.
+
+### Added
+
+- Added documentation for `POST /external/actions/precheck`.
+- Added documentation for `POST /external/personnel/unlock-linkedin-activity`.
+- Added `api-catalog.json` as the machine-readable API catalog.
+
+### Changed
+
+- Updated API key guidance to direct users to [app.lensmor.com](https://app.lensmor.com), where subscribed accounts can create keys from **Settings -> API Keys**.
+- Clarified that API calls use `https://platform.lensmor.com` as the base URL.
+- Clarified that API usage and Lensmor SaaS usage share the same credit balance.
+- Updated event unlock examples so `balanceAfter` matches the production response shape.
+- Updated pagination guidance for locked event preview pages.
+- Updated OpenAPI metadata to version `0.21.0`.
+
+### Verified
+
+- Verified all documented endpoints against the production API.
+- Verified `openapi.json`, `api-catalog.json`, `llms.txt`, and `llms-full.txt` as machine-readable documentation resources.
 
 ---
 
@@ -203,7 +233,7 @@ Source: /guides/quickstart
 
 Make your first Lensmor API request and understand the core objects you will use in most integrations.
 
-Lensmor's public API is designed around a typical event-intelligence workflow:
+The Lensmor API is designed around a typical event-intelligence workflow:
 
 1. Start with a company profile, buyer profile, keyword, or target market.
 2. Discover relevant trade shows and event records.
@@ -221,7 +251,7 @@ export LENSMOR_API_KEY="uak_your_api_key"
 ```
 
 <Note>
-  The public API uses user API keys with the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
+  Lensmor API keys use the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
 </Note>
 
 ## 1. Check your credit balance
@@ -293,7 +323,7 @@ Production integrations should handle these responses explicitly:
 - `404 Not Found` means the requested event, exhibitor, person, or task does not exist.
 - `429 Too Many Requests` means your integration should back off and retry later.
 
-See [Error conventions](/concepts/errors), [Credits and access](/concepts/credits-and-access), and [Rate limits](/concepts/rate-limits) for the shared contracts.
+See [Error conventions](/concepts/errors), [Credits and access](/concepts/credits-and-access), and [Rate limits](/concepts/rate-limits) for shared behavior across endpoints.
 
 ## Next steps
 
@@ -530,7 +560,7 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 - Unlocking before checking preview results. Preview first to verify the event has relevant records.
 - Using only the event name as your local key. Store `id` or `eventId` so follow-up calls are deterministic.
 - Treating `402 Payment Required` as a generic failure. It usually means your integration needs to pause, notify the user, or ask them to add credits.
-- Ignoring `semantics`. It is the contract that tells you whether a list is preview or full access.
+- Ignoring `semantics`. It tells you whether a list is in preview mode or has full access.
 
 ## Related endpoints
 
@@ -761,7 +791,7 @@ Do not log API keys or unlocked email addresses in plaintext application logs.
 
 <CardGroup cols={2}>
   <Card title="Authentication" icon="key-round" href="/authentication">
-    How to authenticate public API requests.
+    How to authenticate API requests.
   </Card>
   <Card title="Error conventions" icon="triangle-alert" href="/concepts/errors">
     Shared error response shape and tracing fields.
@@ -1089,7 +1119,7 @@ See [Authentication](/authentication)
 ## Path parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `id` | Yes | string | Supports either event `id` or public `eventId`. |
+| `id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
 
 ## Request example
 ```bash
@@ -1250,7 +1280,7 @@ curl "https://platform.lensmor.com/external/events/brief?event_id=139574" \
 | Field | Description |
 | --- | --- |
 | `event` | Compact event identity and location object. |
-| `event.id`, `event.eventId` | Internal and public event identifiers. |
+| `event.id`, `event.eventId` | Event identifiers returned with the event. |
 | `event.name`, `event.description`, `event.url` | Basic display metadata. |
 | `event.dateStart`, `event.dateEnd` | Event date range. |
 | `event.venue`, `event.city`, `event.region`, `event.country` | Location fields. |
@@ -1501,7 +1531,7 @@ See [Authentication](/authentication)
 ## Path parameters
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `id` | Yes | string | Supports either event `id` or public `eventId`. |
+| `id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
 
 ## Headers
 | Name | Required | Type | Notes |
@@ -2118,7 +2148,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | Field | Description |
 | --- | --- |
 | `items` | Events associated with matched exhibitors. |
-| `id`, `eventId` | Internal and public event identifiers. |
+| `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Event location fields. |
@@ -2225,7 +2255,7 @@ curl "https://platform.lensmor.com/external/exhibitors/profile?exhibitor_id=456"
 - `429 Too Many Requests`
 
 ## Notes
-- The current public query contract supports `exhibitor_id` only.
+- This endpoint currently supports `exhibitor_id` lookup.
 - In embedded event objects, the event identifier is returned as `eventId`. Use that value when another endpoint asks for `event_id`.
 - Older examples that imply `company_name` lookup should not be treated as current behavior.
 
@@ -2302,7 +2332,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | Field | Description |
 | --- | --- |
 | `items` | Events associated with the exhibitor. |
-| `id`, `eventId` | Internal and public event identifiers. |
+| `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
@@ -2317,7 +2347,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the shared public event-item shape.
+- Event items reuse the standard event-item response shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.
 
@@ -2462,7 +2492,7 @@ Locked events can still return preview personnel results. Read `semantics` befor
 - `429 Too Many Requests`
 
 ## Notes
-- Personnel list responses intentionally use the lightweight contact-style public shape.
+- Personnel list responses intentionally use the lightweight contact-style response shape.
 - Emails are returned only when the contact is already unlocked for the caller.
 - Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
@@ -2475,7 +2505,7 @@ Source: /api-reference/personnel/profile
 
 Fetch the profile for a single person.
 
-Use this endpoint when you already know the personnel identifier and need the public profile shape for that person.
+Use this endpoint when you already know the personnel identifier and need profile details for that person.
 
 ## When to use this endpoint
 
@@ -2543,7 +2573,7 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 - `429 Too Many Requests`
 
 ## Notes
-- The public contract stays lightweight.
+- This response stays intentionally lightweight.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
 
@@ -2620,7 +2650,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 | Field | Description |
 | --- | --- |
 | `items` | Events associated with the selected person. |
-| `id`, `eventId` | Internal and public event identifiers. |
+| `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
@@ -2635,7 +2665,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the shared public event-item shape.
+- Event items reuse the standard event-item response shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 
 ---
@@ -2729,7 +2759,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 
 | Field | Description |
 | --- | --- |
-| `personnel` | Matched person record using the public contact-style shape. |
+| `personnel` | Matched person record using the standard contact-style response shape. |
 | `personnel.id` | Personnel identifier for profile and email unlock workflows. |
 | `personnel.email` | Email if already unlocked for the caller; otherwise `null`. |
 | `personnel.contactUnlockStatus` | Current contact access state. |
@@ -2748,7 +2778,7 @@ Send the full LinkedIn URL and URL-encode it in the query string. The API perfor
 - `429 Too Many Requests`
 
 ## Notes
-- The returned `personnel` object uses the same public contact-style shape as personnel profile responses.
+- The returned `personnel` object uses the same contact-style response shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
 
@@ -2775,7 +2805,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_ids` | Yes | string[] | One to 50 personnel IDs. |
-| `event_id` | Yes | string | Event identifier. Supports external `eventId` or internal `id`. |
+| `event_id` | Yes | string | Event identifier. Supports `eventId` or `id` returned by event responses. |
 
 ## Request example
 ```bash
@@ -2977,7 +3007,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `100` per request. |
-| `event_id` | Yes | string | Supports either event `id` or public `eventId`. |
+| `event_id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
 
 ## Headers
 | Name | Required | Type | Notes |
@@ -3008,7 +3038,7 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
 | --- | --- |
 | `status` | Initial task acceptance state. Usually `accepted` when the task was created. |
 | `task_id` | Identifier used to poll task status. Store this value. |
-| `job_id` | Alias for the background job identifier. In the current contract it matches `task_id`. |
+| `job_id` | Alias for the background job identifier. It currently matches `task_id`. |
 
 ## Polling pattern
 
@@ -3375,11 +3405,11 @@ Each event item includes the full event detail shape:
 - `429 Too Many Requests`
 
 ## Notes
-- This route is the recommended current public profile-matching endpoint for event recommendations.
+- Use this endpoint for profile-based event recommendations.
 - Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
 - `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
 - `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
-- Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
+- Status metadata such as `status`, `profile_version`, and `active_result_version` describes the current paged result set.
 
 ---
 
@@ -3488,7 +3518,7 @@ Use filters to narrow recommended exhibitors after recommendation state is estab
 
 ## Notes
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
-- The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- The request parameter `event_id` refers to the `eventId` value returned by event endpoints.
 - `categories` is preserved when recommendation data contains category labels.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 
@@ -3542,7 +3572,7 @@ Do not include API keys or unlocked email addresses in support logs.
 - For asynchronous contact unlocks, retry polling the task endpoint rather than creating duplicate unlock tasks.
 
 ## Notes
-- Error bodies do not expose internal `data` or `details` fields.
+- Error bodies do not include raw debugging fields.
 - Individual endpoint pages may list the subset of statuses most relevant to that route.
 
 ---
@@ -3578,7 +3608,7 @@ Use explicit values instead of relying on defaults in production clients.
 - Exact item fields vary by endpoint family.
 - Some endpoints return extra route-specific metadata in addition to the shared pagination fields.
 - Event-scoped exhibitor and personnel list endpoints can include `semantics` metadata that explains preview access and unlock guidance.
-- Identifiers such as `event_id`, `exhibitor_id`, and `personnel_id` are string values in the public contract.
+- Identifiers such as `event_id`, `exhibitor_id`, and `personnel_id` are string values in API requests and responses.
 - Parameter naming is route-specific. Treat each endpoint page as the source of truth for casing and field names.
 
 ## Preview semantics
@@ -3669,9 +3699,9 @@ Lensmor API responses expose string identifiers so clients can pass values safel
 ## Event identifiers
 Many event-scoped request parameters are named `event_id`.
 
-For customer-facing endpoints, `event_id`cepts either:
+In event-scoped requests, `event_id` accepts either:
 
-- `eventId` — the public event identifier returned in event responses.
+- `eventId` — the event identifier returned in event responses.
 - `id` — the Lensmor event identifier returned as a string in event responses.
 
 <Note>
@@ -3692,7 +3722,7 @@ Use the identifier returned by the matching resource endpoint:
 
 ## Naming conventions
 - Request parameters use the casing shown on each endpoint page.
-- Response fields preserve the current API contract. For example, event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`.
+- Event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`. Use the field names shown on each endpoint page.
 - Array parameters are route-specific. Some body fields accept arrays directly; some query filters use repeated query parameters. Follow the endpoint page for each route.
 
 ---
@@ -3805,7 +3835,7 @@ Recommended behavior:
 
 Source: /concepts/rate-limits
 
-Lensmor applies rate limits to `external/*` endpoints to protect customer API availability.
+Lensmor applies rate limits to API requests to protect availability for all customers.
 
 ## Default behavior
 Rate limits are evaluated by IP address and API key. When a request is allowed, the response includes rate-limit headers for the active API-key bucket when available.

@@ -5,7 +5,7 @@ description: "Make your first Lensmor API request, search events, review exhibit
 
 Make your first Lensmor API request and understand the core objects you will use in most integrations.
 
-Lensmor's public API is designed around a typical event-intelligence workflow:
+The Lensmor API is designed around a typical event-intelligence workflow:
 
 1. Start with a company profile, buyer profile, keyword, or target market.
 2. Discover relevant trade shows and event records.
@@ -23,7 +23,7 @@ export LENSMOR_API_KEY="uak_your_api_key"
 ```
 
 <Note>
-  The public API uses user API keys with the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
+  Lensmor API keys use the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
 </Note>
 
 ## 1. Check your credit balance
@@ -95,7 +95,7 @@ Production integrations should handle these responses explicitly:
 - `404 Not Found` means the requested event, exhibitor, person, or task does not exist.
 - `429 Too Many Requests` means your integration should back off and retry later.
 
-See [Error conventions](/concepts/errors), [Credits and access](/concepts/credits-and-access), and [Rate limits](/concepts/rate-limits) for the shared contracts.
+See [Error conventions](/concepts/errors), [Credits and access](/concepts/credits-and-access), and [Rate limits](/concepts/rate-limits) for shared behavior across endpoints.
 
 ## Next steps
 

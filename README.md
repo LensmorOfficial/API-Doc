@@ -4,7 +4,7 @@
 [![API](https://img.shields.io/badge/API-REST-orange.svg)](https://www.lensmor.com/platform?utm_source=github&utm_medium=readme&utm_campaign=API-Doc)
 [![Docs](https://img.shields.io/badge/Docs-api.lensmor.com-green.svg)](https://api.lensmor.com/)
 
-Lensmor provides developer-facing access to event, exhibitor, personnel, contact, and profile-matching data through a public API contract under `https://platform.lensmor.com/external/*`.
+Lensmor provides developer-facing access to event, exhibitor, personnel, contact, and profile-matching data through the Lensmor API.
 
 This repository hosts the public documentation site for developers integrating with [Lensmor](https://www.lensmor.com/?utm_source=github&utm_medium=readme&utm_campaign=API-Doc) — an AI-native event intelligence platform for B2B teams.
 
@@ -50,13 +50,13 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 - `index.mdx` — overview and quick start
 - `authentication.mdx` — authentication and authorization format
-- `openapi.json` — public OpenAPI 3.1 specification for customer-facing endpoints
-- `api-catalog.json` — machine-readable API catalog pointing to the public OpenAPI file
+- `openapi.json` — OpenAPI 3.1 specification for documented endpoints
+- `api-catalog.json` — machine-readable API catalog pointing to the OpenAPI file
 - `llms.txt` and `llms-full.txt` — LLM-friendly documentation entry points
 - `api-reference/credits/` — credit balance endpoint
 - `concepts/errors.mdx` — shared error conventions
 - `concepts/pagination.mdx` — pagination behavior
-- `concepts/identifiers.mdx` — public identifier conventions
+- `concepts/identifiers.mdx` — identifier conventions
 - `concepts/credits-and-access.mdx` — credit costs, preview access, and unlock behavior
 - `concepts/rate-limits.mdx` — rate-limit headers and `429` behavior
 - `api-reference/events/` — event endpoints
@@ -78,9 +78,9 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 pnpm dlx mintlify dev
 ```
 
-## Scope
+## Changelog
 
-This documentation reflects the current customer-facing public API contract only. It excludes agent-only, debug, deprecated, internal, and historical draft references that are not part of the external developer experience.
+See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.21.0`.
 
 ---
 

@@ -3,7 +3,7 @@ title: "Authentication"
 description: "Learn how to authenticate Lensmor API requests with user API keys, bearer tokens, secure storage, and production key management practices."
 ---
 
-All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
+Lensmor API requests require a user API key.
 
 ## Getting your API key
 
@@ -46,9 +46,9 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 ```
 
 ## How it works
-- The public contract uses a Bearer token in the `Authorization` header.
+- Send a Bearer token in the `Authorization` header.
 - Bearer scheme matching is case-insensitive at runtime.
-- These docs follow the current public API contract.
+- Use the examples on each endpoint page for the expected request path, parameters, and response shape.
 
 ## Before you call the API
 - Use a valid user API key.
@@ -64,7 +64,7 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 - Use your own server as a proxy when building browser-based experiences.
 
 <Warning>
-  Treat user API keys like credentials. They can access customer-facing data and initiate workflows that use the same credits as the Lensmor SaaS app.
+  Treat user API keys like credentials. They can access Lensmor data and initiate workflows that use the same credits as the Lensmor SaaS app.
 </Warning>
 
 ## Test and production usage
@@ -83,5 +83,5 @@ To test your integration safely:
 </Tip>
 
 ## Notes
-- Older examples that show `sk_...` are historical and are not the current public API key format.
-- Invalid or missing keys return the shared API error contract described in [Error conventions](/concepts/errors).
+- Older examples that show `sk_...` are historical and are not the current API key format.
+- Invalid or missing keys return the shared API error format described in [Error conventions](/concepts/errors).

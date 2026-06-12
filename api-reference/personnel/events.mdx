@@ -70,7 +70,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 | Field | Description |
 | --- | --- |
 | `items` | Events associated with the selected person. |
-| `id`, `eventId` | Internal and public event identifiers. |
+| `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
@@ -85,5 +85,5 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the shared public event-item shape.
+- Event items reuse the standard event-item response shape.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).

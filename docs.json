@@ -37,7 +37,8 @@
             "group": "Introduction",
             "pages": [
               "index",
-              "authentication"
+              "authentication",
+              "changelog"
             ]
           },
           {

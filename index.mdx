@@ -3,9 +3,11 @@ title: "Lensmor API Documentation"
 description: "Lensmor API documentation for building event intelligence workflows, discovering trade shows, evaluating exhibitors, and unlocking contact data."
 ---
 
-Build event intelligence workflows on top of Lensmor's customer-facing API. Use the API to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
+Build event intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
 
-This documentation covers the public `external/*` contract exposed from `https://platform.lensmor.com`. It focuses on APIs that are useful for customer integrations. If an endpoint is not listed here, treat it as unsupported for public integrations.
+Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
+
+Current documentation version: `v0.21.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -92,12 +94,8 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - [Credits and access](/concepts/credits-and-access)
 - [Rate limits](/concepts/rate-limits)
 
-## Scope of this documentation
-This documentation follows the current customer-facing public API contract.
+## Stay current
 
-It does **not** include:
-- Non-public, debug, or operational endpoints
-- Deprecated compatibility paths that are not recommended for new integrations
-- Draft endpoints that are not implemented in the current public contract
-- Historical auth examples that still show `sk_...`
-- Internal-only implementation details that are not part of the caller contract
+Review the [Changelog](/changelog) for newly documented endpoints, behavior clarifications, and machine-readable resource updates.
+
+If your integration needs a workflow that is not covered here, contact Lensmor support.

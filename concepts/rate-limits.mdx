@@ -3,7 +3,7 @@ title: "Rate limits"
 description: "Understand Lensmor API rate limits, response headers, 429 handling, exponential backoff, and safe retry strategies for production clients."
 ---
 
-Lensmor applies rate limits to `external/*` endpoints to protect customer API availability.
+Lensmor applies rate limits to API requests to protect availability for all customers.
 
 ## Default behavior
 Rate limits are evaluated by IP address and API key. When a request is allowed, the response includes rate-limit headers for the active API-key bucket when available.

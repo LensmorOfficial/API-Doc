@@ -104,6 +104,6 @@ Use filters to narrow recommended exhibitors after recommendation state is estab
 
 ## Notes
 - Unknown `event_id` values are normalized to `404 EVENT_NOT_FOUND` responses.
-- The request parameter `event_id` refers to the event identifier returned elsewhere as `eventId`, not the internal `id` field.
+- The request parameter `event_id` refers to the `eventId` value returned by event endpoints.
 - `categories` is preserved when recommendation data contains category labels.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
