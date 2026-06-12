@@ -2131,6 +2131,90 @@
             "items": {
               "type": "string"
             }
+          },
+          "buyingSignalTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "buyingSignalStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Latest buying-signal batch state. On /external/exhibitors/list it is one of ready, processing, pending, or null. On the search endpoints it is always null."
+          },
+          "buyingSignals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "signalTag": {
+                  "type": "string"
+                },
+                "signalDate": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceType": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceTitle": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "evidenceSummary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "relevanceToIcp": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "recommendedPlay": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "signalScore": {
+                  "type": "number"
+                },
+                "confidence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "directOrInferred": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "analyzedAt": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "additionalProperties": true
@@ -2280,6 +2364,32 @@
           },
           "contactUnlockStatus": {
             "type": "string"
+          },
+          "linkedinActivity": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "activityLevel": {
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "latestPostAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "linkedinActivityStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },

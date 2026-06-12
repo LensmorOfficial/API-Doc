@@ -67,7 +67,10 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
-      "techStacks": ["Cloudflare", "Nginx"]
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": [],
+      "buyingSignalStatus": null,
+      "buyingSignals": []
     }
   ],
   "total": 1,
@@ -89,6 +92,9 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `linkedinUrl`, `fundingRound`, `techStacks` | Optional enrichment fields. |
 | `matched_event_ids` | Related event identifiers when available. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
