@@ -102,3 +102,4 @@ No matching contacts can return an empty paginated response. Use this as a valid
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
+- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.

@@ -2149,6 +2149,11 @@
             "type": "array",
             "items": {
               "type": "object",
+              "required": [
+                "signalTag",
+                "signalScore",
+                "analyzedAt"
+              ],
               "properties": {
                 "signalTag": {
                   "type": "string"
