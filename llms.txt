@@ -5,8 +5,8 @@
 ## Primary Resources
 
 - [Full documentation export](https://api.lensmor.com/llms-full.txt)
-- [OpenAPI specification](https://api.lensmor.com/.well-known/openapi)
-- [API catalog](https://api.lensmor.com/.well-known/api-catalog)
+- [OpenAPI specification](https://api.lensmor.com/openapi.json)
+- [API catalog](https://api.lensmor.com/api-catalog.json)
 
 ## API Base URL
 

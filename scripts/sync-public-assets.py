@@ -13,8 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS_JSON = ROOT / "docs.json"
 OPENAPI_SOURCE = ROOT / "api-reference" / "openapi.json"
 OPENAPI_ROOT = ROOT / "openapi.json"
-OPENAPI_WELL_KNOWN = ROOT / ".well-known" / "openapi"
-API_CATALOG = ROOT / ".well-known" / "api-catalog"
+API_CATALOG = ROOT / "api-catalog.json"
 LLMS_INDEX = ROOT / "llms.txt"
 LLMS_FULL = ROOT / "llms-full.txt"
 DOCS_BASE_URL = "https://api.lensmor.com"
@@ -66,8 +65,6 @@ def page_to_markdown(page: str) -> str:
 
 def sync_openapi_root() -> None:
     shutil.copyfile(OPENAPI_SOURCE, OPENAPI_ROOT)
-    OPENAPI_WELL_KNOWN.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(OPENAPI_SOURCE, OPENAPI_WELL_KNOWN)
 
 
 def sync_api_catalog() -> None:
@@ -78,7 +75,7 @@ def sync_api_catalog() -> None:
                 "name": "Lensmor API",
                 "description": "Customer-facing Lensmor Event Intelligence API.",
                 "baseUrl": API_BASE_URL,
-                "openapi": f"{DOCS_BASE_URL}/.well-known/openapi",
+                "openapi": f"{DOCS_BASE_URL}/openapi.json",
             }
         ]
     }
@@ -93,8 +90,8 @@ def sync_llms_index() -> None:
 ## Primary Resources
 
 - [Full documentation export]({DOCS_BASE_URL}/llms-full.txt)
-- [OpenAPI specification]({DOCS_BASE_URL}/.well-known/openapi)
-- [API catalog]({DOCS_BASE_URL}/.well-known/api-catalog)
+- [OpenAPI specification]({DOCS_BASE_URL}/openapi.json)
+- [API catalog]({DOCS_BASE_URL}/api-catalog.json)
 
 ## API Base URL
 
