@@ -2004,7 +2004,7 @@
           }
         }
       },
-      "ExhibitorItem": {
+      "ExhibitorBase": {
         "type": "object",
         "required": [
           "id",
@@ -2125,7 +2125,13 @@
             "items": {
               "type": "string"
             }
-          },
+          }
+        },
+        "additionalProperties": true
+      },
+      "ExhibitorSignalFields": {
+        "type": "object",
+        "properties": {
           "techStacks": {
             "type": "array",
             "items": {
@@ -2221,13 +2227,22 @@
               }
             }
           }
-        },
-        "additionalProperties": true
+        }
+      },
+      "ExhibitorItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExhibitorBase"
+          },
+          {
+            "$ref": "#/components/schemas/ExhibitorSignalFields"
+          }
+        ]
       },
       "ExhibitorProfile": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/ExhibitorItem"
+            "$ref": "#/components/schemas/ExhibitorBase"
           },
           {
             "type": "object",
