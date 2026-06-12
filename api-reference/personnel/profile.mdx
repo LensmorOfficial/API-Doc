@@ -75,3 +75,4 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 ## Notes
 - The public contract stays lightweight.
 - Emails are returned only when the contact is already unlocked for the caller.
+- The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.

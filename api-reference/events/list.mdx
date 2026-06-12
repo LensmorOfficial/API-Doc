@@ -37,8 +37,8 @@ See [Authentication](/authentication)
 | `city` | No | string | City filter. |
 | `date_start_from` | No | ISO date string | Inclusive lower bound for event date filtering. |
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
-| `event_type` | No | string[] | Event type filter. Comma-separated input is supported. |
-| `quality` | No | string[] | Quality label filter. Comma-separated input is supported. |
+| `event_type` | No | string[] | Event type filter. Comma-separated input is supported. Known values include `In-person`, `conference_led`, `expo_led`, `hybrid`. |
+| `quality` | No | string[] | Quality label filter. Comma-separated input is supported. Known values include `Verified`, `Standard`. |
 
 ## Request example
 ```bash
@@ -58,7 +58,7 @@ curl "https://platform.lensmor.com/external/events/list?country=United%20States&
 `event_type` and `quality` accept array-style inputs from clients and comma-separated inputs in query strings.
 
 ```bash
-curl "https://platform.lensmor.com/external/events/list?event_type=conference,expo&quality=verified,high&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/events/list?event_type=conference_led,expo_led&quality=Verified,Standard&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -67,21 +67,21 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 {
   "items": [
     {
-      "id": "123",
-      "eventId": "139574",
-      "name": "NRF 2026",
-      "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "id": "26855",
+      "eventId": "26855",
+      "name": "CES 2025",
+      "nickname": "Consumer Electronics Show 2025",
+      "description": "CES 2025, taking place in Las Vegas, NV from January 7-10...",
+      "url": "https://www.ces.tech/",
+      "dateStart": "2025-01-07",
+      "dateEnd": "2025-01-10",
+      "venue": "Las Vegas Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 950,
-      "image": null,
-      "dataSource": "database"
+      "exhibitorCount": 3259,
+      "image": "https://example.com/ces-image.png",
+      "dataSource": "Lensmor"
     }
   ],
   "total": 42,
@@ -97,8 +97,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 | Field | Description |
 | --- | --- |
 | `items` | Event records for the requested page. |
-| `id` | Internal Lensmor event identifier. Store this if your integration uses database-style IDs. |
-| `eventId` | Public event identifier. Many event-scoped endpoints accept either `id` or `eventId`. |
+| `id` | Internal Lensmor event identifier (string). Currently identical to `eventId`. |
+| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. Currently identical to `id`. |
 | `name` | Canonical event name. |
 | `nickname` | Optional short name or common alias. |
 | `description` | Short event description when available. |
@@ -106,7 +106,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `dataSource` | Source category for the returned record. |
+| `dataSource` | Source category for the returned record (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses
@@ -117,4 +117,6 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
-- Store `eventId` from the response if the next step is an event-scoped call such as exhibitor list, personnel list, or event unlock.
+- `id` and `eventId` currently return the same value. Use `eventId` when passing to event-scoped endpoints.
+- `event_type` and `quality` filters must match actual values in the database (e.g. `In-person`, `conference_led` for event type; `Verified`, `Standard` for quality). Invalid values return an empty result set rather than an error.
+- Filter values are applied to the event catalog, but summary list items may still omit or return `null` for some classification fields. Fetch event detail when you need the full classification shape.

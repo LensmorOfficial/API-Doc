@@ -109,3 +109,4 @@ Send the full LinkedIn URL and URL-encode it in the query string. The API perfor
 ## Notes
 - The returned `personnel` object uses the same public contact-style shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
+- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.

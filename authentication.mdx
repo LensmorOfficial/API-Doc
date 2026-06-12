@@ -5,6 +5,29 @@ description: "Learn how to authenticate Lensmor API requests with user API keys,
 
 All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
 
+## Getting your API key
+
+1. Sign in or create an account at [Lensmor App](https://app.lensmor.com).
+2. Upgrade the account to a paid subscription plan.
+3. Open **Settings → API Keys**.
+4. Click **Create API Key**, give it a label, and copy the key immediately — it is only shown once.
+
+Your key starts with `uak_` and looks like this:
+
+```
+uak_abc12def_xyzExampleKeyValue1234567890
+```
+
+Store it in an environment variable before making requests:
+
+```bash
+export LENSMOR_API_KEY="uak_your_api_key"
+```
+
+<Note>
+  API keys are available to subscribed accounts. If you do not see the API Keys section after upgrading, contact Lensmor support.
+</Note>
+
 ## Base URL
 `https://platform.lensmor.com`
 
@@ -41,8 +64,23 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 - Use your own server as a proxy when building browser-based experiences.
 
 <Warning>
-  Treat user API keys like credentials. They can access customer-facing data and initiate credit-consuming workflows.
+  Treat user API keys like credentials. They can access customer-facing data and initiate workflows that use the same credits as the Lensmor SaaS app.
 </Warning>
+
+## Test and production usage
+
+Lensmor does not currently provide a separate sandbox environment. All API calls go to the production base URL.
+
+To test your integration safely:
+
+- Use read-only endpoints (`events/list`, `events/detail`, `exhibitors/list`, `personnel/list`, `credits/balance`) freely — they do not consume credits.
+- Avoid calling credit-consuming endpoints (`events/:id/unlock`, `contacts/unlock`, `exhibitors/search-events`) until you are ready to use real data.
+- Check your shared SaaS/API balance with `GET /external/credits/balance` before running paid workflows.
+- API usage and Lensmor SaaS usage draw from the same credit pool for the subscribed user account.
+
+<Tip>
+  For integration development, start with the free read-only endpoints and only call credit-consuming endpoints when your workflow is validated.
+</Tip>
 
 ## Notes
 - Older examples that show `sk_...` are historical and are not the current public API key format.

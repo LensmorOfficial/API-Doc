@@ -69,7 +69,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "employeeCount": 220,
       "country": "United States",
       "logo": null,
-      "dataSource": "database",
+      "dataSource": "local_import",
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "matched_event_ids": ["139574"],
@@ -79,7 +79,26 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
-      "techStacks": ["Cloudflare", "Nginx"]
+      "categories": ["Retail", "POS", "Analytics"],
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": ["funding_round", "new_hire"],
+      "buyingSignalStatus": "ready",
+      "buyingSignals": [
+        {
+          "signalTag": "funding_round",
+          "signalDate": "2026-03-01",
+          "sourceType": "news",
+          "sourceTitle": "Acme raises $50M Series B",
+          "sourceUrl": "https://techcrunch.com/...",
+          "evidenceSummary": "Acme completed a $50M Series B round.",
+          "relevanceToIcp": "Strong signal — company expanding headcount post-funding.",
+          "recommendedPlay": "Reach out with a congratulatory opening.",
+          "signalScore": 85,
+          "confidence": "high",
+          "directOrInferred": "direct",
+          "analyzedAt": "1704067200000"
+        }
+      ]
     }
   ],
   "total": 87,
@@ -88,6 +107,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
   "totalPages": 5,
   "hasMore": true,
   "recommendationProcessing": false,
+  "recommendationProcessingFeature": "none",
   "semantics": {
     "accessMode": "preview",
     "previewLimit": 50,
@@ -122,10 +142,15 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `id` | Exhibitor identifier. Use it for exhibitor profile and related-event lookups. |
 | `companyName`, `domain`, `website` | Company identity and web presence fields. |
 | `description`, `industry`, `employeeCount`, `country` | Company enrichment metadata. |
+| `categories` | Exhibitor category labels as a string array (e.g. `["Artificial Intelligence", "Digital Health"]`). `[]` when none. |
 | `linkedinUrl`, `fundingRound`, `techStacks` | Additional enrichment signals when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Latest buying-signal batch state: `ready`, `processing`, `pending`, or `null`. |
+| `buyingSignals` | Full latest-batch buying-signal objects, each with `signalTag`, `signalDate`, `sourceType`, `sourceTitle`, `sourceUrl`, `evidenceSummary`, `relevanceToIcp`, `recommendedPlay`, `signalScore` (0–100), `confidence` (`high`/`medium`/`low`), `directOrInferred` (`direct`/`inferred`), `analyzedAt` (unix ms). `[]` when none. |
 | `matched_event_ids` | Event identifiers connected to the result. For event-scoped list calls, this reflects the requested event scope. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
 | `recommendationProcessing` | Whether recommendation metadata is still being prepared. |
+| `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
 | `semantics` | Preview/full access metadata for the selected event. |
 
 ## Access semantics

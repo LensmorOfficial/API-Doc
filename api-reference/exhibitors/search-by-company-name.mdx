@@ -67,7 +67,10 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
-      "techStacks": ["Cloudflare", "Nginx"]
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": [],
+      "buyingSignalStatus": null,
+      "buyingSignals": []
     }
   ],
   "total": 1,
@@ -89,6 +92,9 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `linkedinUrl`, `fundingRound`, `techStacks` | Optional enrichment fields. |
 | `matched_event_ids` | Related event identifiers when available. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
@@ -101,5 +107,6 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because company name matching may evolve to accept additional body parameters. It does not create a persistent resource.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need event results for a company name, use `POST /external/exhibitors/search-events`.

@@ -16,6 +16,16 @@ This documentation covers the public `external/*` contract exposed from `https:/
 
 All endpoint paths in this documentation are relative to this base URL. For example, `GET /external/events/list` resolves to `GET https://platform.lensmor.com/external/events/list`.
 
+## Get an API key
+
+Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create a user API key from **Settings → API Keys**.
+
+Use the key with the API base URL above:
+
+```http
+Authorization: Bearer uak_your_api_key
+```
+
 ## What you can build
 
 <CardGroup cols={2}>
@@ -32,6 +42,17 @@ All endpoint paths in this documentation are relative to this base URL. For exam
     Start asynchronous email unlock jobs and poll task status until contact data is ready.
   </Card>
 </CardGroup>
+
+## Which endpoint should I use?
+
+| If you have... | Start with | Why |
+| --- | --- | --- |
+| A keyword, geography, or date range | [Events list](/api-reference/events/list) | Broad event catalog search. |
+| A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) | Returns ranked events from profile context. |
+| A known event ID | [Exhibitors list](/api-reference/exhibitors/list) or [Personnel list](/api-reference/personnel/list) | Shows event-scoped companies and people, with preview/full access semantics. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-by-company-name) | Precision-first company lookup. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events) | Finds events associated with that company. This can consume credits. |
+| Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock) | Starts an async email unlock task. |
 
 ## Recommended integration path
 
@@ -93,6 +114,29 @@ Source: /authentication
 
 All `external/*` endpoints under `https://platform.lensmor.com` require a user API key.
 
+## Getting your API key
+
+1. Sign in or create an account at [Lensmor App](https://app.lensmor.com).
+2. Upgrade the account to a paid subscription plan.
+3. Open **Settings → API Keys**.
+4. Click **Create API Key**, give it a label, and copy the key immediately — it is only shown once.
+
+Your key starts with `uak_` and looks like this:
+
+```
+uak_abc12def_xyzExampleKeyValue1234567890
+```
+
+Store it in an environment variable before making requests:
+
+```bash
+export LENSMOR_API_KEY="uak_your_api_key"
+```
+
+<Note>
+  API keys are available to subscribed accounts. If you do not see the API Keys section after upgrading, contact Lensmor support.
+</Note>
+
 ## Base URL
 `https://platform.lensmor.com`
 
@@ -129,8 +173,23 @@ curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
 - Use your own server as a proxy when building browser-based experiences.
 
 <Warning>
-  Treat user API keys like credentials. They can access customer-facing data and initiate credit-consuming workflows.
+  Treat user API keys like credentials. They can access customer-facing data and initiate workflows that use the same credits as the Lensmor SaaS app.
 </Warning>
+
+## Test and production usage
+
+Lensmor does not currently provide a separate sandbox environment. All API calls go to the production base URL.
+
+To test your integration safely:
+
+- Use read-only endpoints (`events/list`, `events/detail`, `exhibitors/list`, `personnel/list`, `credits/balance`) freely — they do not consume credits.
+- Avoid calling credit-consuming endpoints (`events/:id/unlock`, `contacts/unlock`, `exhibitors/search-events`) until you are ready to use real data.
+- Check your shared SaaS/API balance with `GET /external/credits/balance` before running paid workflows.
+- API usage and Lensmor SaaS usage draw from the same credit pool for the subscribed user account.
+
+<Tip>
+  For integration development, start with the free read-only endpoints and only call credit-consuming endpoints when your workflow is validated.
+</Tip>
 
 ## Notes
 - Older examples that show `sk_...` are historical and are not the current public API key format.
@@ -155,6 +214,8 @@ Lensmor's public API is designed around a typical event-intelligence workflow:
 
 You need a valid user API key and an environment capable of sending HTTPS requests.
 
+Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create an API key from **Settings → API Keys**.
+
 ```bash
 export LENSMOR_API_KEY="uak_your_api_key"
 ```
@@ -172,7 +233,19 @@ curl "https://platform.lensmor.com/external/credits/balance" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-The response includes subscription credits, gift credits, the total balance, and the next reset timestamp when available.
+The response includes subscription credits, gift credits, the total balance, and the next reset timestamp when available. This is the same credit pool used by the Lensmor SaaS app.
+
+## Choose the right starting point
+
+| User goal | First endpoint |
+| --- | --- |
+| Search for events by keyword, country, city, or date | `GET /external/events/list` |
+| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` |
+| Browse companies inside a selected event | `GET /external/exhibitors/list` |
+| Browse people inside a selected event | `GET /external/personnel/list` |
+| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` |
+| Find events associated with a company name | `POST /external/exhibitors/search-events` |
+| Unlock selected contact emails | `POST /external/contacts/unlock` |
 
 ## 2. Search the event catalog
 
@@ -183,10 +256,10 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=U
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-The event list is paginated. Store both `id` and `eventId` when possible:
+The event list is paginated. Use the `eventId` field from responses when calling other endpoints:
 
-- `id` is the database identifier.
-- `eventId` is the public event identifier that may be easier to share across tools.
+- `id` and `eventId` currently return the same value for all events.
+- Use `eventId` when passing to endpoints that accept `event_id`.
 - Many event-scoped endpoints accept either value.
 
 ## 3. Inspect a specific event
@@ -436,11 +509,16 @@ The response tells you whether credits were used:
   "success": true,
   "alreadyUnlocked": false,
   "creditsUsed": 2000,
-  "balanceAfter": 28050,
+  "balanceAfter": {
+    "subscriptionBalance": 0,
+    "permanentBalance": 451021,
+    "totalBalance": 451021,
+    "unlimited": false
+  },
   "event": {
-    "id": "123",
-    "eventId": "139574",
-    "name": "NRF 2026"
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025"
   }
 }
 ```
@@ -611,6 +689,9 @@ Production integrations should handle authentication, pagination, credit-aware a
   <Step title="Check credits before paid actions">
     Use `GET /external/credits/balance` before event unlocks, email unlocks, or exhibitor event searches.
   </Step>
+  <Step title="Precheck when the next action depends on access state">
+    Use `POST /external/actions/precheck` before workflows where you need to know whether an action is allowed, whether it should charge credits, or which unlock path applies.
+  </Step>
   <Step title="Make asynchronous jobs resumable">
     Store `task_id` from contact unlock responses so polling can continue after page refreshes, worker restarts, or network failures.
   </Step>
@@ -642,6 +723,16 @@ For credit-consuming actions, use a two-step confirmation pattern:
 6. Refresh balance and result state.
 
 This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+
+## Credit-consuming actions
+
+| Action | Endpoint | Current behavior |
+| --- | --- | --- |
+| Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
+| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. |
+| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
+
+Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
 
 ## Rate-limit friendly polling
 
@@ -761,6 +852,88 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 
 ---
 
+## Actions precheck
+
+Source: /api-reference/actions/precheck
+
+Precheck an external API action before executing a workflow that may depend on event access, contact availability, credits, or action-specific policy.
+
+Use this endpoint when your integration needs a credit-safe confirmation step before calling an unlock or charged execution endpoint.
+
+## Endpoint
+`POST /external/actions/precheck`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `action_type` | Yes | string | Supported values include `query_event_personnel`, `unlock_event_contacts`, `unlock_contact_emails`, `search_exhibitor_events`, and `others`. |
+| `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
+| `call_source` | No | string | Source label such as `api` or `agent`. |
+| `locale` | No | string | Optional locale, such as `en-US`. |
+| `trace_id` | No | string | Caller-provided trace id for support/debug correlation. |
+| `conversation_id` | No | string | Optional conversation id for agent workflows. |
+| `channel_message_id` | No | string | Optional message id for agent workflows. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "query_event_personnel",
+    "call_source": "api",
+    "params": {
+      "event_id": "26855"
+    }
+  }'
+```
+
+## Response example
+```json
+{
+  "ok": true,
+  "action_type": "query_event_personnel",
+  "allowed": true,
+  "should_charge": false,
+  "credits": 0,
+  "reason_code": "ok",
+  "biz_code": "",
+  "detail": {
+    "event_id": "26855",
+    "access_mode": "preview",
+    "preview_limit": 50,
+    "unlock_action_type": "unlock_event_contacts",
+    "unlock_credits": 2000
+  }
+}
+```
+
+## Response fields
+| Field | Description |
+| --- | --- |
+| `ok` | Always `true` for a handled precheck envelope. |
+| `action_type` | Normalized action type that was evaluated. |
+| `allowed` | Whether the action can proceed under current account, access, and balance state. |
+| `should_charge` | Whether executing the related action is expected to consume credits. |
+| `credits` | Expected credit amount for the action. |
+| `reason_code` | Machine-readable decision reason. Examples include `ok`, `already_unlocked`, `insufficient_balance`, `not_found`, and `unsupported_action`. |
+| `biz_code` | Billing/business code used by the execution path when applicable. |
+| `detail` | Action-specific metadata. Shape varies by `action_type`. |
+
+## Notes
+- Precheck is read-only. It does not unlock records, create tasks, or consume credits.
+- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list).
+- Once a list endpoint returns `semantics`, treat that response as the authoritative explanation for the actual list result.
+- Precheck decisions can change as credits, event access, or underlying data changes. Recheck before executing a paid action.
+
+---
+
 ## Events list
 
 Source: /api-reference/events/list
@@ -799,8 +972,8 @@ See [Authentication](/authentication)
 | `city` | No | string | City filter. |
 | `date_start_from` | No | ISO date string | Inclusive lower bound for event date filtering. |
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
-| `event_type` | No | string[] | Event type filter. Comma-separated input is supported. |
-| `quality` | No | string[] | Quality label filter. Comma-separated input is supported. |
+| `event_type` | No | string[] | Event type filter. Comma-separated input is supported. Known values include `In-person`, `conference_led`, `expo_led`, `hybrid`. |
+| `quality` | No | string[] | Quality label filter. Comma-separated input is supported. Known values include `Verified`, `Standard`. |
 
 ## Request example
 ```bash
@@ -820,7 +993,7 @@ curl "https://platform.lensmor.com/external/events/list?country=United%20States&
 `event_type` and `quality` accept array-style inputs from clients and comma-separated inputs in query strings.
 
 ```bash
-curl "https://platform.lensmor.com/external/events/list?event_type=conference,expo&quality=verified,high&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/events/list?event_type=conference_led,expo_led&quality=Verified,Standard&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -829,21 +1002,21 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 {
   "items": [
     {
-      "id": "123",
-      "eventId": "139574",
-      "name": "NRF 2026",
-      "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "id": "26855",
+      "eventId": "26855",
+      "name": "CES 2025",
+      "nickname": "Consumer Electronics Show 2025",
+      "description": "CES 2025, taking place in Las Vegas, NV from January 7-10...",
+      "url": "https://www.ces.tech/",
+      "dateStart": "2025-01-07",
+      "dateEnd": "2025-01-10",
+      "venue": "Las Vegas Convention Center",
+      "city": "Las Vegas",
+      "region": "Nevada",
       "country": "United States",
-      "exhibitorCount": 950,
-      "image": null,
-      "dataSource": "database"
+      "exhibitorCount": 3259,
+      "image": "https://example.com/ces-image.png",
+      "dataSource": "Lensmor"
     }
   ],
   "total": 42,
@@ -859,8 +1032,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 | Field | Description |
 | --- | --- |
 | `items` | Event records for the requested page. |
-| `id` | Internal Lensmor event identifier. Store this if your integration uses database-style IDs. |
-| `eventId` | Public event identifier. Many event-scoped endpoints accept either `id` or `eventId`. |
+| `id` | Internal Lensmor event identifier (string). Currently identical to `eventId`. |
+| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. Currently identical to `id`. |
 | `name` | Canonical event name. |
 | `nickname` | Optional short name or common alias. |
 | `description` | Short event description when available. |
@@ -868,7 +1041,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `dataSource` | Source category for the returned record. |
+| `dataSource` | Source category for the returned record (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses
@@ -879,7 +1052,9 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference,ex
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
-- Store `eventId` from the response if the next step is an event-scoped call such as exhibitor list, personnel list, or event unlock.
+- `id` and `eventId` currently return the same value. Use `eventId` when passing to event-scoped endpoints.
+- `event_type` and `quality` filters must match actual values in the database (e.g. `In-person`, `conference_led` for event type; `Verified`, `Standard` for quality). Invalid values return an empty result set rather than an error.
+- Filter values are applied to the event catalog, but summary list items may still omit or return `null` for some classification fields. Fetch event detail when you need the full classification shape.
 
 ---
 
@@ -926,35 +1101,50 @@ curl "https://platform.lensmor.com/external/events/139574" \
 ```json
 {
   "event": {
-    "id": "123",
-    "eventId": "139574",
-    "name": "NRF 2026",
-    "nickname": null,
-    "description": "Retail industry event",
-    "url": "https://example.com/events/nrf-2026",
-    "dateStart": "2026-01-12",
-    "dateEnd": "2026-01-15",
-    "venue": "Javits Center",
-    "city": "New York",
-    "region": "NY",
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025",
+    "nickname": "Consumer Electronics Show 2025",
+    "description": "CES 2025, taking place in Las Vegas...",
+    "url": "https://www.ces.tech/",
+    "dateStart": "2025-01-07",
+    "dateEnd": "2025-01-10",
+    "venue": "Las Vegas Convention Center",
+    "city": "Las Vegas",
+    "region": "Nevada",
     "country": "United States",
-    "latitude": null,
-    "longitude": null,
-    "attendeeCount": 40000,
-    "priceLower": null,
-    "priceUpper": null,
-    "eventType": null,
-    "categories": [],
+    "latitude": "36.1313238",
+    "longitude": "-115.1503622",
+    "attendeeCount": 7769,
+    "priceLower": "0",
+    "priceUpper": "0",
+    "eventType": "In-person",
+    "categories": [
+      {
+        "id": 11,
+        "code": "electric_electronics",
+        "name": "Electric & Electronics",
+        "description": null,
+        "confidence": "1"
+      },
+      {
+        "id": 19,
+        "code": "it_technology",
+        "name": "IT & Technology",
+        "description": null,
+        "confidence": "1"
+      }
+    ],
     "topics": [],
-    "topicsCount": 0,
-    "verified": 1,
-    "future": 1,
-    "historic": 0,
-    "historicEvent": null,
-    "image": null,
-    "dataSource": "database",
-    "exhibitorCount": 950,
-    "personnelCount": 6200,
+    "topicsCount": 697,
+    "verified": 0,
+    "future": 0,
+    "historic": 1,
+    "historicEvent": "CES",
+    "image": "https://example.com/ces-image.png",
+    "dataSource": "Lensmor",
+    "exhibitorCount": 3259,
+    "personnelCount": null,
     "eventTypes": []
   }
 }
@@ -970,10 +1160,10 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `name`, `nickname`, `description` | Human-readable event identity and description fields. |
 | `url` | Source or official event URL when available. |
 | `dateStart`, `dateEnd` | Event date range. |
-| `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates can be `null`. |
+| `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
 | `attendeeCount`, `exhibitorCount`, `personnelCount` | Known scale and coverage fields when available. |
-| `priceLower`, `priceUpper` | Price range metadata when available. |
-| `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. |
+| `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
+| `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
 | `image`, `dataSource` | Media and source metadata. |
 
@@ -983,8 +1173,11 @@ curl "https://platform.lensmor.com/external/events/139574" \
 - `429 Too Many Requests`
 
 ## Notes
-- For event identifiers, see [Identifiers](/concepts/identifiers).
+- For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
 - Some fields can be `null` when the underlying source does not provide that data.
+- String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
+- `dataSource` indicates the data origin (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values.
+- `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
 - This endpoint does not unlock event-scoped exhibitor or personnel access by itself.
 
 ---
@@ -1171,6 +1364,7 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body can contain structured profile context that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
 - Older draft fields such as `breakdown_details` are not part of the live response.
 
@@ -1266,6 +1460,7 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body contains an array of event IDs that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current service returns an ordered `items` array with `rank` and `match_score`.
 - `reasons` is currently emitted as an empty array by the live service.
 
@@ -1326,11 +1521,16 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
   "success": true,
   "alreadyUnlocked": false,
   "creditsUsed": 2000,
-  "balanceAfter": 28050,
+  "balanceAfter": {
+    "subscriptionBalance": 0,
+    "permanentBalance": 451021,
+    "totalBalance": 451021,
+    "unlimited": false
+  },
   "event": {
-    "id": "123",
-    "eventId": "139574",
-    "name": "NRF 2026"
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025"
   }
 }
 ```
@@ -1342,7 +1542,11 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
 | `success` | Whether the unlock request completed successfully. |
 | `alreadyUnlocked` | `true` when the API key owner already had full access to the event. |
 | `creditsUsed` | Number of credits charged by this request. `0` when the event was already unlocked. |
-| `balanceAfter` | Remaining balance after the unlock operation. |
+| `balanceAfter` | Remaining balance snapshot after a paid unlock. `null` when no credits were charged, such as an already-unlocked event. |
+| `balanceAfter.subscriptionBalance` | Remaining subscription credits. |
+| `balanceAfter.permanentBalance` | Remaining gift/permanent credits. |
+| `balanceAfter.totalBalance` | Total remaining credits. |
+| `balanceAfter.unlimited` | Whether the account has unlimited access semantics. |
 | `event` | Minimal event identity for confirmation and audit logs. |
 
 ## Idempotency behavior
@@ -1438,7 +1642,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "employeeCount": 220,
       "country": "United States",
       "logo": null,
-      "dataSource": "database",
+      "dataSource": "local_import",
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "matched_event_ids": ["139574"],
@@ -1448,7 +1652,26 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
-      "techStacks": ["Cloudflare", "Nginx"]
+      "categories": ["Retail", "POS", "Analytics"],
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": ["funding_round", "new_hire"],
+      "buyingSignalStatus": "ready",
+      "buyingSignals": [
+        {
+          "signalTag": "funding_round",
+          "signalDate": "2026-03-01",
+          "sourceType": "news",
+          "sourceTitle": "Acme raises $50M Series B",
+          "sourceUrl": "https://techcrunch.com/...",
+          "evidenceSummary": "Acme completed a $50M Series B round.",
+          "relevanceToIcp": "Strong signal — company expanding headcount post-funding.",
+          "recommendedPlay": "Reach out with a congratulatory opening.",
+          "signalScore": 85,
+          "confidence": "high",
+          "directOrInferred": "direct",
+          "analyzedAt": "1704067200000"
+        }
+      ]
     }
   ],
   "total": 87,
@@ -1457,6 +1680,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
   "totalPages": 5,
   "hasMore": true,
   "recommendationProcessing": false,
+  "recommendationProcessingFeature": "none",
   "semantics": {
     "accessMode": "preview",
     "previewLimit": 50,
@@ -1491,10 +1715,15 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `id` | Exhibitor identifier. Use it for exhibitor profile and related-event lookups. |
 | `companyName`, `domain`, `website` | Company identity and web presence fields. |
 | `description`, `industry`, `employeeCount`, `country` | Company enrichment metadata. |
+| `categories` | Exhibitor category labels as a string array (e.g. `["Artificial Intelligence", "Digital Health"]`). `[]` when none. |
 | `linkedinUrl`, `fundingRound`, `techStacks` | Additional enrichment signals when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Latest buying-signal batch state: `ready`, `processing`, `pending`, or `null`. |
+| `buyingSignals` | Full latest-batch buying-signal objects, each with `signalTag`, `signalDate`, `sourceType`, `sourceTitle`, `sourceUrl`, `evidenceSummary`, `relevanceToIcp`, `recommendedPlay`, `signalScore` (0–100), `confidence` (`high`/`medium`/`low`), `directOrInferred` (`direct`/`inferred`), `analyzedAt` (unix ms). `[]` when none. |
 | `matched_event_ids` | Event identifiers connected to the result. For event-scoped list calls, this reflects the requested event scope. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
 | `recommendationProcessing` | Whether recommendation metadata is still being prepared. |
+| `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
 | `semantics` | Preview/full access metadata for the selected event. |
 
 ## Access semantics
@@ -1598,7 +1827,25 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "techStacks": ["Cloudflare", "Nginx"],
-      "matched_event_ids": ["139574"]
+      "matched_event_ids": ["139574"],
+      "buyingSignalTags": ["funding_round"],
+      "buyingSignalStatus": null,
+      "buyingSignals": [
+        {
+          "signalTag": "funding_round",
+          "signalDate": "2026-03-01",
+          "sourceType": "news",
+          "sourceTitle": "Acme raises $50M Series B",
+          "sourceUrl": "https://techcrunch.com/...",
+          "evidenceSummary": "Acme completed a $50M Series B round.",
+          "relevanceToIcp": "Strong signal — company expanding headcount post-funding.",
+          "recommendedPlay": "Reach out with a congratulatory opening.",
+          "signalScore": 85,
+          "confidence": "high",
+          "directOrInferred": "direct",
+          "analyzedAt": "1704067200000"
+        }
+      ]
     }
   ],
   "total": 87,
@@ -1623,6 +1870,9 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
 | `fundingRound` | Funding stage or funding metadata when available. |
 | `techStacks` | Technology stack signals. Always returned as an array. |
 | `matched_event_ids` | Related event identifiers from the search context. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
@@ -1648,9 +1898,11 @@ No matches are represented as a successful empty paginated response:
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body contains structured profile inputs (URLs, audience descriptions) that do not fit cleanly in query parameters. It does not create a persistent resource.
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - The live service returns `matched_event_ids` as an empty array for this heuristic search.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- `buyingSignalStatus` is always `null` on this endpoint; `buyingSignalTags` and `buyingSignals` still reflect the latest analysis batch and are `[]` when none.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.
 
@@ -1724,7 +1976,10 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
       "matchScore": null,
       "matchTier": null,
       "matchReason": null,
-      "techStacks": ["Cloudflare", "Nginx"]
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": [],
+      "buyingSignalStatus": null,
+      "buyingSignals": []
     }
   ],
   "total": 1,
@@ -1746,6 +2001,9 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `linkedinUrl`, `fundingRound`, `techStacks` | Optional enrichment fields. |
 | `matched_event_ids` | Related event identifiers when available. |
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
@@ -1758,6 +2016,7 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because company name matching may evolve to accept additional body parameters. It does not create a persistent resource.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need event results for a company name, use `POST /external/exhibitors/search-events`.
 
@@ -2130,7 +2389,13 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
       "companyName": "Acme Retail Systems",
       "sourceType": "exhibitor",
       "email": null,
-      "contactUnlockStatus": "locked"
+      "contactUnlockStatus": "locked",
+      "linkedinActivity": {
+        "activityLevel": "ACTIVE",
+        "isActive": true,
+        "latestPostAt": "1747123200000"
+      },
+      "linkedinActivityStatus": "ready"
     }
   ],
   "total": 3,
@@ -2177,6 +2442,8 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 | `sourceType` | Source context for the person record. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
+| `linkedinActivity` | LinkedIn activity object (`activityLevel` `ACTIVE`/`WARM`/`DORMANT`/`""`, `isActive`, `latestPostAt` unix ms or `null`) when the caller has unlocked it and analysis is complete; otherwise `null`. Independent of `contactUnlockStatus`. |
+| `linkedinActivityStatus` | `ready` (data available), `processing` (unlock/analysis running), or `null` (not unlocked / no record). |
 | `semantics` | Access metadata for preview/full event coverage. |
 
 ## Access semantics
@@ -2278,6 +2545,7 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 ## Notes
 - The public contract stays lightweight.
 - Emails are returned only when the contact is already unlocked for the caller.
+- The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
 
 ---
 
@@ -2482,6 +2750,88 @@ Send the full LinkedIn URL and URL-encode it in the query string. The API perfor
 ## Notes
 - The returned `personnel` object uses the same public contact-style shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
+- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+
+---
+
+## Unlock LinkedIn activity
+
+Source: /api-reference/personnel/unlock-linkedin-activity
+
+Unlock LinkedIn activity visibility for one or more personnel records in an event.
+
+Use this endpoint when your integration already has personnel IDs and wants to expose LinkedIn activity metadata such as `linkedinActivity` and `linkedinActivityStatus`.
+
+## Endpoint
+`POST /external/personnel/unlock-linkedin-activity`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | One to 50 personnel IDs. |
+| `event_id` | Yes | string | Event identifier. Supports external `eventId` or internal `id`. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-activity" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "26855",
+    "personnel_ids": ["789", "790"]
+  }'
+```
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "personnel_id": "789",
+      "success": true,
+      "alreadyUnlocked": false,
+      "taskId": "901",
+      "error": null
+    },
+    {
+      "personnel_id": "790",
+      "success": false,
+      "alreadyUnlocked": false,
+      "taskId": null,
+      "error": "Personnel has no LinkedIn URL"
+    }
+  ]
+}
+```
+
+## Response fields
+| Field | Description |
+| --- | --- |
+| `items` | Per-personnel unlock or task result. |
+| `personnel_id` | The personnel ID from the request. |
+| `success` | Whether this personnel item was accepted or already available. |
+| `alreadyUnlocked` | `true` when the caller already has an active or completed LinkedIn activity unlock for this personnel record. |
+| `taskId` | Analysis task ID when a new LinkedIn activity analysis task is created. `null` when data already exists, the item is already unlocked, or the item failed validation. |
+| `error` | Item-level failure message. `null` on success. |
+
+## Notes
+- This endpoint is idempotent for personnel records with active or completed LinkedIn activity unlocks.
+- If LinkedIn activity data already exists, the API can mark the record as unlocked without creating a new task.
+- If activity data does not exist, the API creates an asynchronous LinkedIn activity analysis task and returns `taskId`.
+- This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock) for email unlock workflows.
+- Poll [Personnel list](/api-reference/personnel/list) or [Personnel profile](/api-reference/personnel/profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
 
 ---
 
@@ -2549,7 +2899,9 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
       "companyName": "Acme",
       "sourceType": "exhibitor",
       "email": null,
-      "contactUnlockStatus": "locked"
+      "contactUnlockStatus": "locked",
+      "linkedinActivity": null,
+      "linkedinActivityStatus": null
     }
   ],
   "total": 1,
@@ -2573,6 +2925,8 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `sourceType` | Source context for the contact record. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
+| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data. |
+| `linkedinActivityStatus` | Always `null` on this endpoint. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## No results
@@ -2588,6 +2942,7 @@ No matching contacts can return an empty paginated response. Use this as a valid
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
+- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
 
 ---
 
@@ -2873,24 +3228,55 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
   "status": "completed",
   "items": [
     {
-      "id": "123",
-      "eventId": "139574",
-      "name": "NRF 2026",
-      "nickname": null,
-      "description": "Retail industry event",
-      "url": "https://example.com/events/nrf-2026",
-      "dateStart": "2026-01-12",
-      "dateEnd": "2026-01-15",
-      "venue": "Javits Center",
-      "city": "New York",
-      "region": "NY",
+      "id": "10067",
+      "eventId": "10067",
+      "name": "American Banker Digital Banking 2026",
+      "nickname": "",
+      "description": "American Banker Digital Banking explores the future of finance...",
+      "url": "https://digital-banking.americanbanker.com/",
+      "dateStart": "2026-06-15",
+      "dateEnd": "2026-06-17",
+      "venue": "Hilton Orlando",
+      "city": "Orlando",
+      "region": "Florida",
       "country": "United States",
-      "attendeeCount": 40000,
-      "exhibitorCount": 950,
-      "personnelCount": 6200,
+      "latitude": "28.4246951",
+      "longitude": "-81.4591377",
+      "attendeeCount": 1825,
+      "declaredExpectedAttendees": 600,
+      "priceLower": "1295",
+      "priceUpper": "2395",
+      "eventType": "conference_led",
+      "quality": "Standard",
+      "sourceTags": [],
+      "categories": [
+        {
+          "id": 7,
+          "code": "banking_finance",
+          "name": "Banking & Finance",
+          "description": null,
+          "confidence": "1"
+        }
+      ],
+      "topics": ["Banking", "Digital Banking"],
+      "topicsCount": 8,
+      "verified": 0,
+      "future": 1,
+      "historic": 1,
+      "historicEvent": "American Banker Digital Banking",
+      "image": "https://example.com/event-image.png",
+      "dataSource": "Lensmor",
+      "exhibitorCount": 120,
+      "personnelCount": 450,
+      "eventTypes": [],
+      "createTime": "1700000000000",
+      "updateTime": "1710000000000",
       "matched_exhibitor_count": 19,
+      "matched_personnel_count": 85,
       "match_score": 0.84,
-      "unlocked": false
+      "unlocked": false,
+      "relevanceReason": null,
+      "rank": 1
     }
   ],
   "total": 42,
@@ -2907,17 +3293,76 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
 
 ## Response fields
 
+### Top-level fields
+
 | Field | Description |
 | --- | --- |
 | `status` | Profile-matching execution state for the request. |
-| `items` | Recommended event records for the requested page. |
-| `match_score` | Event relevance score for the supplied profile inputs. |
-| `matched_exhibitor_count` | Number of exhibitors that matched the profile context when available. |
-| `unlocked` | Whether the API key owner already has full event access. |
+| `items` | Recommended event records for the requested page. Each item contains full event metadata plus recommendation signals. |
 | `condition_tags` | Normalized matching/filter metadata returned by the current profile version. |
 | `profile_version`, `active_result_version` | Version metadata for the profile-matching result set. |
 | `is_stale` | Indicates whether the current result set is stale relative to the active profile state. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+### Recommendation fields (per item)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `match_score` | number | Event relevance score (0–1 scale) for the supplied profile inputs. |
+| `matched_exhibitor_count` | integer \| null | Number of exhibitors that matched the profile context. |
+| `matched_personnel_count` | integer \| null | Number of personnel that matched the profile context. |
+| `unlocked` | boolean | Whether the API key owner already has full event access. |
+| `relevanceReason` | string \| null | Human-readable explanation. `null` when not yet generated. |
+| `rank` | integer | One-based rank position in the result set. |
+
+### Event metadata fields (per item)
+
+Each event item includes the full event detail shape:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id`, `eventId` | string | Event identifiers (currently identical values). |
+| `name`, `nickname`, `description` | string | Event identity fields. |
+| `url` | string \| null | Source or official event URL. |
+| `dateStart`, `dateEnd` | string | ISO date strings. |
+| `venue`, `city`, `region`, `country` | string | Location metadata. |
+| `latitude`, `longitude` | string \| null | Geographic coordinates as string values when available. |
+| `attendeeCount` | integer \| null | Known attendee count. |
+| `declaredExpectedAttendees` | integer \| null | Organizer-declared expected attendees. |
+| `priceLower`, `priceUpper` | string \| null | Price range as string values. |
+| `eventType` | string \| null | Event format classification (e.g. `"conference_led"`, `"In-person"`). |
+| `quality` | string \| null | Quality label (e.g. `"Standard"`, `"Verified"`). |
+| `sourceTags` | string[] | Source classification tags. |
+| `categories` | object[] | Category objects with `id`, `code`, `name`, `description`, `confidence`. See [Category object](#category-object). |
+| `topics` | string[] | Topic keywords. |
+| `topicsCount` | integer | Total topic count. |
+| `verified`, `future`, `historic` | integer | Status flags (0 or 1). |
+| `historicEvent` | string \| null | Name of the recurring event series. |
+| `image` | string \| null | Event image URL. |
+| `dataSource` | string | Source label (e.g. `"Lensmor"`, `"local_import"`). |
+| `exhibitorCount`, `personnelCount` | integer \| null | Known counts when available. |
+| `eventTypes` | array | Event type metadata. |
+| `createTime`, `updateTime` | string | Unix timestamps in milliseconds as strings. |
+
+### Category object
+
+```json
+{
+  "id": 7,
+  "code": "banking_finance",
+  "name": "Banking & Finance",
+  "description": null,
+  "confidence": "1"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | integer | Category identifier. |
+| `code` | string | Machine-readable category code. |
+| `name` | string | Human-readable category name. |
+| `description` | string \| null | Category description when available. |
+| `confidence` | string | Match confidence as a string value. |
 
 ## Result freshness
 
@@ -2931,7 +3376,9 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
 
 ## Notes
 - This route is the recommended current public profile-matching endpoint for event recommendations.
-- In event objects, the request parameter `event_id` maps to the identifier returned as `eventId`, not the internal `id` field.
+- Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
+- `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
+- `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
 - Status metadata such as `status`, `profile_version`, and `active_result_version` comes from the current paged response contract.
 
 ---
@@ -3158,6 +3605,54 @@ Event-scoped exhibitor and personnel lists can return an additional `semantics` 
 
 Use `semantics` to decide whether a page is fully accessible or whether the user should unlock the event for more records.
 
+## Requesting pages beyond the preview limit
+
+When an event is locked and you request a page outside the accessible preview window, the API returns:
+
+```json
+{
+  "items": [],
+  "total": 0,
+  "page": 4,
+  "pageSize": 20,
+  "totalPages": 0,
+  "hasMore": false,
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 3256,
+      "visibleTotal": 50,
+      "remainingLockedCount": 3206
+    },
+    "pageState": {
+      "requestedPage": 4,
+      "accessible": false,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_exhibitors",
+      "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_page_inaccessible",
+      "message": "This event is locked. Only the first 50 matching exhibitors are currently accessible. Unlock the event before requesting more results."
+    }
+  }
+}
+```
+
+Key behaviors:
+- `items` is empty — no records are returned for inaccessible pages.
+- `total` and `totalPages` are `0` — they reflect the inaccessible current page, not the true matching total.
+- `semantics.counts.actualTotal` is the true matching total when the API can calculate it.
+- `pageState.accessible` is `false` — use this flag to detect when a page is outside the preview window.
+- `pageState.maxAccessiblePage` tells you the last page you can request without unlocking. Treat this as authoritative instead of calculating from `previewLimit / pageSize`.
+- `guidance.code` changes to `"preview_page_inaccessible"` (versus `"preview_results_truncated"` on accessible preview pages).
+
+Handle this by checking `pageState.accessible` before rendering results. If `false`, show the unlock prompt rather than an empty state.
+
 ## Notes
 - Most endpoints use a maximum `pageSize` of `100`.
 - Personnel list endpoints use a maximum `pageSize` of `50`.
@@ -3174,10 +3669,14 @@ Lensmor API responses expose string identifiers so clients can pass values safel
 ## Event identifiers
 Many event-scoped request parameters are named `event_id`.
 
-For customer-facing endpoints, `event_id` accepts either:
+For customer-facing endpoints, `event_id`cepts either:
 
 - `eventId` — the public event identifier returned in event responses.
 - `id` — the Lensmor event identifier returned as a string in event responses.
+
+<Note>
+  In the current API version, `id` and `eventId` return the same value for all events. You can safely use either one when calling event-scoped endpoints. If they diverge in a future version, `eventId` is the preferred stable reference for external systems.
+</Note>
 
 Prefer `eventId` when storing or exchanging event identifiers with external systems.
 
@@ -3203,6 +3702,8 @@ Use the identifier returned by the matching resource endpoint:
 Source: /concepts/credits-and-access
 
 Some Lensmor API operations are credit-aware. Read-only discovery endpoints are available with a valid API key, while unlock and reverse-lookup workflows may consume credits.
+
+API credits are shared with the Lensmor SaaS app. The API key belongs to a subscribed Lensmor user account, and API usage draws from the same credit pool as product usage in the app.
 
 ## Credit balance
 Use `GET /external/credits/balance` to inspect the API key owner's current balance before running credit-consuming workflows.
@@ -3232,6 +3733,7 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
 | Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
+| LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
 
@@ -3256,6 +3758,8 @@ Use a confirmation step for operations that can spend credits:
     Update balance, access state, and list results after the response.
   </Step>
 </Steps>
+
+For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
 Some credit-consuming routes accept `x-call-source`.

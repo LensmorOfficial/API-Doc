@@ -76,7 +76,25 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
       "linkedinUrl": null,
       "fundingRound": "Series B",
       "techStacks": ["Cloudflare", "Nginx"],
-      "matched_event_ids": ["139574"]
+      "matched_event_ids": ["139574"],
+      "buyingSignalTags": ["funding_round"],
+      "buyingSignalStatus": null,
+      "buyingSignals": [
+        {
+          "signalTag": "funding_round",
+          "signalDate": "2026-03-01",
+          "sourceType": "news",
+          "sourceTitle": "Acme raises $50M Series B",
+          "sourceUrl": "https://techcrunch.com/...",
+          "evidenceSummary": "Acme completed a $50M Series B round.",
+          "relevanceToIcp": "Strong signal — company expanding headcount post-funding.",
+          "recommendedPlay": "Reach out with a congratulatory opening.",
+          "signalScore": 85,
+          "confidence": "high",
+          "directOrInferred": "direct",
+          "analyzedAt": "1704067200000"
+        }
+      ]
     }
   ],
   "total": 87,
@@ -101,6 +119,9 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
 | `fundingRound` | Funding stage or funding metadata when available. |
 | `techStacks` | Technology stack signals. Always returned as an array. |
 | `matched_event_ids` | Related event identifiers from the search context. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
@@ -126,8 +147,10 @@ No matches are represented as a successful empty paginated response:
 - `429 Too Many Requests`
 
 ## Notes
+- This endpoint uses `POST` because the request body contains structured profile inputs (URLs, audience descriptions) that do not fit cleanly in query parameters. It does not create a persistent resource.
 - This endpoint accepts profile-style search inputs rather than a simple keyword-only query.
 - The live service returns `matched_event_ids` as an empty array for this heuristic search.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- `buyingSignalStatus` is always `null` on this endpoint; `buyingSignalTags` and `buyingSignals` still reflect the latest analysis batch and are `[]` when none.
 - No matches return an empty paginated success response rather than `404 Not Found`.
 - If you need deduplicated event results directly from a company name, use `POST /external/exhibitors/search-events`.

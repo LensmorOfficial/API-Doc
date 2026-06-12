@@ -8,10 +8,14 @@ Lensmor API responses expose string identifiers so clients can pass values safel
 ## Event identifiers
 Many event-scoped request parameters are named `event_id`.
 
-For customer-facing endpoints, `event_id` accepts either:
+For customer-facing endpoints, `event_id`cepts either:
 
 - `eventId` — the public event identifier returned in event responses.
 - `id` — the Lensmor event identifier returned as a string in event responses.
+
+<Note>
+  In the current API version, `id` and `eventId` return the same value for all events. You can safely use either one when calling event-scoped endpoints. If they diverge in a future version, `eventId` is the preferred stable reference for external systems.
+</Note>
 
 Prefer `eventId` when storing or exchanging event identifiers with external systems.
 

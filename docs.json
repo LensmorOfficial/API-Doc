@@ -31,7 +31,12 @@
   "redirects": [
     {
       "source": "/openapi.json",
-      "destination": "/api-reference/openapi.json",
+      "destination": "/.well-known/openapi",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/openapi.json",
+      "destination": "/.well-known/openapi",
       "permanent": false
     }
   ],
@@ -67,6 +72,12 @@
                 ]
               },
               {
+                "group": "Actions",
+                "pages": [
+                  "api-reference/actions/precheck"
+                ]
+              },
+              {
                 "group": "Events",
                 "pages": [
                   "api-reference/events/list",
@@ -94,7 +105,8 @@
                   "api-reference/personnel/list",
                   "api-reference/personnel/profile",
                   "api-reference/personnel/events",
-                  "api-reference/personnel/events-by-linkedin"
+                  "api-reference/personnel/events-by-linkedin",
+                  "api-reference/personnel/unlock-linkedin-activity"
                 ]
               },
               {

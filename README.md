@@ -30,7 +30,7 @@ All documented paths are relative to this base URL. For example:
 
 ## Quick start
 
-1. Obtain a valid user API key. API access is available to paying customers — contact [hello@lensmor.com](mailto:hello@lensmor.com) to purchase.
+1. Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create a user API key from **Settings → API Keys**.
 2. Send requests to `https://platform.lensmor.com`.
 3. Include the authorization header on every request.
 4. Browse the full interactive docs at **[api.lensmor.com](https://api.lensmor.com/)** or use the reference files in this repository.
@@ -50,7 +50,9 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 - `index.mdx` — overview and quick start
 - `authentication.mdx` — authentication and authorization format
-- `api-reference/openapi.json` — OpenAPI 3.1 specification for customer-facing endpoints
+- `.well-known/openapi` — public OpenAPI 3.1 specification for customer-facing endpoints
+- `.well-known/api-catalog` — machine-readable API catalog pointing to the public OpenAPI file
+- `llms.txt` and `llms-full.txt` — LLM-friendly documentation entry points
 - `api-reference/credits/` — credit balance endpoint
 - `concepts/errors.mdx` — shared error conventions
 - `concepts/pagination.mdx` — pagination behavior
