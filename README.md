@@ -50,8 +50,8 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 - `index.mdx` — overview and quick start
 - `authentication.mdx` — authentication and authorization format
-- `.well-known/openapi` — public OpenAPI 3.1 specification for customer-facing endpoints
-- `.well-known/api-catalog` — machine-readable API catalog pointing to the public OpenAPI file
+- `openapi.json` — public OpenAPI 3.1 specification for customer-facing endpoints
+- `api-catalog.json` — machine-readable API catalog pointing to the public OpenAPI file
 - `llms.txt` and `llms-full.txt` — LLM-friendly documentation entry points
 - `api-reference/credits/` — credit balance endpoint
 - `concepts/errors.mdx` — shared error conventions

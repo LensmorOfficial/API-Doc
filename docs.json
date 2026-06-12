@@ -28,18 +28,6 @@
       }
     }
   },
-  "redirects": [
-    {
-      "source": "/openapi.json",
-      "destination": "/.well-known/openapi",
-      "permanent": false
-    },
-    {
-      "source": "/api-reference/openapi.json",
-      "destination": "/.well-known/openapi",
-      "permanent": false
-    }
-  ],
   "navigation": {
     "tabs": [
       {
