@@ -102,11 +102,21 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `url` | Source or official event URL when available. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
-| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known scale and coverage fields when available. |
+| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known summary scale and coverage fields when available. These fields can be `null` or differ from current event-scoped list totals. |
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
 | `image`, `dataSource` | Media and source metadata. |
+
+## Count fields
+
+Treat `exhibitorCount` and `personnelCount` on event detail as summary metadata for display and planning. They are not the authoritative count for the current caller's access state, filters, or page visibility.
+
+When you need current coverage numbers, call the event-scoped list endpoint and use its pagination metadata:
+
+- [List event exhibitors](/api-reference/exhibitors/list) for exhibitor totals.
+- [List event personnel](/api-reference/personnel/list) for personnel totals.
+- `semantics.counts` when present for visible, locked, and matched access context.
 
 ## Error responses
 - `401 Unauthorized`

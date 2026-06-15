@@ -217,6 +217,14 @@ Each event item includes the full event detail shape:
 
 `profile_version`, `active_result_version`, and `is_stale` help clients decide whether to refresh recommendations after profile inputs change. For most UI integrations, show the current results and re-run the endpoint when the user edits the company URL, audience description, filters, or geography.
 
+## Integration guidance
+
+- This endpoint is synchronous but can take several seconds for broad profiles or large result sets. Show a loading state and keep user input editable.
+- `relevanceReason` can be `null`. Do not require it before displaying ranked recommendations.
+- Use `match_score`, `rank`, matched counts, event dates, geography, categories, and follow-up evidence together. Avoid presenting score differences as exact mathematical certainty.
+- For the top events, follow up with [Event detail](/api-reference/events/detail), then preview [List event exhibitors](/api-reference/exhibitors/list) or [List event personnel](/api-reference/personnel/list) before asking the user to unlock an event.
+- If event summary counts are `null`, use the event-scoped list endpoint's `total` and `semantics` fields for the current access and filter context.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`

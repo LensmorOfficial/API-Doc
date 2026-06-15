@@ -19,6 +19,10 @@ Choose this endpoint when:
 
 Use [Exhibitor event search](/api-reference/exhibitors/search-events) instead when the desired output is events related to a company name.
 
+<Warning>
+  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/balance) and confirm with the user before calling it in a credit-safe workflow.
+</Warning>
+
 ## Endpoint
 `POST /external/exhibitors/search-by-company-name`
 
@@ -97,6 +101,12 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
+## Credit behavior
+
+This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+
+Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation.
+
 ## Matching behavior
 
 This endpoint is precision-first. It is designed to avoid surprising broad matches for short or ambiguous company names. If no company passes matching rules, the API returns a successful empty paginated response.
@@ -104,6 +114,7 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
+- `402 Payment Required`
 - `429 Too Many Requests`
 
 ## Notes

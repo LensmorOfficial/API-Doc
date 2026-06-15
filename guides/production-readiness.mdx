@@ -25,6 +25,9 @@ Production integrations should handle authentication, pagination, credit-aware a
   <Step title="Make asynchronous jobs resumable">
     Store `task_id` from contact unlock responses so polling can continue after page refreshes, worker restarts, or network failures.
   </Step>
+  <Step title="Handle item-level async outcomes">
+    Treat a terminal task as complete for the job, then inspect each item result before counting delivered emails or failed contacts.
+  </Step>
   <Step title="Back off on rate limits">
     Respect `Retry-After` for `429 Too Many Requests` and use `X-RateLimit-*` headers for proactive throttling.
   </Step>
@@ -51,15 +54,17 @@ For credit-consuming actions, use a two-step confirmation pattern:
 4. Ask the user to confirm.
 5. Execute the API call.
 6. Refresh balance and result state.
+7. Reconcile final billing against the post-action balance and task or endpoint response.
 
-This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), [Exhibitor company search](/api-reference/exhibitors/search-by-company-name), and [Exhibitor event search](/api-reference/exhibitors/search-events).
 
 ## Credit-consuming actions
 
 | Action | Endpoint | Current behavior |
 | --- | --- | --- |
 | Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
-| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. |
+| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. A completed task can contain mixed item-level outcomes. |
+| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits per successful company search attempt. |
 | Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
 
 Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
@@ -73,6 +78,8 @@ Create task -> wait 3s -> poll -> wait 5s -> poll -> wait 10s -> poll
 ```
 
 Stop polling when the task is completed or failed. If the user leaves the page, store the task ID and resume later.
+
+For completed contact unlock tasks, inspect item-level results before updating CRM fields. Count only records that include an unlocked email, surface item-level failures separately, and refresh credit balance after terminal states when users need a spend audit.
 
 ## Logging and support
 

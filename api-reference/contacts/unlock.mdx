@@ -17,6 +17,10 @@ This endpoint is intentionally asynchronous because email unlock can involve mul
   For best user experience, show the number of locked contacts and available credit balance before creating the unlock task.
 </Note>
 
+<Warning>
+  A `201 Created` response means the unlock task was accepted. It does not guarantee that every submitted personnel record will return an email. Always inspect item-level task results before counting a contact as enriched.
+</Warning>
+
 ## Endpoint
 `POST /external/contacts/unlock`
 
@@ -78,12 +82,14 @@ Use backoff instead of a tight polling loop. A practical pattern is:
 2. Poll every few seconds for short jobs.
 3. Increase the interval if the job remains in progress.
 4. Stop polling when the task completes or fails.
+5. Re-fetch personnel or contact records if your UI needs the latest `email` and `contactUnlockStatus` values.
 
 ## Credit behavior
 
 Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
+- Failed or ineligible items may not produce an email. Treat the task result and refreshed balance as the source of truth for actual delivery and billing.
 - The API rejects batches larger than `100` personnel IDs.
 - Insufficient balance returns `402 Payment Required`.
 - Retry behavior should be tied to the task state, not only the create response.
@@ -98,4 +104,5 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 
 ## Notes
 - This endpoint creates an asynchronous unlock job. Poll [Get contact unlock task](/api-reference/contacts/unlock-task) with `task_id`.
+- Do not create duplicate unlock tasks while a prior task for the same selected contacts is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

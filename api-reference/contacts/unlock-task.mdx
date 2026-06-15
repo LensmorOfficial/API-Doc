@@ -79,6 +79,15 @@ Item status:
 - `unlocked`
 - `failed`
 
+## Result interpretation
+
+Treat each `items[]` entry independently:
+
+- Count a contact as delivered only when item `status` is `unlocked` and `email` is present.
+- Surface `failed` items separately with `errorCode` when provided.
+- A task can reach a terminal state while individual items have different outcomes.
+- Refresh credit balance and contact/personnel records after terminal states when your UI needs billing or access-state reconciliation.
+
 ## Polling guidance
 
 Use a backoff schedule instead of polling aggressively:

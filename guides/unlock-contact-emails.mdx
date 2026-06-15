@@ -75,11 +75,13 @@ Poll with backoff rather than a tight loop. A practical pattern is to wait a few
 Your integration should account for these outcomes:
 
 - `accepted` or in-progress state: continue polling.
-- completed state: read the unlocked contact data from the task result.
+- completed state: inspect item-level results. Count a contact as delivered only when its item status is unlocked and an email is present.
 - failed state: show the task error and decide whether the user should retry.
 - `404 Not Found`: the task ID is invalid or not visible to the API key owner.
 
 See [Get contact unlock task](/api-reference/contacts/unlock-task) for the exact response shape.
+
+Completed tasks can contain mixed item outcomes. Show failed, ineligible, or unresolved contacts separately instead of folding them into the unlocked count.
 
 ## Credit behavior
 
@@ -96,7 +98,8 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 - Check `GET /external/credits/balance` before large batches.
 - Store the task ID and make polling resumable.
 - Back off on `429 Too Many Requests`.
-- Re-fetch personnel or contact records after completion if your UI needs the latest unlock status.
+- Re-fetch `GET /external/credits/balance` after terminal task states when you need final credit reconciliation.
+- Re-fetch personnel or contact records after completion if your UI needs the latest unlock status or email visibility.
 
 ## Related endpoints
 

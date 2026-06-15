@@ -79,7 +79,9 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 
 - Preserve the original submitted event IDs in your client if you need to reconcile ranked results with local records.
 - Display `rank` and `match_score` together when showing ordered recommendations.
-- If `reasons` is empty, use event metadata and match score rather than showing a blank explanation block.
+- Treat the endpoint as shortlist ordering, not a complete recommendation report by itself.
+- Live responses can return low or zero `match_score` values and empty `reasons`. Combine returned order with event metadata, matched counts, and follow-up detail or list calls before making a final business recommendation.
+- If `reasons` is empty, use event metadata and evidence from follow-up calls rather than showing a blank explanation block.
 
 ## Error responses
 - `400 Bad Request`

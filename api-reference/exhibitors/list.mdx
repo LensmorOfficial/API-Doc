@@ -15,7 +15,7 @@ Common use cases:
 
 - build an event exhibitor directory
 - filter exhibitors by industry, category, geography, or company keyword
-- request a small nested personnel sample with `personnelLimit`
+- request a best-effort nested personnel sample with `personnelLimit`
 - decide whether an event is worth unlocking for full coverage
 
 ## Endpoint
@@ -40,7 +40,7 @@ See [Authentication](/authentication)
 | `jobTitle` | No | string[] | Personnel job-title filter. Repeated query parameters are supported. |
 | `managementLevel` | No | string[] | Personnel management-level filter, such as `vp` or `c_suite`. |
 | `department` | No | string[] | Personnel department filter, such as `marketing` or `sales`. |
-| `personnelLimit` | No | integer | Maximum nested personnel rows per exhibitor. Use `0` or omit for none. |
+| `personnelLimit` | No | integer | Maximum nested personnel rows per exhibitor when available. Use `0` or omit for none. Treat nested personnel as best-effort; use `GET /external/personnel/list` with `event_id` and `exhibitor_id` when contacts are required. |
 
 ## Request example
 ```bash
@@ -153,6 +153,12 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
 | `semantics` | Preview/full access metadata for the selected event. |
 
+## Personnel samples
+
+`personnelLimit` asks the API to include a small personnel sample for each exhibitor when the service has a suitable sample for the current event, filters, and access state. It is not a guarantee that every exhibitor item will contain nested personnel rows.
+
+When your workflow needs buyer contacts for a specific company, call [Personnel list](/api-reference/personnel/list) with both `event_id` and `exhibitor_id`. Treat that event-scoped personnel response as the source of truth for people coverage and contact unlock state.
+
 ## Access semantics
 
 When an event is locked, this endpoint can return a preview slice instead of full results. Use `semantics` to explain the state to users:
@@ -174,3 +180,4 @@ When an event is locked, this endpoint can return a preview slice instead of ful
 - `matched_event_ids` reflects the requested event scope.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- After event unlock, request the target page again and confirm `semantics.accessMode` moved to `full` before assuming all matching exhibitors are available.

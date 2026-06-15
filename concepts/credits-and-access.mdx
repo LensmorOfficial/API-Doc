@@ -34,10 +34,24 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | --- | --- | --- |
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
+| Exhibitor company search | `50` credits | `POST /external/exhibitors/search-by-company-name` finds exhibitor company records from a company name. |
 | Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
 | LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
+
+## Final billing reconciliation
+
+Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/balance) and the affected resource.
+
+This is especially important when:
+
+- an event or contact was already unlocked
+- an asynchronous contact unlock task completes with mixed item-level outcomes
+- a submitted contact is ineligible, failed, or does not produce an email
+- a workflow is retried after a timeout
+
+For contact unlocks, count delivered enrichment only when an item-level result is unlocked and contains an email. Keep failed or unresolved items visible separately from successful unlocks.
 
 ## Credit-safe integration pattern
 
