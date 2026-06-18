@@ -138,24 +138,12 @@
   "description": "Lensmor API documentation for event intelligence, trade show discovery, exhibitor research, profile matching, credits, and contact email unlock workflows.",
   "seo": {
     "indexing": "navigable",
-    "metatags": [
-      {
-        "property": "og:site_name",
-        "content": "Lensmor API Docs"
-      },
-      {
-        "property": "og:type",
-        "content": "website"
-      },
-      {
-        "property": "twitter:card",
-        "content": "summary_large_image"
-      },
-      {
-        "name": "keywords",
-        "content": "Lensmor API event intelligence API trade show API exhibitor API B2B prospecting API event recommendation API"
-      }
-    ]
+    "metatags": {
+      "og:site_name": "Lensmor API Docs",
+      "og:type": "website",
+      "twitter:card": "summary_large_image",
+      "keywords": "Lensmor API, event intelligence API, trade show API, exhibitor API, B2B prospecting API, event recommendation API"
+    }
   },
   "search": {
     "prompt": "Search Lensmor API docs..."
