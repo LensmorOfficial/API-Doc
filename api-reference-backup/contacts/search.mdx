@@ -1,0 +1,110 @@
+---
+title: "Contacts search"
+description: "Search Lensmor contact records by filters such as company, event, role, and profile context before deciding whether to unlock emails."
+openapi: "openapi.json GET /external/contacts/search"
+---
+
+Search contacts by company name.
+
+Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering.
+
+## When to use this endpoint
+
+Use `GET /external/contacts/search` when your integration starts from a company name and needs people records without first selecting a specific event.
+
+Typical use cases:
+
+- search for buyer contacts at a target account
+- filter by role or person name before unlock
+- verify whether Lensmor has candidate people for a company
+- collect personnel IDs for a later email unlock task
+
+## Endpoint
+`GET /external/contacts/search`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `company_name` | Yes | string | Company name query, length `1` to `200`. |
+| `role` | No | string | Optional role filter. Blank values are normalized away. |
+| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&role=VP%20Marketing&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Search by person name
+
+```bash
+curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&person_name=Jane&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "101",
+      "fullName": "Jane Doe",
+      "title": "VP Marketing",
+      "department": "marketing",
+      "seniorityLevel": "vp",
+      "linkedinUrl": "https://linkedin.com/in/jane",
+      "companyName": "Acme",
+      "sourceType": "exhibitor",
+      "email": null,
+      "contactUnlockStatus": "locked",
+      "linkedinActivity": null,
+      "linkedinActivityStatus": null
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Matching contact-style personnel records. |
+| `id` | Personnel identifier used for profile fetches and email unlocks. |
+| `fullName`, `title` | Person display fields. |
+| `department`, `seniorityLevel` | Normalized role metadata when available. |
+| `linkedinUrl` | LinkedIn profile URL when available. |
+| `companyName` | Matched company name. |
+| `sourceType` | Source context for the contact record. |
+| `email` | Email if already unlocked for the caller; otherwise `null`. |
+| `contactUnlockStatus` | Contact access state for this API key owner. |
+| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data. |
+| `linkedinActivityStatus` | Always `null` on this endpoint. |
+| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+
+## No results
+
+No matching contacts can return an empty paginated response. Use this as a valid state rather than treating it as an integration error.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- Emails are returned only when the contact is already unlocked for the caller.
+- Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
+- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.

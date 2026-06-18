@@ -39,15 +39,15 @@ The response includes subscription credits, gift credits, the total balance, and
 
 ## Choose the right starting point
 
-| User goal | First endpoint |
-| --- | --- |
-| Search for events by keyword, country, city, or date | `GET /external/events/list` |
-| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` |
-| Browse companies inside a selected event | `GET /external/exhibitors/list` |
-| Browse people inside a selected event | `GET /external/personnel/list` |
-| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` |
-| Find events associated with a company name | `POST /external/exhibitors/search-events` |
-| Unlock selected contact emails | `POST /external/contacts/unlock` |
+| User goal | First endpoint | Credit note |
+| --- | --- | --- |
+| Search for events by keyword, country, city, or date | `GET /external/events/list` | Read-only |
+| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` | Read-only |
+| Browse companies inside a selected event | `GET /external/exhibitors/list` | Read-only unless the user unlocks event access |
+| Browse people inside a selected event | `GET /external/personnel/list` | Read-only unless the user unlocks event access or emails |
+| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` | Can consume `50` credits |
+| Find events associated with a company name | `POST /external/exhibitors/search-events` | Can consume `50` credits |
+| Unlock selected contact emails | `POST /external/contacts/unlock` | Can consume `15` credits per chargeable contact |
 
 ## 2. Search the event catalog
 

@@ -201,6 +201,12 @@ Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## Unreleased
+
+### Changed
+
+- Clarified live API edge cases for best-effort nested personnel samples, event summary counts, LinkedIn URL lookup fallback, shortlist ranking, exhibitor event search billing, and item-level contact unlock outcomes.
+
 ## v0.21.0
 
 Released June 12, 2026.
@@ -279,15 +285,15 @@ The response includes subscription credits, gift credits, the total balance, and
 
 ## Choose the right starting point
 
-| User goal | First endpoint |
-| --- | --- |
-| Search for events by keyword, country, city, or date | `GET /external/events/list` |
-| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` |
-| Browse companies inside a selected event | `GET /external/exhibitors/list` |
-| Browse people inside a selected event | `GET /external/personnel/list` |
-| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` |
-| Find events associated with a company name | `POST /external/exhibitors/search-events` |
-| Unlock selected contact emails | `POST /external/contacts/unlock` |
+| User goal | First endpoint | Credit note |
+| --- | --- | --- |
+| Search for events by keyword, country, city, or date | `GET /external/events/list` | Read-only |
+| Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` | Read-only |
+| Browse companies inside a selected event | `GET /external/exhibitors/list` | Read-only unless the user unlocks event access |
+| Browse people inside a selected event | `GET /external/personnel/list` | Read-only unless the user unlocks event access or emails |
+| Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` | Can consume `50` credits |
+| Find events associated with a company name | `POST /external/exhibitors/search-events` | Can consume `50` credits |
+| Unlock selected contact emails | `POST /external/contacts/unlock` | Can consume `15` credits per chargeable contact |
 
 ## 2. Search the event catalog
 
@@ -669,11 +675,13 @@ Poll with backoff rather than a tight loop. A practical pattern is to wait a few
 Your integration should account for these outcomes:
 
 - `accepted` or in-progress state: continue polling.
-- completed state: read the unlocked contact data from the task result.
+- completed state: inspect item-level results. Count a contact as delivered only when its item status is unlocked and an email is present.
 - failed state: show the task error and decide whether the user should retry.
 - `404 Not Found`: the task ID is invalid or not visible to the API key owner.
 
 See [Get contact unlock task](/api-reference/contacts/unlock-task) for the exact response shape.
+
+Completed tasks can contain mixed item outcomes. Show failed, ineligible, or unresolved contacts separately instead of folding them into the unlocked count.
 
 ## Credit behavior
 
@@ -690,7 +698,8 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 - Check `GET /external/credits/balance` before large batches.
 - Store the task ID and make polling resumable.
 - Back off on `429 Too Many Requests`.
-- Re-fetch personnel or contact records after completion if your UI needs the latest unlock status.
+- Re-fetch `GET /external/credits/balance` after terminal task states when you need final credit reconciliation.
+- Re-fetch personnel or contact records after completion if your UI needs the latest unlock status or email visibility.
 
 ## Related endpoints
 
@@ -737,6 +746,9 @@ Production integrations should handle authentication, pagination, credit-aware a
   <Step title="Make asynchronous jobs resumable">
     Store `task_id` from contact unlock responses so polling can continue after page refreshes, worker restarts, or network failures.
   </Step>
+  <Step title="Handle item-level async outcomes">
+    Treat a terminal task as complete for the job, then inspect each item result before counting delivered emails or failed contacts.
+  </Step>
   <Step title="Back off on rate limits">
     Respect `Retry-After` for `429 Too Many Requests` and use `X-RateLimit-*` headers for proactive throttling.
   </Step>
@@ -763,15 +775,17 @@ For credit-consuming actions, use a two-step confirmation pattern:
 4. Ask the user to confirm.
 5. Execute the API call.
 6. Refresh balance and result state.
+7. Reconcile final billing against the post-action balance and task or endpoint response.
 
-This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), [Exhibitor company search](/api-reference/exhibitors/search-by-company-name), and [Exhibitor event search](/api-reference/exhibitors/search-events).
 
 ## Credit-consuming actions
 
 | Action | Endpoint | Current behavior |
 | --- | --- | --- |
 | Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
-| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. |
+| Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. A completed task can contain mixed item-level outcomes. |
+| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits per successful company search attempt. |
 | Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
 
 Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
@@ -785,6 +799,8 @@ Create task -> wait 3s -> poll -> wait 5s -> poll -> wait 10s -> poll
 ```
 
 Stop polling when the task is completed or failed. If the user leaves the page, store the task ID and resume later.
+
+For completed contact unlock tasks, inspect item-level results before updating CRM fields. Count only records that include an unlocked email, surface item-level failures separately, and refresh credit balance after terminal states when users need a spend audit.
 
 ## Logging and support
 
@@ -1203,11 +1219,21 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `url` | Source or official event URL when available. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
-| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known scale and coverage fields when available. |
+| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known summary scale and coverage fields when available. These fields can be `null` or differ from current event-scoped list totals. |
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
 | `image`, `dataSource` | Media and source metadata. |
+
+## Count fields
+
+Treat `exhibitorCount` and `personnelCount` on event detail as summary metadata for display and planning. They are not the authoritative count for the current caller's access state, filters, or page visibility.
+
+When you need current coverage numbers, call the event-scoped list endpoint and use its pagination metadata:
+
+- [List event exhibitors](/api-reference/exhibitors/list) for exhibitor totals.
+- [List event personnel](/api-reference/personnel/list) for personnel totals.
+- `semantics.counts` when present for visible, locked, and matched access context.
 
 ## Error responses
 - `401 Unauthorized`
@@ -1492,7 +1518,9 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 
 - Preserve the original submitted event IDs in your client if you need to reconcile ranked results with local records.
 - Display `rank` and `match_score` together when showing ordered recommendations.
-- If `reasons` is empty, use event metadata and match score rather than showing a blank explanation block.
+- Treat the endpoint as shortlist ordering, not a complete recommendation report by itself.
+- Live responses can return low or zero `match_score` values and empty `reasons`. Combine returned order with event metadata, matched counts, and follow-up detail or list calls before making a final business recommendation.
+- If `reasons` is empty, use event metadata and evidence from follow-up calls rather than showing a blank explanation block.
 
 ## Error responses
 - `400 Bad Request`
@@ -1630,7 +1658,7 @@ Common use cases:
 
 - build an event exhibitor directory
 - filter exhibitors by industry, category, geography, or company keyword
-- request a small nested personnel sample with `personnelLimit`
+- request a best-effort nested personnel sample with `personnelLimit`
 - decide whether an event is worth unlocking for full coverage
 
 ## Endpoint
@@ -1655,7 +1683,7 @@ See [Authentication](/authentication)
 | `jobTitle` | No | string[] | Personnel job-title filter. Repeated query parameters are supported. |
 | `managementLevel` | No | string[] | Personnel management-level filter, such as `vp` or `c_suite`. |
 | `department` | No | string[] | Personnel department filter, such as `marketing` or `sales`. |
-| `personnelLimit` | No | integer | Maximum nested personnel rows per exhibitor. Use `0` or omit for none. |
+| `personnelLimit` | No | integer | Maximum nested personnel rows per exhibitor when available. Use `0` or omit for none. Treat nested personnel as best-effort; use `GET /external/personnel/list` with `event_id` and `exhibitor_id` when contacts are required. |
 
 ## Request example
 ```bash
@@ -1768,6 +1796,12 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 | `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
 | `semantics` | Preview/full access metadata for the selected event. |
 
+## Personnel samples
+
+`personnelLimit` asks the API to include a small personnel sample for each exhibitor when the service has a suitable sample for the current event, filters, and access state. It is not a guarantee that every exhibitor item will contain nested personnel rows.
+
+When your workflow needs buyer contacts for a specific company, call [Personnel list](/api-reference/personnel/list) with both `event_id` and `exhibitor_id`. Treat that event-scoped personnel response as the source of truth for people coverage and contact unlock state.
+
 ## Access semantics
 
 When an event is locked, this endpoint can return a preview slice instead of full results. Use `semantics` to explain the state to users:
@@ -1789,6 +1823,7 @@ When an event is locked, this endpoint can return a preview slice instead of ful
 - `matched_event_ids` reflects the requested event scope.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
 - Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- After event unlock, request the target page again and confirm `semantics.accessMode` moved to `full` before assuming all matching exhibitors are available.
 
 ---
 
@@ -1970,6 +2005,10 @@ Choose this endpoint when:
 
 Use [Exhibitor event search](/api-reference/exhibitors/search-events) instead when the desired output is events related to a company name.
 
+<Warning>
+  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/balance) and confirm with the user before calling it in a credit-safe workflow.
+</Warning>
+
 ## Endpoint
 `POST /external/exhibitors/search-by-company-name`
 
@@ -2048,6 +2087,12 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
+## Credit behavior
+
+This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+
+Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation.
+
 ## Matching behavior
 
 This endpoint is precision-first. It is designed to avoid surprising broad matches for short or ambiguous company names. If no company passes matching rules, the API returns a successful empty paginated response.
@@ -2055,6 +2100,7 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
+- `402 Payment Required`
 - `429 Too Many Requests`
 
 ## Notes
@@ -2084,7 +2130,7 @@ This endpoint returns events, not exhibitor records. It is useful for:
 - starting an event workflow without first calling exhibitor search
 
 <Warning>
-  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/balance) before running it in bulk.
+  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/balance) before running it in bulk, and use a confirmation step when a user-facing workflow will spend credits.
 </Warning>
 
 ## Endpoint
@@ -2163,14 +2209,16 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | `id`, `eventId` | Event identifiers returned with each event. |
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
-| `venue`, `city`, `region`, `country` | Event location fields. |
+| `venue`, `city`, `region`, `country` | Event location fields. Values can be `null` or empty strings when the event source does not provide normalized location metadata. |
 | `attendeeCount`, `exhibitorCount`, `personnelCount` | Event scale and coverage fields when available. |
-| `matchedExhibitors` | Matched company records that connect the input to the returned event. |
+| `matchedExhibitors` | Matched company records that connect the input to the returned event. Treat this as the primary evidence that the company-name input matched the returned event. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
 This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+
+Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
 ## Error responses
 - `400 Bad Request`
@@ -2783,6 +2831,17 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 
 Send the full LinkedIn URL and URL-encode it in the query string. The API performs normalized matching internally, but clients should avoid sending partial names or non-LinkedIn URLs.
 
+## Latency and fallback
+
+LinkedIn URL matching can take longer than direct Lensmor ID lookups because the API normalizes the URL and resolves the person before listing events.
+
+Recommended production behavior:
+
+- Use a request timeout that keeps the user workflow responsive.
+- If you already have `personnel.id`, prefer [Personnel events](/api-reference/personnel/events) with `personnel_id`.
+- If URL lookup times out or returns no match, keep the workflow usable by continuing with event-scoped personnel search, a selected `personnel_id`, or a retry action.
+- Do not block a whole lead-prioritization workflow on one slow LinkedIn URL lookup. Mark that person as unresolved and continue ranking the rest of the batch.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
@@ -3006,6 +3065,10 @@ This endpoint is intentionally asynchronous because email unlock can involve mul
   For best user experience, show the number of locked contacts and available credit balance before creating the unlock task.
 </Note>
 
+<Warning>
+  A `201 Created` response means the unlock task was accepted. It does not guarantee that every submitted personnel record will return an email. Always inspect item-level task results before counting a contact as enriched.
+</Warning>
+
 ## Endpoint
 `POST /external/contacts/unlock`
 
@@ -3067,12 +3130,14 @@ Use backoff instead of a tight polling loop. A practical pattern is:
 2. Poll every few seconds for short jobs.
 3. Increase the interval if the job remains in progress.
 4. Stop polling when the task completes or fails.
+5. Re-fetch personnel or contact records if your UI needs the latest `email` and `contactUnlockStatus` values.
 
 ## Credit behavior
 
 Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
+- Failed or ineligible items may not produce an email. Treat the task result and refreshed balance as the source of truth for actual delivery and billing.
 - The API rejects batches larger than `100` personnel IDs.
 - Insufficient balance returns `402 Payment Required`.
 - Retry behavior should be tied to the task state, not only the create response.
@@ -3087,6 +3152,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 
 ## Notes
 - This endpoint creates an asynchronous unlock job. Poll [Get contact unlock task](/api-reference/contacts/unlock-task) with `task_id`.
+- Do not create duplicate unlock tasks while a prior task for the same selected contacts is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.
 
 ---
@@ -3170,6 +3236,15 @@ Item status:
 - `processing`
 - `unlocked`
 - `failed`
+
+## Result interpretation
+
+Treat each `items[]` entry independently:
+
+- Count a contact as delivered only when item `status` is `unlocked` and `email` is present.
+- Surface `failed` items separately with `errorCode` when provided.
+- A task can reach a terminal state while individual items have different outcomes.
+- Refresh credit balance and contact/personnel records after terminal states when your UI needs billing or access-state reconciliation.
 
 ## Polling guidance
 
@@ -3409,6 +3484,14 @@ Each event item includes the full event detail shape:
 ## Result freshness
 
 `profile_version`, `active_result_version`, and `is_stale` help clients decide whether to refresh recommendations after profile inputs change. For most UI integrations, show the current results and re-run the endpoint when the user edits the company URL, audience description, filters, or geography.
+
+## Integration guidance
+
+- This endpoint is synchronous but can take several seconds for broad profiles or large result sets. Show a loading state and keep user input editable.
+- `relevanceReason` can be `null`. Do not require it before displaying ranked recommendations.
+- Use `match_score`, `rank`, matched counts, event dates, geography, categories, and follow-up evidence together. Avoid presenting score differences as exact mathematical certainty.
+- For the top events, follow up with [Event detail](/api-reference/events/detail), then preview [List event exhibitors](/api-reference/exhibitors/list) or [List event personnel](/api-reference/personnel/list) before asking the user to unlock an event.
+- If event summary counts are `null`, use the event-scoped list endpoint's `total` and `semantics` fields for the current access and filter context.
 
 ## Error responses
 - `400 Bad Request`
@@ -3774,10 +3857,24 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | --- | --- | --- |
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
+| Exhibitor company search | `50` credits | `POST /external/exhibitors/search-by-company-name` finds exhibitor company records from a company name. |
 | Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
 | LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
+
+## Final billing reconciliation
+
+Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/balance) and the affected resource.
+
+This is especially important when:
+
+- an event or contact was already unlocked
+- an asynchronous contact unlock task completes with mixed item-level outcomes
+- a submitted contact is ineligible, failed, or does not produce an email
+- a workflow is retried after a timeout
+
+For contact unlocks, count delivered enrichment only when an item-level result is unlocked and contains an email. Keep failed or unresolved items visible separately from successful unlocks.
 
 ## Credit-safe integration pattern
 

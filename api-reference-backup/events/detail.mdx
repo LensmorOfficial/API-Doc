@@ -1,0 +1,133 @@
+---
+title: "Event detail"
+description: "Retrieve detailed Lensmor event metadata including venue, dates, categories, topics, pricing, coordinates, status flags, and source data."
+openapi: "openapi.json GET /external/events/{id}"
+---
+
+Get detailed information for a single event.
+
+Use this endpoint after event discovery when you need venue, category, topic, attendee, and event-type metadata for a specific event.
+
+## When to use this endpoint
+
+Use `GET /external/events/:id` when the user has selected an event and your integration needs a canonical event profile before taking follow-up action.
+
+Good follow-up actions include:
+
+- showing a detailed event page
+- deciding whether to preview exhibitors or personnel
+- confirming event identity before an unlock
+- syncing selected event metadata into a CRM or internal planning tool
+
+## Endpoint
+`GET /external/events/:id`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Path parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "event": {
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025",
+    "nickname": "Consumer Electronics Show 2025",
+    "description": "CES 2025, taking place in Las Vegas...",
+    "url": "https://www.ces.tech/",
+    "dateStart": "2025-01-07",
+    "dateEnd": "2025-01-10",
+    "venue": "Las Vegas Convention Center",
+    "city": "Las Vegas",
+    "region": "Nevada",
+    "country": "United States",
+    "latitude": "36.1313238",
+    "longitude": "-115.1503622",
+    "attendeeCount": 7769,
+    "priceLower": "0",
+    "priceUpper": "0",
+    "eventType": "In-person",
+    "categories": [
+      {
+        "id": 11,
+        "code": "electric_electronics",
+        "name": "Electric & Electronics",
+        "description": null,
+        "confidence": "1"
+      },
+      {
+        "id": 19,
+        "code": "it_technology",
+        "name": "IT & Technology",
+        "description": null,
+        "confidence": "1"
+      }
+    ],
+    "topics": [],
+    "topicsCount": 697,
+    "verified": 0,
+    "future": 0,
+    "historic": 1,
+    "historicEvent": "CES",
+    "image": "https://example.com/ces-image.png",
+    "dataSource": "Lensmor",
+    "exhibitorCount": 3259,
+    "personnelCount": null,
+    "eventTypes": []
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `event` | Event detail object. |
+| `id` | Internal Lensmor event identifier. |
+| `eventId` | Public event identifier accepted by many event-scoped endpoints. |
+| `name`, `nickname`, `description` | Human-readable event identity and description fields. |
+| `url` | Source or official event URL when available. |
+| `dateStart`, `dateEnd` | Event date range. |
+| `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
+| `attendeeCount`, `exhibitorCount`, `personnelCount` | Known summary scale and coverage fields when available. These fields can be `null` or differ from current event-scoped list totals. |
+| `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
+| `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
+| `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
+| `image`, `dataSource` | Media and source metadata. |
+
+## Count fields
+
+Treat `exhibitorCount` and `personnelCount` on event detail as summary metadata for display and planning. They are not the authoritative count for the current caller's access state, filters, or page visibility.
+
+When you need current coverage numbers, call the event-scoped list endpoint and use its pagination metadata:
+
+- [List event exhibitors](/api-reference/exhibitors/list) for exhibitor totals.
+- [List event personnel](/api-reference/personnel/list) for personnel totals.
+- `semantics.counts` when present for visible, locked, and matched access context.
+
+## Error responses
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
+- Some fields can be `null` when the underlying source does not provide that data.
+- String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
+- `dataSource` indicates the data origin (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values.
+- `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
+- This endpoint does not unlock event-scoped exhibitor or personnel access by itself.

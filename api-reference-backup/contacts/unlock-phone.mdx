@@ -1,0 +1,36 @@
+---
+title: "Unlock contact phone numbers"
+description: "Start an asynchronous phone number unlock workflow for one or more personnel records in a Lensmor event."
+openapi: "openapi.json POST /external/contacts/unlock-phone"
+---
+
+Start an asynchronous job to unlock phone numbers for one or more personnel records.
+
+Use this endpoint after finding contacts from personnel or contact search results when you need direct phone numbers rather than email addresses.
+
+## When to use this endpoint
+
+Use `POST /external/contacts/unlock-phone` when your integration needs verified phone numbers for outbound calling or SMS workflows.
+
+This endpoint is asynchronous. The create call returns a task identifier; t phone unlock task](/api-reference/contacts/unlock-phone-task) until the job reaches a terminal state.
+
+<Note>
+  Phone unlock is a separate workflow from email unlock. Use [Unlock contact emails](/api-reference/contacts/unlock) for email addresses.
+</Note>
+
+<Warning>
+  A `201 Created` response means the task was accepted. Always inspect item-level results before counting a contact phone as delivered.
+</Warning>
+
+## Credit behavior
+
+Phone unlock costs credits per chargeable contact.
+
+- Already unlocked contacts are not charged again.
+- Insufficient balance returns `402 Payment Required`.
+- The API rejects batches larger than 100 personnel IDs.
+
+## Notes
+- This endpoint creates an asynchronous unlock job. Poll [Get phone unlock task](/api-reference/contacts/unlock-phone-task) with `task_id`.
+- Do not create duplicate unlock tasks while a prior task is still pending or processing.
+- See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

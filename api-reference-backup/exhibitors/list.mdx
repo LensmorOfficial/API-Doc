@@ -1,0 +1,184 @@
+---
+title: "Exhibitors list"
+description: "List exhibitors for a Lensmor event with pagination, preview semantics, recommendation metadata, company enrichment, and unlock guidance."
+openapi: "openapi.json GET /external/exhibitors/list"
+---
+
+List exhibitors for a specific event.
+
+Use this endpoint when you want a paginated exhibitor catalog scoped to one event, with optional company and personnel filters.
+
+## When to use this endpoint
+
+Use `GET /external/exhibitors/list` after an event has been selected. This is the primary endpoint for browsing companies inside one event.
+
+Common use cases:
+
+- build an event exhibitor directory
+- filter exhibitors by industry, category, geography, or company keyword
+- request a best-effort nested personnel sample with `personnelLimit`
+- decide whether an event is worth unlocking for full coverage
+
+## Endpoint
+`GET /external/exhibitors/list`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_id` | Yes | string | Event identifier used to scope the exhibitor list. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
+| `keyword` | No | string | Exhibitor keyword search. |
+| `country` | No | string | Country filter. |
+| `category` | No | string[] | Exhibitor category filter. Repeated query parameters are supported. |
+| `industry` | No | string[] | Exhibitor industry filter. Repeated query parameters are supported. |
+| `jobTitle` | No | string[] | Personnel job-title filter. Repeated query parameters are supported. |
+| `managementLevel` | No | string[] | Personnel management-level filter, such as `vp` or `c_suite`. |
+| `department` | No | string[] | Personnel department filter, such as `marketing` or `sales`. |
+| `personnelLimit` | No | integer | Maximum nested personnel rows per exhibitor when available. Use `0` or omit for none. Treat nested personnel as best-effort; use `GET /external/personnel/list` with `event_id` and `exhibitor_id` when contacts are required. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by company and personnel attributes
+
+```bash
+curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&industry=Retail%20Technology&department=sales&managementLevel=vp&personnelLimit=3&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "domain": "acme.example",
+      "description": "Retail analytics platform",
+      "website": "https://acme.example",
+      "industry": "Retail Technology",
+      "employeeCount": 220,
+      "country": "United States",
+      "logo": null,
+      "dataSource": "local_import",
+      "linkedinUrl": null,
+      "fundingRound": "Series B",
+      "matched_event_ids": ["139574"],
+      "isRecommended": false,
+      "recommendationRank": null,
+      "matchStatus": null,
+      "matchScore": null,
+      "matchTier": null,
+      "matchReason": null,
+      "categories": ["Retail", "POS", "Analytics"],
+      "techStacks": ["Cloudflare", "Nginx"],
+      "buyingSignalTags": ["funding_round", "new_hire"],
+      "buyingSignalStatus": "ready",
+      "buyingSignals": [
+        {
+          "signalTag": "funding_round",
+          "signalDate": "2026-03-01",
+          "sourceType": "news",
+          "sourceTitle": "Acme raises $50M Series B",
+          "sourceUrl": "https://techcrunch.com/...",
+          "evidenceSummary": "Acme completed a $50M Series B round.",
+          "relevanceToIcp": "Strong signal — company expanding headcount post-funding.",
+          "recommendedPlay": "Reach out with a congratulatory opening.",
+          "signalScore": 85,
+          "confidence": "high",
+          "directOrInferred": "direct",
+          "analyzedAt": "1704067200000"
+        }
+      ]
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true,
+  "recommendationProcessing": false,
+  "recommendationProcessingFeature": "none",
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "counts": {
+      "actualTotal": 87,
+      "visibleTotal": 50,
+      "remainingLockedCount": 37
+    },
+    "pageState": {
+      "requestedPage": 1,
+      "accessible": true,
+      "maxAccessiblePage": 1
+    },
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_exhibitors",
+      "credits": 2000
+    },
+    "guidance": {
+      "code": "preview_results_truncated",
+      "message": "This event is locked. Only the first 50 matching exhibitors are currently accessible. Unlock the event to access the remaining matching results."
+    }
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Exhibitor records for the selected event and filters. |
+| `id` | Exhibitor identifier. Use it for exhibitor profile and related-event lookups. |
+| `companyName`, `domain`, `website` | Company identity and web presence fields. |
+| `description`, `industry`, `employeeCount`, `country` | Company enrichment metadata. |
+| `categories` | Exhibitor category labels as a string array (e.g. `["Artificial Intelligence", "Digital Health"]`). `[]` when none. |
+| `linkedinUrl`, `fundingRound`, `techStacks` | Additional enrichment signals when available. |
+| `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
+| `buyingSignalStatus` | Latest buying-signal batch state: `ready`, `processing`, `pending`, or `null`. |
+| `buyingSignals` | Full latest-batch buying-signal objects, each with `signalTag`, `signalDate`, `sourceType`, `sourceTitle`, `sourceUrl`, `evidenceSummary`, `relevanceToIcp`, `recommendedPlay`, `signalScore` (0–100), `confidence` (`high`/`medium`/`low`), `directOrInferred` (`direct`/`inferred`), `analyzedAt` (unix ms). `[]` when none. |
+| `matched_event_ids` | Event identifiers connected to the result. For event-scoped list calls, this reflects the requested event scope. |
+| `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
+| `recommendationProcessing` | Whether recommendation metadata is still being prepared. |
+| `recommendationProcessingFeature` | Which recommendation feature is processing. `"none"` when idle. |
+| `semantics` | Preview/full access metadata for the selected event. |
+
+## Personnel samples
+
+`personnelLimit` asks the API to include a small personnel sample for each exhibitor when the service has a suitable sample for the current event, filters, and access state. It is not a guarantee that every exhibitor item will contain nested personnel rows.
+
+When your workflow needs buyer contacts for a specific company, call [Personnel list](/api-reference/personnel/list) with both `event_id` and `exhibitor_id`. Treat that event-scoped personnel response as the source of truth for people coverage and contact unlock state.
+
+## Access semantics
+
+When an event is locked, this endpoint can return a preview slice instead of full results. Use `semantics` to explain the state to users:
+
+- `accessMode` indicates preview or full access.
+- `counts.visibleTotal` is the number of records currently visible.
+- `counts.remainingLockedCount` is the number of matching records hidden behind event unlock.
+- `pageState.accessible` indicates whether the requested page is visible under the current access state.
+- `unlock.requiredForMoreResults` tells you whether [Unlock event](/api-reference/events/unlock) is the next action.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- This endpoint is event-scoped and requires `event_id` on every request.
+- `matched_event_ids` reflects the requested event scope.
+- `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- After event unlock, request the target page again and confirm `semantics.accessMode` moved to `full` before assuming all matching exhibitors are available.

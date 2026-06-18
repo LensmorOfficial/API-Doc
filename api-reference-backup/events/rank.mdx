@@ -1,0 +1,97 @@
+---
+title: "Events rank"
+description: "Rank Lensmor events for a target company profile and return ordered recommendations with score signals and match reasons where available."
+openapi: "openapi.json POST /external/events/rank"
+---
+
+Rank multiple events for the authenticated caller.
+
+Use this endpoint when you already have a candidate set of events and want them returned in preference order.
+
+## When to use this endpoint
+
+Use `POST /external/events/rank` when another part of your workflow has already produced a shortlist and you need Lensmor to sort it.
+
+Typical sources of a shortlist:
+
+- events selected by a user
+- events found from [Events list](/api-reference/events/list)
+- events related to an exhibitor or contact
+- events imported from a CRM or spreadsheet
+
+If you do not have a shortlist yet, start with [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) or [Events list](/api-reference/events/list).
+
+## Endpoint
+`POST /external/events/rank`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`201 Created`
+
+## Request body
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `event_ids` | Yes | string[] | List of event identifiers to rank. |
+
+## Request example
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/rank" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"event_ids":["139574","139575"]}'
+```
+
+## Response example
+```json
+{
+  "items": [
+    {
+      "event_id": "139574",
+      "name": "NRF 2026",
+      "rank": 1,
+      "match_score": 0.86,
+      "reasons": []
+    },
+    {
+      "event_id": "139575",
+      "name": "Shoptalk 2026",
+      "rank": 2,
+      "match_score": 0.79,
+      "reasons": []
+    }
+  ]
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `items` | Ranked event results ordered from best to lowest fit. |
+| `event_id` | Event identifier from the submitted shortlist. |
+| `name` | Event name when available. |
+| `rank` | One-based rank position in the result set. |
+| `match_score` | Fit score used for ranking. |
+| `reasons` | Explanation list when available. Currently may be empty. |
+
+## Integration guidance
+
+- Preserve the original submitted event IDs in your client if you need to reconcile ranked results with local records.
+- Display `rank` and `match_score` together when showing ordered recommendations.
+- Treat the endpoint as shortlist ordering, not a complete recommendation report by itself.
+- Live responses can return low or zero `match_score` values and empty `reasons`. Combine returned order with event metadata, matched counts, and follow-up detail or list calls before making a final business recommendation.
+- If `reasons` is empty, use event metadata and evidence from follow-up calls rather than showing a blank explanation block.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `409 Conflict`
+- `429 Too Many Requests`
+
+## Notes
+- This endpoint uses `POST` because the request body contains an array of event IDs that does not fit cleanly in query parameters. It does not create a persistent resource.
+- The current service returns an ordered `items` array with `rank` and `match_score`.
+- `reasons` is currently emitted as an empty array by the live service.

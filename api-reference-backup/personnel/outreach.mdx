@@ -1,0 +1,21 @@
+---
+title: "Get outreach message detail"
+description: "Retrieve AI-generated outreach message content for a specific personnel and event combination."
+openapi: "openapi.json GET /external/personnel/outreach"
+---
+
+Retrieve the generated outreach message for a specific personnel record in an event context.
+
+Use this endpoint after [Generate outreach messages](/api-reference/personnel/generate-outreach-message) to fetch the AI-generated content.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/outreach` when:
+
+- Polling for outreach generation completion after calling the generate endpoint
+- Retrieving previously generated messages for display or export
+- Checking whether outreach content already exists before triggering a new generation
+
+## Notes
+- Returns the most recent outreach generation result for the given personnel and event combination.
+- Re-generating outreach for the same personnel + event will overwrite previous content.

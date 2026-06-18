@@ -1,0 +1,79 @@
+---
+title: "Personnel profile details"
+description: "Retrieve a Lensmor personnel profile with company context, role metadata, LinkedIn identity, department, and seniority information."
+openapi: "openapi.json GET /external/personnel/profile"
+---
+
+Fetch the profile for a single person.
+
+Use this endpoint when you already know the personnel identifier and need profile details for that person.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/profile` after a user selects a person from a personnel list, contact search result, or LinkedIn-based event lookup.
+
+This endpoint is intentionally lightweight. Use it to confirm the person's identity and current email unlock state before starting a contact unlock workflow.
+
+## Endpoint
+`GET /external/personnel/profile`
+
+## Authentication
+See [Authentication](/authentication)
+
+## Success status code
+`200 OK`
+
+## Query parameters
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_id` | Yes | string | Numeric-string personnel identifier. |
+
+## Request example
+```bash
+curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "title": "VP of Retail Technology",
+  "department": "Technology",
+  "seniorityLevel": "vp",
+  "linkedinUrl": "https://linkedin.com/in/jane-smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": "exhibitor",
+  "email": null,
+  "contactUnlockStatus": "locked"
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `id` | Personnel identifier. |
+| `fullName`, `title` | Person display fields. |
+| `department`, `seniorityLevel` | Normalized role metadata when available. |
+| `linkedinUrl` | Public LinkedIn profile URL when available. |
+| `companyName` | Associated company or exhibitor. |
+| `sourceType` | Source context, such as exhibitor-derived data. |
+| `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `contactUnlockStatus` | Current contact access state for this API key owner. |
+
+## Email access
+
+An empty `email` value does not necessarily mean Lensmor has no email data. It can also mean the contact has not been unlocked for the caller. Use `contactUnlockStatus` to decide whether to offer an email unlock action.
+
+## Error responses
+- `400 Bad Request`
+- `401 Unauthorized`
+- `404 Not Found`
+- `429 Too Many Requests`
+
+## Notes
+- This response stays intentionally lightweight.
+- Emails are returned only when the contact is already unlocked for the caller.
+- The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
