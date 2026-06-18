@@ -53,6 +53,7 @@
           },
           {
             "group": "API Reference",
+            "openapi": "openapi.json",
             "pages": [
               {
                 "group": "Credits",
