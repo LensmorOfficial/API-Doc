@@ -28,6 +28,7 @@
       }
     }
   },
+  "openapi": "openapi.json",
   "navigation": {
     "tabs": [
       {
@@ -53,69 +54,68 @@
           },
           {
             "group": "API Reference",
-            "openapi": "openapi.json",
             "pages": [
               {
                 "group": "Credits",
                 "pages": [
-                  "api-reference/credits/balance"
+                  "GET /external/credits/balance"
                 ]
               },
               {
                 "group": "Actions",
                 "pages": [
-                  "api-reference/actions/precheck"
+                  "POST /external/actions/precheck"
                 ]
               },
               {
                 "group": "Events",
                 "pages": [
-                  "api-reference/events/list",
-                  "api-reference/events/detail",
-                  "api-reference/events/brief",
-                  "api-reference/events/fit-score",
-                  "api-reference/events/rank",
-                  "api-reference/events/unlock"
+                  "GET /external/events/list",
+                  "GET /external/events/{id}",
+                  "GET /external/events/brief",
+                  "POST /external/events/fit-score",
+                  "POST /external/events/rank",
+                  "POST /external/events/{id}/unlock"
                 ]
               },
               {
                 "group": "Exhibitors",
                 "pages": [
-                  "api-reference/exhibitors/list",
-                  "api-reference/exhibitors/search",
-                  "api-reference/exhibitors/search-by-company-name",
-                  "api-reference/exhibitors/search-events",
-                  "api-reference/exhibitors/profile",
-                  "api-reference/exhibitors/events"
+                  "GET /external/exhibitors/list",
+                  "POST /external/exhibitors/search",
+                  "POST /external/exhibitors/search-by-company-name",
+                  "POST /external/exhibitors/search-events",
+                  "GET /external/exhibitors/profile",
+                  "GET /external/exhibitors/events"
                 ]
               },
               {
                 "group": "Personnel",
                 "pages": [
-                  "api-reference/personnel/list",
-                  "api-reference/personnel/profile",
-                  "api-reference/personnel/events",
-                  "api-reference/personnel/events-by-linkedin",
-                  "api-reference/personnel/unlock-linkedin-activity",
-                  "api-reference/personnel/generate-outreach-message",
-                  "api-reference/personnel/outreach"
+                  "GET /external/personnel/list",
+                  "GET /external/personnel/profile",
+                  "GET /external/personnel/events",
+                  "GET /external/personnel/events/by-linkedin",
+                  "POST /external/personnel/unlock-linkedin-activity",
+                  "POST /external/personnel/generate-outreach-message",
+                  "GET /external/personnel/outreach"
                 ]
               },
               {
                 "group": "Contacts",
                 "pages": [
-                  "api-reference/contacts/search",
-                  "api-reference/contacts/unlock",
-                  "api-reference/contacts/unlock-task",
-                  "api-reference/contacts/unlock-phone",
-                  "api-reference/contacts/unlock-phone-task"
+                  "GET /external/contacts/search",
+                  "POST /external/contacts/unlock",
+                  "GET /external/contacts/unlock-tasks/{taskId}",
+                  "POST /external/contacts/unlock-phone",
+                  "GET /external/contacts/unlock-phone-tasks/{taskId}"
                 ]
               },
               {
                 "group": "Profile Matching",
                 "pages": [
-                  "api-reference/profile-matching/actions-apply-recommended-events-paged",
-                  "api-reference/profile-matching/recommendations-exhibitors"
+                  "POST /external/profile-matching/actions/apply-recommended-events/paged",
+                  "GET /external/profile-matching/recommendations/exhibitors"
                 ]
               }
             ]
@@ -146,6 +146,5 @@
   },
   "search": {
     "prompt": "Search Lensmor API docs..."
-  },
-  "openapi": "openapi.json"
+  }
 }
