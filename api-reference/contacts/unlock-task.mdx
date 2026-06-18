@@ -1,6 +1,7 @@
 ---
 title: "Get contact unlock task"
 description: "Poll a Lensmor contact unlock task, inspect task status, retrieve completed email results, and handle failed or pending unlock workflows."
+openapi: "GET /external/contacts/unlock-tasks/{taskId}"
 ---
 
 Check the status of a contact email unlock job.
@@ -9,75 +10,9 @@ Use this endpoint after `POST /external/contacts/unlock` returns `task_id`.
 
 ## When to use this endpoint
 
-Use `GET /external/contacts/unlock-tasks/:taskId` to make email unlock workflows resumable. The task ID can be stored in your database, background worker, or frontend state and polled until the job completes or fails.
+Use `GET /external/contacts/unlock-tasks/{taskId}` to make email unlock workflows resumable. The task ID can be stored in your database, background worker, or frontend state and polled until the job completes or fails.
 
 Do not assume the unlock result is ready immediately after creating the task.
-
-## Endpoint
-`GET /external/contacts/unlock-tasks/:taskId`
-
-## Authentication
-See [Authentication](/authentication)
-
-## Success status code
-`200 OK`
-
-## Path parameters
-| Name | Required | Type | Notes |
-| --- | --- | --- | --- |
-| `taskId` | Yes | string | The `task_id` returned by contact unlock. |
-
-## Request example
-```bash
-curl "https://platform.lensmor.com/external/contacts/unlock-tasks/321" \
-  -H "Authorization: Bearer $LENSMOR_API_KEY"
-```
-
-## Response example
-```json
-{
-  "taskId": "321",
-  "taskStatus": "processing",
-  "items": [
-    {
-      "personnelId": "789",
-      "status": "unlocked",
-      "email": "jane@acme.example"
-    },
-    {
-      "personnelId": "790",
-      "status": "processing"
-    }
-  ]
-}
-```
-
-## Response fields
-
-| Field | Description |
-| --- | --- |
-| `taskId` | Contact unlock task identifier. |
-| `taskStatus` | Overall task state. |
-| `items` | Per-person unlock results. |
-| `items[].personnelId` | Personnel identifier submitted in the unlock request. |
-| `items[].status` | Item-level unlock state. |
-| `items[].email` | Email address when the item is unlocked successfully. |
-| `items[].errorCode` | Error code when an individual item fails, if provided. |
-
-## Status values
-Task status:
-
-- `pending`
-- `processing`
-- `completed`
-- `failed`
-
-Item status:
-
-- `pending`
-- `processing`
-- `unlocked`
-- `failed`
 
 ## Result interpretation
 
@@ -97,11 +32,6 @@ Use a backoff schedule instead of polling aggressively:
 ```
 
 Stop polling when `taskStatus` is `completed` or `failed`. If some items remain failed while the task is completed, handle those item statuses individually.
-
-## Error responses
-- `401 Unauthorized`
-- `404 Not Found`
-- `429 Too Many Requests`
 
 ## Notes
 - `email` is present only when the individual item has been unlocked successfully.

@@ -1,0 +1,34 @@
+---
+title: "Generate outreach messages"
+description: "Generate AI-powered personalized outreach messages for one or more personnel in a Lensmor event context."
+openapi: "POST /external/personnel/generate-outreach-message"
+---
+
+Generate AI-powered personalized outreach messages for one or more personnel in an event context.
+
+Use this endpoint when your integration needs AI-generated cold outreach content tailored to each contact's role, company, and event participation.
+
+## When to use this endpoint
+
+Use `POST /external/personnel/generate-outreach-message` when you want to:
+
+- Generate personalized cold emails for event contacts
+- Create LinkedIn connection messages referencing shared event context
+- Batch-produce outreach content for multiple contacts at once
+
+This endpoint is asynchronous. Each personnel item may create a background task. Use [Get outreach message detail](/api-reference/personnel/outreach) to retrieve the generated content once processing completes.
+
+<Note>
+  Channels must be one or more of: `email`, `linkedin_message`. You can request both simultaneously.
+</Note>
+
+## Credit behavior
+
+Outreach message generation consumes credits per personnel record processed.
+
+- Maximum 50 personnel IDs per request.
+- Insufficient balance returns `402 Payment Required`.
+
+## Notes
+- Poll [Get outreach message detail](/api-reference/personnel/outreach) with `personnel_id` and `event_id` to retrieve generated messages.
+- Messages are generated using AI based on the contact's profile, company context, and event participation data.

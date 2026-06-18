@@ -95,7 +95,9 @@
                   "api-reference/personnel/profile",
                   "api-reference/personnel/events",
                   "api-reference/personnel/events-by-linkedin",
-                  "api-reference/personnel/unlock-linkedin-activity"
+                  "api-reference/personnel/unlock-linkedin-activity",
+                  "api-reference/personnel/generate-outreach-message",
+                  "api-reference/personnel/outreach"
                 ]
               },
               {
@@ -103,7 +105,9 @@
                 "pages": [
                   "api-reference/contacts/search",
                   "api-reference/contacts/unlock",
-                  "api-reference/contacts/unlock-task"
+                  "api-reference/contacts/unlock-task",
+                  "api-reference/contacts/unlock-phone",
+                  "api-reference/contacts/unlock-phone-task"
                 ]
               },
               {
