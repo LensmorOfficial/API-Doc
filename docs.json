@@ -53,74 +53,6 @@
             ]
           },
           {
-            "group": "API Reference",
-            "pages": [
-              {
-                "group": "Credits",
-                "pages": [
-                  "GET /external/credits/balance"
-                ]
-              },
-              {
-                "group": "Actions",
-                "pages": [
-                  "POST /external/actions/precheck"
-                ]
-              },
-              {
-                "group": "Events",
-                "pages": [
-                  "GET /external/events/list",
-                  "GET /external/events/{id}",
-                  "GET /external/events/brief",
-                  "POST /external/events/fit-score",
-                  "POST /external/events/rank",
-                  "POST /external/events/{id}/unlock"
-                ]
-              },
-              {
-                "group": "Exhibitors",
-                "pages": [
-                  "GET /external/exhibitors/list",
-                  "POST /external/exhibitors/search",
-                  "POST /external/exhibitors/search-by-company-name",
-                  "POST /external/exhibitors/search-events",
-                  "GET /external/exhibitors/profile",
-                  "GET /external/exhibitors/events"
-                ]
-              },
-              {
-                "group": "Personnel",
-                "pages": [
-                  "GET /external/personnel/list",
-                  "GET /external/personnel/profile",
-                  "GET /external/personnel/events",
-                  "GET /external/personnel/events/by-linkedin",
-                  "POST /external/personnel/unlock-linkedin-activity",
-                  "POST /external/personnel/generate-outreach-message",
-                  "GET /external/personnel/outreach"
-                ]
-              },
-              {
-                "group": "Contacts",
-                "pages": [
-                  "GET /external/contacts/search",
-                  "POST /external/contacts/unlock",
-                  "GET /external/contacts/unlock-tasks/{taskId}",
-                  "POST /external/contacts/unlock-phone",
-                  "GET /external/contacts/unlock-phone-tasks/{taskId}"
-                ]
-              },
-              {
-                "group": "Profile Matching",
-                "pages": [
-                  "POST /external/profile-matching/actions/apply-recommended-events/paged",
-                  "GET /external/profile-matching/recommendations/exhibitors"
-                ]
-              }
-            ]
-          },
-          {
             "group": "Concepts",
             "pages": [
               "concepts/errors",
@@ -131,18 +63,99 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API Reference",
+        "openapi": "openapi.json",
+        "groups": [
+          {
+            "group": "Credits",
+            "pages": [
+              "GET /external/credits/balance"
+            ]
+          },
+          {
+            "group": "Actions",
+            "pages": [
+              "POST /external/actions/precheck"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "GET /external/events/list",
+              "GET /external/events/{id}",
+              "GET /external/events/brief",
+              "POST /external/events/fit-score",
+              "POST /external/events/rank",
+              "POST /external/events/{id}/unlock"
+            ]
+          },
+          {
+            "group": "Exhibitors",
+            "pages": [
+              "GET /external/exhibitors/list",
+              "POST /external/exhibitors/search",
+              "POST /external/exhibitors/search-by-company-name",
+              "POST /external/exhibitors/search-events",
+              "GET /external/exhibitors/profile",
+              "GET /external/exhibitors/events"
+            ]
+          },
+          {
+            "group": "Personnel",
+            "pages": [
+              "GET /external/personnel/list",
+              "GET /external/personnel/profile",
+              "GET /external/personnel/events",
+              "GET /external/personnel/events/by-linkedin",
+              "POST /external/personnel/unlock-linkedin-activity",
+              "POST /external/personnel/generate-outreach-message",
+              "GET /external/personnel/outreach"
+            ]
+          },
+          {
+            "group": "Contacts",
+            "pages": [
+              "GET /external/contacts/search",
+              "POST /external/contacts/unlock",
+              "GET /external/contacts/unlock-tasks/{taskId}",
+              "POST /external/contacts/unlock-phone",
+              "GET /external/contacts/unlock-phone-tasks/{taskId}"
+            ]
+          },
+          {
+            "group": "Profile Matching",
+            "pages": [
+              "POST /external/profile-matching/actions/apply-recommended-events/paged",
+              "GET /external/profile-matching/recommendations/exhibitors"
+            ]
+          }
+        ]
       }
     ]
   },
   "description": "Lensmor API documentation for event intelligence, trade show discovery, exhibitor research, profile matching, credits, and contact email unlock workflows.",
   "seo": {
     "indexing": "navigable",
-    "metatags": {
-      "og:site_name": "Lensmor API Docs",
-      "og:type": "website",
-      "twitter:card": "summary_large_image",
-      "keywords": "Lensmor API, event intelligence API, trade show API, exhibitor API, B2B prospecting API, event recommendation API"
-    }
+    "metatags": [
+      {
+        "property": "og:site_name",
+        "content": "Lensmor API Docs"
+      },
+      {
+        "property": "og:type",
+        "content": "website"
+      },
+      {
+        "property": "twitter:card",
+        "content": "summary_large_image"
+      },
+      {
+        "name": "keywords",
+        "content": "Lensmor API event intelligence API trade show API exhibitor API B2B prospecting API event recommendation API"
+      }
+    ]
   },
   "search": {
     "prompt": "Search Lensmor API docs..."
