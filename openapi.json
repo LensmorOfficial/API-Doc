@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.22.0",
+    "version": "0.23.0",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching."
   },
   "servers": [
@@ -959,6 +959,11 @@
         ],
         "summary": "Unlock LinkedIn activity",
         "operationId": "unlockLinkedinActivity",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1399,6 +1404,11 @@
         ],
         "summary": "Generate outreach messages",
         "operationId": "generateOutreachMessage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1493,7 +1503,8 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "User API key"
+        "bearerFormat": "Business sk API key",
+        "description": "Send the full Business API key from Settings -> API Keys, for example `Authorization: Bearer sk_your_api_key`."
       }
     },
     "parameters": {
@@ -3272,6 +3283,13 @@
                 }
               }
             }
+          },
+          "taskCenterId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "TaskCenter identifier returned when at least one outreach generation task was created."
           }
         }
       },
@@ -3332,6 +3350,29 @@
               "string",
               "null"
             ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current outreach message status, such as processing, ready, or failed. Null when no record exists."
+          },
+          "create_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Record creation timestamp in milliseconds. Null when no record exists."
+          },
+          "update_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Record update timestamp in milliseconds. Null when no record exists."
           }
         }
       }

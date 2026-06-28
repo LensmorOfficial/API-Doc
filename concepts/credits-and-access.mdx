@@ -78,14 +78,14 @@ Use a confirmation step for operations that can spend credits:
 For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
-Some credit-consuming routes accept `x-call-source`.
+Some credit-consuming or task-producing routes accept `x-call-source`.
 
 Supported values are:
 
 - `api` — default customer API usage.
 - `agent` — agent-driven usage.
 
-If omitted or unrecognized, the API records the call as `api`.
+If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
 
 ## Handling `402 Payment Required`
 

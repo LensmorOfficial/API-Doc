@@ -11,7 +11,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.21.0`
+Current documentation version: `v0.23.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -25,7 +25,7 @@ Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a pa
 Use the key with the API base URL above:
 
 ```http
-Authorization: Bearer uak_your_api_key
+Authorization: Bearer sk_your_api_key
 ```
 
 ## What you can build
@@ -60,7 +60,7 @@ Authorization: Bearer uak_your_api_key
 
 <Steps>
   <Step title="Authenticate every request">
-    Create a user API key and send it as `Authorization: Bearer uak_your_api_key`.
+    Create a user API key and send it as `Authorization: Bearer sk_your_api_key`.
   </Step>
   <Step title="Check credits before paid workflows">
     Call `GET /external/credits/balance` before event unlocks, email unlocks, or reverse event searches.
@@ -119,16 +119,16 @@ Lensmor API requests require a user API key.
 3. Open **Settings → API Keys**.
 4. Click **Create API Key**, give it a label, and copy the key immediately — it is only shown once.
 
-Your key starts with `uak_` and looks like this:
+Your key starts with `sk_` and looks like this:
 
 ```
-uak_abc12def_xyzExampleKeyValue1234567890
+sk_0123456789abcdef_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 
 Store it in an environment variable before making requests:
 
 ```bash
-export LENSMOR_API_KEY="uak_your_api_key"
+export LENSMOR_API_KEY="sk_your_api_key"
 ```
 
 <Note>
@@ -142,7 +142,7 @@ Combine this base URL with the endpoint paths documented in the API reference. F
 
 ## Header format
 ```http
-Authorization: Bearer uak_your_api_key
+Authorization: Bearer sk_your_api_key
 ```
 
 ## Example request
@@ -265,11 +265,11 @@ You need a valid user API key and an environment capable of sending HTTPS reques
 Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a paid subscription plan, then create an API key from **Settings → API Keys**.
 
 ```bash
-export LENSMOR_API_KEY="uak_your_api_key"
+export LENSMOR_API_KEY="sk_your_api_key"
 ```
 
 <Note>
-  Lensmor API keys use the `uak_` prefix. Older `sk_` examples are historical and should not be used for new integrations.
+  Lensmor API keys use the `sk_` prefix. Copy the full key value from **Settings -> API Keys**; the visible prefix alone is not enough for authentication.
 </Note>
 
 ## 1. Check your credit balance
@@ -732,7 +732,7 @@ Production integrations should handle authentication, pagination, credit-aware a
 
 <Steps>
   <Step title="Send authentication on every request">
-    Include `Authorization: Bearer uak_your_api_key`. Treat `401 Unauthorized` as a key or account configuration issue.
+    Include `Authorization: Bearer sk_your_api_key`. Treat `401 Unauthorized` as a key or account configuration issue.
   </Step>
   <Step title="Use pagination consistently">
     Always pass `page` and `pageSize` for list endpoints. Do not assume all records fit in the first response.
@@ -3901,14 +3901,14 @@ Use a confirmation step for operations that can spend credits:
 For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
-Some credit-consuming routes accept `x-call-source`.
+Some credit-consuming or task-producing routes accept `x-call-source`.
 
 Supported values are:
 
 - `api` — default customer API usage.
 - `agent` — agent-driven usage.
 
-If omitted or unrecognized, the API records the call as `api`.
+If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
 
 ## Handling `402 Payment Required`
 
