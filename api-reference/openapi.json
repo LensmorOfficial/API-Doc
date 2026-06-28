@@ -1,0 +1,3381 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Lensmor API",
+    "version": "0.23.0",
+    "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching."
+  },
+  "servers": [
+    {
+      "url": "https://platform.lensmor.com"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Credits"
+    },
+    {
+      "name": "Actions"
+    },
+    {
+      "name": "Events"
+    },
+    {
+      "name": "Exhibitors"
+    },
+    {
+      "name": "Personnel"
+    },
+    {
+      "name": "Contacts"
+    },
+    {
+      "name": "Profile Matching"
+    }
+  ],
+  "paths": {
+    "/external/credits/balance": {
+      "get": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Get credits balance",
+        "operationId": "getExternalCreditsBalance",
+        "responses": {
+          "200": {
+            "description": "Credits balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalance"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/actions/precheck": {
+      "post": {
+        "tags": [
+          "Actions"
+        ],
+        "summary": "Precheck an external action",
+        "operationId": "precheckExternalAction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionPrecheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Precheck decision envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionPrecheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/list": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "List events",
+        "operationId": "listEvents",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "date_start_from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "date_start_to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "quality",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/{id}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get event detail",
+        "operationId": "getEventDetail",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "event"
+                  ],
+                  "properties": {
+                    "event": {
+                      "$ref": "#/components/schemas/EventDetail"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/brief": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get event brief",
+        "operationId": "getEventBrief",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event brief",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "event",
+                    "summary"
+                  ],
+                  "properties": {
+                    "event": {
+                      "$ref": "#/components/schemas/EventItem"
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "attendeeCount": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "exhibitorCount": {
+                          "type": "integer"
+                        },
+                        "topCategories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "dataFreshness": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/fit-score": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Score one event",
+        "operationId": "scoreEventFit",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/EventIdBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Event fit score",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFitScore"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/rank": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Rank events",
+        "operationId": "rankEvents",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "event_ids"
+                ],
+                "properties": {
+                  "event_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ranked events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EventRankItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/{id}/unlock": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Unlock event access",
+        "operationId": "unlockEvent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Event unlock result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventUnlockResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/list": {
+      "get": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "List event exhibitors",
+        "operationId": "listExhibitors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "$ref": "#/components/parameters/CategoryArray"
+          },
+          {
+            "$ref": "#/components/parameters/IndustryArray"
+          },
+          {
+            "name": "jobTitle",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "managementLevel",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "personnelLimit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated exhibitors with access semantics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExhibitorPageWithSemantics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/search": {
+      "post": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "Search exhibitors by company context",
+        "operationId": "searchExhibitors",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ExhibitorSearchBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Paginated exhibitors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExhibitorPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/search-by-company-name": {
+      "post": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "Search exhibitors by company name",
+        "operationId": "searchExhibitorsByCompanyName",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CompanyNameBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Paginated exhibitors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExhibitorPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/search-events": {
+      "post": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "Search events by exhibitor company name",
+        "operationId": "searchEventsByExhibitorCompanyName",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/CompanyNameBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Paginated events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/profile": {
+      "get": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "Get exhibitor profile",
+        "operationId": "getExhibitorProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExhibitorIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exhibitor profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExhibitorProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/exhibitors/events": {
+      "get": {
+        "tags": [
+          "Exhibitors"
+        ],
+        "summary": "List exhibitor related events",
+        "operationId": "listExhibitorEvents",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExhibitorIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/list": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "List event personnel",
+        "operationId": "listPersonnel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "exhibitor_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 50
+            }
+          },
+          {
+            "name": "search_query",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated contacts with access semantics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactPageWithSemantics"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/profile": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Get personnel profile",
+        "operationId": "getPersonnelProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonnelIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personnel profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/events": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "List personnel related events",
+        "operationId": "listPersonnelEvents",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PersonnelIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/events/by-linkedin": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "List personnel related events by LinkedIn URL",
+        "operationId": "listPersonnelEventsByLinkedin",
+        "parameters": [
+          {
+            "name": "linkedin_url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personnel profile and related events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "personnel",
+                    "events"
+                  ],
+                  "properties": {
+                    "personnel": {
+                      "$ref": "#/components/schemas/ContactItem"
+                    },
+                    "events": {
+                      "$ref": "#/components/schemas/EventPage"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/unlock-linkedin-activity": {
+      "post": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Unlock LinkedIn activity",
+        "operationId": "unlockLinkedinActivity",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkedinActivityUnlockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Per-personnel LinkedIn activity unlock result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkedinActivityUnlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/contacts/search": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Search contacts",
+        "operationId": "searchContacts",
+        "parameters": [
+          {
+            "name": "company_name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "person_name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated contacts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/contacts/unlock": {
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Unlock contact emails",
+        "operationId": "unlockContactEmails",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "personnel_ids",
+                  "event_id"
+                ],
+                "properties": {
+                  "personnel_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "event_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Unlock task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactUnlockAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/contacts/unlock-tasks/{taskId}": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Get contact unlock task",
+        "operationId": "getContactUnlockTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unlock task status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactUnlockTask"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/profile-matching/actions/apply-recommended-events/paged": {
+      "post": {
+        "tags": [
+          "Profile Matching"
+        ],
+        "summary": "Apply profile and get recommended events",
+        "operationId": "applyRecommendedEventsPaged",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ProfileMatchingBody"
+        },
+        "responses": {
+          "201": {
+            "description": "Recommended events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileEventRecommendationPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/profile-matching/recommendations/exhibitors": {
+      "get": {
+        "tags": [
+          "Profile Matching"
+        ],
+        "summary": "Get recommended exhibitors for event",
+        "operationId": "getRecommendedExhibitors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "searchQuery",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exhibitorName",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "$ref": "#/components/parameters/CategoryArray"
+          },
+          {
+            "$ref": "#/components/parameters/IndustryArray"
+          },
+          {
+            "name": "employeesMin",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "employeesMax",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated exhibitors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExhibitorPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/contacts/unlock-phone": {
+      "post": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Unlock contact phone numbers",
+        "operationId": "unlockContactPhones",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneUnlockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phone unlock task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactUnlockAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/contacts/unlock-phone-tasks/{taskId}": {
+      "get": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Get phone unlock task",
+        "operationId": "getPhoneUnlockTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Phone unlock task status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneUnlockTask"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/generate-outreach-message": {
+      "post": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Generate outreach messages",
+        "operationId": "generateOutreachMessage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutreachMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Outreach message generation accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutreachMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/personnel/outreach": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Get outreach message detail",
+        "operationId": "getOutreachDetail",
+        "parameters": [
+          {
+            "name": "personnel_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Outreach message detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutreachDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Business sk API key",
+        "description": "Send the full Business API key from Settings -> API Keys, for example `Authorization: Bearer sk_your_api_key`."
+      }
+    },
+    "parameters": {
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "PageSize": {
+        "name": "pageSize",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "EventIdQuery": {
+        "name": "event_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "EventIdPath": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "ExhibitorIdQuery": {
+        "name": "exhibitor_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "PersonnelIdQuery": {
+        "name": "personnel_id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        }
+      },
+      "CategoryArray": {
+        "name": "category",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "IndustryArray": {
+        "name": "industry",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "CallSource": {
+        "name": "x-call-source",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "api",
+            "agent"
+          ]
+        }
+      }
+    },
+    "requestBodies": {
+      "EventIdBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "event_id"
+              ],
+              "properties": {
+                "event_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              }
+            }
+          }
+        }
+      },
+      "ExhibitorSearchBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "company_url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "target_audience": {
+                  "type": "string"
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "pageSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "company_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "target_audience"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "CompanyNameBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "company_name"
+              ],
+              "properties": {
+                "company_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "pageSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20
+                }
+              }
+            }
+          }
+        }
+      },
+      "ProfileMatchingBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "company_url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "target_audience": {
+                  "type": "string"
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "pageSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20
+                },
+                "autoRecommendTop3EventsEnabled": {
+                  "type": "boolean"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "eventTypeIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "dateStartFrom": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "dateStartTo": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "future": {
+                  "type": "integer"
+                },
+                "attendeeCountMin": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "attendeeCountMax": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "company_url"
+                  ]
+                },
+                {
+                  "required": [
+                    "target_audience"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "Insufficient credits",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Business conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "EventPage": {
+        "description": "Paginated events",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EventPage"
+            }
+          }
+        }
+      },
+      "ExhibitorPage": {
+        "description": "Paginated exhibitors",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ExhibitorPage"
+            }
+          }
+        }
+      },
+      "ExhibitorPageWithSemantics": {
+        "description": "Paginated exhibitors with access semantics",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ExhibitorPageWithSemantics"
+            }
+          }
+        }
+      },
+      "ContactPage": {
+        "description": "Paginated contacts",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ContactPage"
+            }
+          }
+        }
+      },
+      "ContactPageWithSemantics": {
+        "description": "Paginated contacts with access semantics",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ContactPageWithSemantics"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "errorKey",
+          "traceId"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "errorKey": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreditBalance": {
+        "type": "object",
+        "required": [
+          "totalAmount",
+          "totalBalance",
+          "subscriptionAmount",
+          "subscriptionBalance",
+          "giftAmount",
+          "giftBalance",
+          "resetAt"
+        ],
+        "properties": {
+          "totalAmount": {
+            "type": "number"
+          },
+          "totalBalance": {
+            "type": "number"
+          },
+          "subscriptionAmount": {
+            "type": "number"
+          },
+          "subscriptionBalance": {
+            "type": "number"
+          },
+          "giftAmount": {
+            "type": "number"
+          },
+          "giftBalance": {
+            "type": "number"
+          },
+          "resetAt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      },
+      "EventItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "eventId",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nickname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dateStart": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "dateEnd": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "venue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exhibitorCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dataSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "EventDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventItem"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "longitude": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "attendeeCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "priceLower": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "priceUpper": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "eventType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "topicsCount": {
+                "type": "integer"
+              },
+              "verified": {
+                "type": "integer"
+              },
+              "future": {
+                "type": "integer"
+              },
+              "historic": {
+                "type": "integer"
+              },
+              "historicEvent": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "personnelCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "eventTypes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        ]
+      },
+      "EventPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "EventFitScore": {
+        "type": "object",
+        "required": [
+          "event",
+          "score",
+          "recommendation",
+          "breakdown"
+        ],
+        "properties": {
+          "event": {
+            "$ref": "#/components/schemas/EventItem"
+          },
+          "score": {
+            "type": "number"
+          },
+          "recommendation": {
+            "type": "string",
+            "enum": [
+              "recommended",
+              "consider",
+              "not_recommended"
+            ]
+          },
+          "breakdown": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "EventRankItem": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "name",
+          "rank",
+          "match_score",
+          "reasons"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rank": {
+            "type": "integer"
+          },
+          "match_score": {
+            "type": "number"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EventUnlockResult": {
+        "type": "object",
+        "required": [
+          "success",
+          "alreadyUnlocked",
+          "creditsUsed",
+          "balanceAfter",
+          "event"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "alreadyUnlocked": {
+            "type": "boolean"
+          },
+          "creditsUsed": {
+            "type": "number"
+          },
+          "balanceAfter": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "subscriptionBalance",
+                  "permanentBalance",
+                  "totalBalance",
+                  "unlimited"
+                ],
+                "properties": {
+                  "subscriptionBalance": {
+                    "type": "number"
+                  },
+                  "permanentBalance": {
+                    "type": "number"
+                  },
+                  "totalBalance": {
+                    "type": "number"
+                  },
+                  "unlimited": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event": {
+            "type": "object",
+            "required": [
+              "id",
+              "eventId",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ExhibitorBase": {
+        "type": "object",
+        "required": [
+          "id",
+          "companyName",
+          "matched_event_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "industry": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "employeeCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dataSource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkedinUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundingRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matched_event_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isRecommended": {
+            "type": "boolean"
+          },
+          "recommendationRank": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "matchStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matchScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "matchTier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matchReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "ExhibitorSignalFields": {
+        "type": "object",
+        "properties": {
+          "techStacks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "buyingSignalTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "buyingSignalStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Latest buying-signal batch state. On /external/exhibitors/list it is one of ready, processing, pending, or null. On the search endpoints it is always null."
+          },
+          "buyingSignals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "signalTag",
+                "signalScore",
+                "analyzedAt"
+              ],
+              "properties": {
+                "signalTag": {
+                  "type": "string"
+                },
+                "signalDate": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceType": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceTitle": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "evidenceSummary": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "relevanceToIcp": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "recommendedPlay": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "signalScore": {
+                  "type": "number"
+                },
+                "confidence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "directOrInferred": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "analyzedAt": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ExhibitorItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExhibitorBase"
+          },
+          {
+            "$ref": "#/components/schemas/ExhibitorSignalFields"
+          }
+        ]
+      },
+      "ExhibitorProfile": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExhibitorBase"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "eventId": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ExhibitorPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExhibitorItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ExhibitorPageWithSemantics": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExhibitorPage"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "recommendationProcessing": {
+                "type": "boolean"
+              },
+              "semantics": {
+                "$ref": "#/components/schemas/AccessSemantics"
+              },
+              "recommendationProcessingFeature": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ContactItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "fullName",
+          "contactUnlockStatus"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "department": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seniorityLevel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkedinUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "companyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contactUnlockStatus": {
+            "type": "string"
+          },
+          "linkedinActivity": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "activityLevel": {
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "latestPostAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "linkedinActivityStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ContactPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ContactPageWithSemantics": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ContactPage"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "semantics": {
+                "$ref": "#/components/schemas/AccessSemantics"
+              }
+            }
+          }
+        ]
+      },
+      "AccessSemantics": {
+        "type": "object",
+        "properties": {
+          "accessMode": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "full"
+            ]
+          },
+          "previewLimit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "actualTotal": {
+                "type": "integer"
+              },
+              "visibleTotal": {
+                "type": "integer"
+              },
+              "remainingLockedCount": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": true
+          },
+          "pageState": {
+            "type": "object",
+            "properties": {
+              "requestedPage": {
+                "type": "integer"
+              },
+              "accessible": {
+                "type": "boolean"
+              },
+              "maxAccessiblePage": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": true
+          },
+          "unlock": {
+            "type": "object",
+            "properties": {
+              "requiredForMoreResults": {
+                "type": "boolean"
+              },
+              "actionType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "credits": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "guidance": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "ContactUnlockAccepted": {
+        "type": "object",
+        "required": [
+          "status",
+          "task_id",
+          "job_id"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "accepted"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "job_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ContactUnlockTask": {
+        "type": "object",
+        "required": [
+          "taskId",
+          "taskStatus",
+          "items"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "personnelId",
+                "status"
+              ],
+              "properties": {
+                "personnelId": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "processing",
+                    "unlocked",
+                    "failed"
+                  ]
+                },
+                "email": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "errorCode": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ProfileEventRecommendationPage": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventPage"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              },
+              "condition_tags": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "profile_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "active_result_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "is_stale": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "ActionPrecheckRequest": {
+        "type": "object",
+        "required": [
+          "action_type",
+          "params"
+        ],
+        "properties": {
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "query_event_personnel",
+              "unlock_event_contacts",
+              "unlock_contact_emails",
+              "search_exhibitor_events",
+              "others"
+            ]
+          },
+          "call_source": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "locale": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": "string"
+          },
+          "conversation_id": {
+            "type": "string"
+          },
+          "channel_message_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActionPrecheckResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "action_type",
+          "allowed",
+          "should_charge",
+          "credits",
+          "reason_code",
+          "biz_code",
+          "detail"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "action_type": {
+            "type": "string"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "should_charge": {
+            "type": "boolean"
+          },
+          "credits": {
+            "type": "integer"
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "already_unlocked",
+              "unlock_in_progress",
+              "state_conflict",
+              "insufficient_balance",
+              "no_contacts_available",
+              "exceed_max_unlock_limit",
+              "invalid_subject",
+              "unsupported_action",
+              "not_found",
+              "forbidden",
+              "system_error"
+            ]
+          },
+          "biz_code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "LinkedinActivityUnlockRequest": {
+        "type": "object",
+        "required": [
+          "personnel_ids",
+          "event_id"
+        ],
+        "properties": {
+          "personnel_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "string"
+            }
+          },
+          "event_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          }
+        },
+        "additionalProperties": false
+      },
+      "LinkedinActivityUnlockItem": {
+        "type": "object",
+        "required": [
+          "personnel_id",
+          "success",
+          "alreadyUnlocked",
+          "taskId",
+          "error"
+        ],
+        "properties": {
+          "personnel_id": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "alreadyUnlocked": {
+            "type": "boolean"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "LinkedinActivityUnlockResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LinkedinActivityUnlockItem"
+            }
+          }
+        }
+      },
+      "PhoneUnlockRequest": {
+        "type": "object",
+        "required": [
+          "personnel_ids",
+          "event_id"
+        ],
+        "properties": {
+          "personnel_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "string"
+            }
+          },
+          "event_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "PhoneUnlockTask": {
+        "type": "object",
+        "required": [
+          "taskId",
+          "taskStatus",
+          "items"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "taskStatus": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "failed"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "personnelId",
+                "status"
+              ],
+              "properties": {
+                "personnelId": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "processing",
+                    "unlocked",
+                    "failed"
+                  ]
+                },
+                "phone": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "errorCode": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "OutreachMessageRequest": {
+        "type": "object",
+        "required": [
+          "personnel_ids",
+          "event_id",
+          "channels"
+        ],
+        "properties": {
+          "personnel_ids": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "string"
+            }
+          },
+          "event_id": {
+            "type": "string"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "email",
+                "linkedin_message"
+              ]
+            }
+          },
+          "outreach_purpose": {
+            "type": "string"
+          }
+        }
+      },
+      "OutreachMessageResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "personnel_id",
+                "success",
+                "taskId",
+                "error"
+              ],
+              "properties": {
+                "personnel_id": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "boolean"
+                },
+                "taskId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "error": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "taskCenterId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "TaskCenter identifier returned when at least one outreach generation task was created."
+          }
+        }
+      },
+      "OutreachDetail": {
+        "type": "object",
+        "required": [
+          "found",
+          "channels",
+          "messages"
+        ],
+        "properties": {
+          "found": {
+            "type": "boolean"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "messages": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "linkedin_message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "outreach_purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current outreach message status, such as processing, ready, or failed. Null when no record exists."
+          },
+          "create_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Record creation timestamp in milliseconds. Null when no record exists."
+          },
+          "update_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Record update timestamp in milliseconds. Null when no record exists."
+          }
+        }
+      }
+    }
+  }
+}
