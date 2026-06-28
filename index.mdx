@@ -7,7 +7,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.22.0`
+Current documentation version: `v0.23.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -21,7 +21,7 @@ Create an account at [app.lensmor.com](https://app.lensmor.com), upgrade to a pa
 Use the key with the API base URL above:
 
 ```http
-Authorization: Bearer uak_your_api_key
+Authorization: Bearer sk_your_api_key
 ```
 
 ## What you can build
@@ -56,7 +56,7 @@ Authorization: Bearer uak_your_api_key
 
 <Steps>
   <Step title="Authenticate every request">
-    Create a user API key and send it as `Authorization: Bearer uak_your_api_key`.
+    Create a user API key and send it as `Authorization: Bearer sk_your_api_key`.
   </Step>
   <Step title="Check credits before paid workflows">
     Call `GET /external/credits/balance` before event unlocks, email unlocks, or reverse event searches.

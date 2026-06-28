@@ -12,16 +12,16 @@ Lensmor API requests require a user API key.
 3. Open **Settings → API Keys**.
 4. Click **Create API Key**, give it a label, and copy the key immediately — it is only shown once.
 
-Your key starts with `uak_` and looks like this:
+Your key starts with `sk_` and looks like this:
 
 ```
-uak_abc12def_xyzExampleKeyValue1234567890
+sk_0123456789abcdef_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 
 Store it in an environment variable before making requests:
 
 ```bash
-export LENSMOR_API_KEY="uak_your_api_key"
+export LENSMOR_API_KEY="sk_your_api_key"
 ```
 
 <Note>
@@ -35,7 +35,7 @@ Combine this base URL with the endpoint paths documented in the API reference. F
 
 ## Header format
 ```http
-Authorization: Bearer uak_your_api_key
+Authorization: Bearer sk_your_api_key
 ```
 
 ## Example request
@@ -83,5 +83,5 @@ To test your integration safely:
 </Tip>
 
 ## Notes
-- Older examples that show `sk_...` are historical and are not the current API key format.
+- Use the full `sk_...` key value from **Settings -> API Keys**. The visible key prefix alone is not enough for authentication.
 - Invalid or missing keys return the shared API error format described in [Error conventions](/concepts/errors).

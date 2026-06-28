@@ -12,4 +12,4 @@
 
 `https://platform.lensmor.com`
 
-Send requests to `https://platform.lensmor.com` with `Authorization: Bearer uak_your_api_key`.
+Send requests to `https://platform.lensmor.com` with `Authorization: Bearer sk_your_api_key`.

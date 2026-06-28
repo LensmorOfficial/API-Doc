@@ -36,14 +36,14 @@ All documented paths are relative to this base URL. For example:
 4. Browse the full interactive docs at **[api.lensmor.com](https://api.lensmor.com/)** or use the reference files in this repository.
 
 ```http
-Authorization: Bearer uak_your_api_key
+Authorization: Bearer sk_your_api_key
 ```
 
 ## Example request
 
 ```bash
 curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
-  -H "Authorization: Bearer uak_your_api_key"
+  -H "Authorization: Bearer sk_your_api_key"
 ```
 
 ## Main documentation entry points
@@ -80,7 +80,7 @@ pnpm dlx mintlify dev
 
 ## Changelog
 
-See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.21.0`.
+See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.23.0`.
 
 ---
 

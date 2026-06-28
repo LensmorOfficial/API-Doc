@@ -97,7 +97,7 @@ def sync_llms_index() -> None:
 
 `{API_BASE_URL}`
 
-Send requests to `{API_BASE_URL}` with `Authorization: Bearer uak_your_api_key`.
+Send requests to `{API_BASE_URL}` with `Authorization: Bearer sk_your_api_key`.
 """
     LLMS_INDEX.write_text(content, encoding="utf-8")
 

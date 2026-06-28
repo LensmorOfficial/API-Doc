@@ -11,7 +11,7 @@ Production integrations should handle authentication, pagination, credit-aware a
 
 <Steps>
   <Step title="Send authentication on every request">
-    Include `Authorization: Bearer uak_your_api_key`. Treat `401 Unauthorized` as a key or account configuration issue.
+    Include `Authorization: Bearer sk_your_api_key`. Treat `401 Unauthorized` as a key or account configuration issue.
   </Step>
   <Step title="Use pagination consistently">
     Always pass `page` and `pageSize` for list endpoints. Do not assume all records fit in the first response.
