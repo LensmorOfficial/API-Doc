@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.23.0",
+    "version": "0.23.1",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching."
   },
   "servers": [
@@ -1282,11 +1282,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated exhibitors",
+            "description": "Paginated recommendation state or unranked fallback exhibitor rows",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExhibitorPage"
+                  "$ref": "#/components/schemas/RecommendedExhibitorPage"
                 }
               }
             }
@@ -2190,7 +2190,10 @@
             "$ref": "#/components/schemas/EventItem"
           },
           "score": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Overall event fit score on a 0-10 scale."
           },
           "recommendation": {
             "type": "string",
@@ -2198,15 +2201,225 @@
               "recommended",
               "consider",
               "not_recommended"
-            ]
+            ],
+            "description": "Decision category derived from score: recommended for 7-10, consider for 4 to below 7, and not_recommended for below 4."
           },
           "breakdown": {
             "type": "object",
-            "additionalProperties": {
-              "type": "number"
-            }
+            "required": [
+              "profile_match",
+              "matched_exhibitor_density",
+              "event_scale"
+            ],
+            "properties": {
+              "profile_match": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Profile-context compatibility component on a 0-10 scale."
+              },
+              "matched_exhibitor_density": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Matched-exhibitor density component on a 0-10 scale. This is not verified buyer or attendee density."
+              },
+              "event_scale": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "description": "Event-scale component derived from the Lensmor exhibitor count and capped at 10."
+              }
+            },
+            "additionalProperties": false
           }
         }
+      },
+      "RecommendedExhibitorItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "companyName",
+          "isRecommended"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "industry": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "employeeCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "companySize": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundingRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "techStacks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isRecommended": {
+            "type": "boolean",
+            "description": "True only when the item belongs to the active recommendation snapshot."
+          },
+          "recommendationRank": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "matchStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "pending_unlock",
+              "processing",
+              "ready",
+              "failed",
+              null
+            ]
+          },
+          "matchScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "matchTier": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "top_match",
+              "strong_match",
+              "qualifying_match",
+              null
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Recommendation reason when matchStatus is ready. The field name is reason, not matchReason."
+          }
+        },
+        "additionalProperties": true
+      },
+      "RecommendedExhibitorPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore",
+          "recommendationProcessing"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecommendedExhibitorItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "recommendationProcessing": {
+            "type": "boolean",
+            "description": "True when recommendation detail generation is still processing for the event."
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AI_SEARCH_RESULT_MISMATCH",
+              null
+            ],
+            "description": "Present on unranked fallback results."
+          },
+          "show_refresh_hint": {
+            "type": "boolean",
+            "description": "Present on fallback results. This flag does not identify the cause or prescribe a required action."
+          }
+        },
+        "additionalProperties": true
       },
       "EventRankItem": {
         "type": "object",

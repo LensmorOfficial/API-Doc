@@ -71,17 +71,18 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 | Field | Description |
 | --- | --- |
 | `event` | Compact event object for the scored event. |
-| `score` | Numeric compatibility score for the authenticated caller's current profile context. |
-| `recommendation` | Human-readable recommendation category. |
-| `breakdown.profile_match` | Profile-context compatibility component. |
-| `breakdown.matched_exhibitor_density` | Signal based on relevant exhibitor overlap or density. |
-| `breakdown.event_scale` | Signal based on event size and scale. |
+| `score` | Overall compatibility score on a `0`–`10` scale. |
+| `recommendation` | Exact decision enum: `recommended`, `consider`, or `not_recommended`. |
+| `breakdown.profile_match` | Profile-context compatibility component on a `0`–`10` scale. |
+| `breakdown.matched_exhibitor_density` | Matched-exhibitor density component on a `0`–`10` scale. This is not verified buyer or attendee density. |
+| `breakdown.event_scale` | Component derived from the Lensmor exhibitor count and capped at `10`. It does not provide a qualitative size benchmark by itself. |
 
 ## Interpretation guidance
 
 - Use `score` for display and ordering, but avoid treating small differences as exact truth.
-- Use `recommendation` as the primary user-facing label.
-- Use `breakdown` to explain why an event is strong or weak when your UI has space for detail.
+- Treat `7`–`10` as `recommended`, `4` to below `7` as `consider`, and below `4` as `not_recommended`.
+- Preserve the three returned breakdown fields exactly. Do not invent additional dimensions.
+- A zero score does not identify the cause. Do not infer missing profile configuration or missing coverage unless another API field or error states that explicitly.
 
 ## Error responses
 - `400 Bad Request`
@@ -91,6 +92,6 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 - `429 Too Many Requests`
 
 ## Notes
-- This endpoint uses `POST` because the request body can contain structured profile context that does not fit cleanly in query parameters. It does not create a persistent resource.
+- This endpoint uses `POST` to compute a profile-dependent result for the supplied `event_id`. It does not create a persistent resource.
 - The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
 - Older draft fields such as `breakdown_details` are not part of the live response.
