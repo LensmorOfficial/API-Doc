@@ -18,10 +18,10 @@ Choose this endpoint when:
 - you need exhibitor IDs for follow-up profile calls
 - you want an empty result instead of broad fuzzy matches when the name is ambiguous
 
-Use [Exhibitor event search](/api-reference/exhibitors/search-events) instead when the desired output is events related to a company name.
+Use [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) instead when the desired output is events related to a company name.
 
 <Warning>
-  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/balance) and confirm with the user before calling it in a credit-safe workflow.
+  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
 </Warning>
 
 ## Endpoint
@@ -99,14 +99,14 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
 | `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
 | `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
-| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
 This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
 
-Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation.
 
 ## Matching behavior
 

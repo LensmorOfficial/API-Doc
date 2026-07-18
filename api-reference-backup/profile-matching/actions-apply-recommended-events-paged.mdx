@@ -19,7 +19,7 @@ Good fits include:
 - A dashboard that combines event metadata with match score and matched exhibitor counts.
 - A one-request onboarding flow where users provide profile inputs and immediately see recommendations.
 
-If you need a neutral event catalog without profile scoring, use [Events list](/api-reference/events/list).
+If you need a neutral event catalog without profile scoring, use [Events list](/api-reference/events/list-events).
 
 ## Endpoint
 `POST /external/profile-matching/actions/apply-recommended-events/paged`
@@ -223,7 +223,7 @@ Each event item includes the full event detail shape:
 - This endpoint is synchronous but can take several seconds for broad profiles or large result sets. Show a loading state and keep user input editable.
 - `relevanceReason` can be `null`. Do not require it before displaying ranked recommendations.
 - Use `match_score`, `rank`, matched counts, event dates, geography, categories, and follow-up evidence together. Avoid presenting score differences as exact mathematical certainty.
-- For the top events, follow up with [Event detail](/api-reference/events/detail), then preview [List event exhibitors](/api-reference/exhibitors/list) or [List event personnel](/api-reference/personnel/list) before asking the user to unlock an event.
+- For the top events, follow up with [Event detail](/api-reference/events/get-event-detail), then preview [List event exhibitors](/api-reference/exhibitors/list-event-exhibitors) or [List event personnel](/api-reference/personnel/list-event-personnel) before asking the user to unlock an event.
 - If event summary counts are `null`, use the event-scoped list endpoint's `total` and `semantics` fields for the current access and filter context.
 
 ## Error responses

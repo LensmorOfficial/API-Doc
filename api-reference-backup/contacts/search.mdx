@@ -90,7 +90,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `sourceType` | Source context for the contact record. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
-| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data. |
+| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data. |
 | `linkedinActivityStatus` | Always `null` on this endpoint. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
@@ -107,4 +107,4 @@ No matching contacts can return an empty paginated response. Use this as a valid
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
-- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.

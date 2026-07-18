@@ -76,6 +76,6 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
-- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list).
+- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
 - Once a list endpoint returns `semantics`, treat that response as the authoritative explanation for the actual list result.
 - Precheck decisions can change as credits, event access, or underlying data changes. Recheck before executing a paid action.
