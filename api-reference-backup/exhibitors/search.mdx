@@ -19,7 +19,7 @@ Common use cases include:
 - Creating a shortlist before checking which events those companies attend.
 - Powering a prospecting workflow where the user provides a website and asks "who should we look at?"
 
-If you already know the exact company name and want a precision-first lookup, use [Search exhibitors by company name](/api-reference/exhibitors/search-by-company-name). If you need events directly from a company name, use [Search exhibitor events](/api-reference/exhibitors/search-events).
+If you already know the exact company name and want a precision-first lookup, use [Search exhibitors by company name](/api-reference/exhibitors/search-exhibitors-by-company-name). If you need events directly from a company name, use [Search exhibitor events](/api-reference/exhibitors/search-events-by-exhibitor-company-name).
 
 ## Endpoint
 `POST /external/exhibitors/search`
@@ -122,7 +122,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
 | `matched_event_ids` | Related event identifiers from the search context. |
 | `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
 | `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
-| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior

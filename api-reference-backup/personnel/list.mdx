@@ -17,7 +17,7 @@ Common use cases:
 - browse people associated with an event
 - filter by department or seniority
 - find contacts for a selected exhibitor
-- collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock)
+- collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 ## Endpoint
 `GET /external/personnel/list`
@@ -141,5 +141,5 @@ Locked events can still return preview personnel results. Read `semantics` befor
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style response shape.
 - Emails are returned only when the contact is already unlocked for the caller.
-- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock-event-access).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).

@@ -31,7 +31,7 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&page=1&pa
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-For fit-based discovery, use [Get event fit score](/api-reference/events/fit-score), [Rank events](/api-reference/events/rank), or [Apply recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+For fit-based discovery, use [Get event fit score](/api-reference/events/score-one-event), [Rank events](/api-reference/events/rank-events), or [Apply recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events).
 
 ## 2. Fetch event detail
 
@@ -136,16 +136,16 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 ## Related endpoints
 
 <CardGroup cols={2}>
-  <Card title="List events" icon="calendar" href="/api-reference/events/list">
+  <Card title="List events" icon="calendar" href="/api-reference/events/list-events">
     Browse events with filters and pagination.
   </Card>
-  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock">
+  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
     Spend credits to access full event-scoped coverage.
   </Card>
-  <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list">
+  <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list-event-exhibitors">
     Fetch exhibitors for a selected event.
   </Card>
-  <Card title="List event personnel" icon="users" href="/api-reference/personnel/list">
+  <Card title="List event personnel" icon="users" href="/api-reference/personnel/list-event-personnel">
     Fetch people associated with a selected event.
   </Card>
 </CardGroup>

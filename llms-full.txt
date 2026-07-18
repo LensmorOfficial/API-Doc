@@ -34,7 +34,7 @@ Authorization: Bearer sk_your_api_key
   <Card title="Find the right events" icon="calendar-search" href="/guides/quickstart">
     Search, filter, and rank trade shows by geography, category, quality, and profile fit.
   </Card>
-  <Card title="Evaluate exhibitor opportunities" icon="building-2" href="/api-reference/exhibitors/search">
+  <Card title="Evaluate exhibitor opportunities" icon="building-2" href="/api-reference/exhibitors/search-exhibitors-by-company-context">
     Match target accounts or buyer profiles against exhibitor data and related event presence.
   </Card>
   <Card title="Unlock event-level coverage" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
@@ -49,12 +49,12 @@ Authorization: Bearer sk_your_api_key
 
 | If you have... | Start with | Why |
 | --- | --- | --- |
-| A keyword, geography, or date range | [Events list](/api-reference/events/list) | Broad event catalog search. |
-| A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) | Returns ranked events from profile context. |
-| A known event ID | [Exhibitors list](/api-reference/exhibitors/list) or [Personnel list](/api-reference/personnel/list) | Shows event-scoped companies and people, with preview/full access semantics. |
-| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-by-company-name) | Precision-first company lookup. |
-| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events) | Finds events associated with that company. This can consume credits. |
-| Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock) | Starts an async email unlock task. |
+| A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
+| A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
+| A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. This can consume credits. |
+| Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) | Starts an async email unlock task. |
 
 ## Recommended integration path
 
@@ -400,11 +400,11 @@ Lensmor exposes more than one event-discovery endpoint because recommendation wo
 
 | Starting point | Recommended endpoint | Why |
 | --- | --- | --- |
-| User wants to browse events by keyword, country, city, or date | [Events list](/api-reference/events/list) | Returns a neutral paginated catalog. |
-| User provides a company website or target audience and wants recommended events | [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) | Applies profile context and returns scored event recommendations. |
-| User already has one event and wants a compact fit result | [Events fit score](/api-reference/events/fit-score) | Scores one event without returning a full recommendation page. |
-| User already has several candidate event IDs and wants them sorted | [Events rank](/api-reference/events/rank) | Ranks a known shortlist. |
-| User knows an exhibitor company name and wants related events | [Exhibitor event search](/api-reference/exhibitors/search-events) | Reverse-lookups events from company name context. |
+| User wants to browse events by keyword, country, city, or date | [Events list](/api-reference/events/list-events) | Returns a neutral paginated catalog. |
+| User provides a company website or target audience and wants recommended events | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Applies profile context and returns scored event recommendations. |
+| User already has one event and wants a compact fit result | [Events fit score](/api-reference/events/score-one-event) | Scores one event without returning a full recommendation page. |
+| User already has several candidate event IDs and wants them sorted | [Events rank](/api-reference/events/rank-events) | Ranks a known shortlist. |
+| User knows an exhibitor company name and wants related events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Reverse-lookups events from company name context. |
 
 ## Recommendation-first workflow
 
@@ -510,7 +510,7 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&page=1&pa
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-For fit-based discovery, use [Get event fit score](/api-reference/events/fit-score), [Rank events](/api-reference/events/rank), or [Apply recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+For fit-based discovery, use [Get event fit score](/api-reference/events/score-one-event), [Rank events](/api-reference/events/rank-events), or [Apply recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events).
 
 ## 2. Fetch event detail
 
@@ -615,16 +615,16 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 ## Related endpoints
 
 <CardGroup cols={2}>
-  <Card title="List events" icon="calendar" href="/api-reference/events/list">
+  <Card title="List events" icon="calendar" href="/api-reference/events/list-events">
     Browse events with filters and pagination.
   </Card>
-  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock">
+  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
     Spend credits to access full event-scoped coverage.
   </Card>
-  <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list">
+  <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list-event-exhibitors">
     Fetch exhibitors for a selected event.
   </Card>
-  <Card title="List event personnel" icon="users" href="/api-reference/personnel/list">
+  <Card title="List event personnel" icon="users" href="/api-reference/personnel/list-event-personnel">
     Fetch people associated with a selected event.
   </Card>
 </CardGroup>
@@ -643,9 +643,9 @@ Email unlocks run asynchronously. The create request validates the batch and sta
 
 Use contact email unlock after you already know which people are worth enriching. Typical inputs come from:
 
-- [List event personnel](/api-reference/personnel/list)
-- [Get personnel profile](/api-reference/personnel/profile)
-- [Search contacts](/api-reference/contacts/search)
+- [List event personnel](/api-reference/personnel/list-event-personnel)
+- [Get personnel profile](/api-reference/personnel/get-personnel-profile)
+- [Search contacts](/api-reference/contacts/search-contacts)
 
 <Warning>
   Do not call email unlock as a blind bulk export. Batch only the people your user has selected or your scoring workflow has marked as relevant.
@@ -711,7 +711,7 @@ Your integration should account for these outcomes:
 - failed state: show the task error and decide whether the user should retry.
 - `404 Not Found`: the task ID is invalid or not visible to the API key owner.
 
-See [Get contact unlock task](/api-reference/contacts/unlock-task) for the exact response shape.
+See [Get contact unlock task](/api-reference/contacts/get-contact-unlock-task) for the exact response shape.
 
 Completed tasks can contain mixed item outcomes. Show failed, ineligible, or unresolved contacts separately instead of folding them into the unlocked count.
 
@@ -736,13 +736,13 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 ## Related endpoints
 
 <CardGroup cols={2}>
-  <Card title="Search contacts" icon="search" href="/api-reference/contacts/search">
+  <Card title="Search contacts" icon="search" href="/api-reference/contacts/search-contacts">
     Find people by name, company, event, or LinkedIn context.
   </Card>
-  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock">
+  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.
   </Card>
-  <Card title="Get unlock task" icon="list-checks" href="/api-reference/contacts/unlock-task">
+  <Card title="Get unlock task" icon="list-checks" href="/api-reference/contacts/get-contact-unlock-task">
     Poll task status and retrieve task results.
   </Card>
   <Card title="Credits and access" icon="coins" href="/concepts/credits-and-access">
@@ -809,7 +809,7 @@ For credit-consuming actions, use a two-step confirmation pattern:
 6. Refresh balance and result state.
 7. Reconcile final billing against the post-action balance and task or endpoint response.
 
-This pattern is especially important for [Unlock event](/api-reference/events/unlock), [Unlock contact emails](/api-reference/contacts/unlock), [Exhibitor company search](/api-reference/exhibitors/search-by-company-name), and [Exhibitor event search](/api-reference/exhibitors/search-events).
+This pattern is especially important for [Unlock event](/api-reference/events/unlock-event-access), [Unlock contact emails](/api-reference/contacts/unlock-contact-emails), [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name), and [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name).
 
 ## Credit-consuming actions
 
@@ -868,7 +868,7 @@ Do not log API keys or unlocked email addresses in plaintext application logs.
 
 ## Credits balance
 
-Source: /api-reference/credits/balance
+Source: /api-reference/credits/get-credits-balance
 
 Get the current credit balance for the API key owner.
 
@@ -878,9 +878,9 @@ Use this endpoint before credit-consuming workflows such as event unlock, contac
 
 Call `GET /external/credits/balance` before any workflow that can spend credits:
 
-- [Unlock event](/api-reference/events/unlock)
-- [Unlock contact emails](/api-reference/contacts/unlock)
-- [Search exhibitor events](/api-reference/exhibitors/search-events)
+- [Unlock event](/api-reference/events/unlock-event-access)
+- [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
+- [Search exhibitor events](/api-reference/exhibitors/search-events-by-exhibitor-company-name)
 
 For user-facing integrations, show the balance before a paid action and refresh it after the action completes.
 
@@ -944,7 +944,7 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 
 ## Actions precheck
 
-Source: /api-reference/actions/precheck
+Source: /api-reference/actions/precheck-an-external-action
 
 Precheck an external API action before executing a workflow that may depend on event access, contact availability, credits, or action-specific policy.
 
@@ -1018,7 +1018,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
-- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list).
+- `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
 - Once a list endpoint returns `semantics`, treat that response as the authoritative explanation for the actual list result.
 - Precheck decisions can change as credits, event access, or underlying data changes. Recheck before executing a paid action.
 
@@ -1026,7 +1026,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## Events list
 
-Source: /api-reference/events/list
+Source: /api-reference/events/list-events
 
 Browse events currently available through the Lensmor API.
 
@@ -1041,7 +1041,7 @@ Use `GET /external/events/list` for broad discovery and browsing experiences:
 - Retrieve stable event identifiers before calling detail, exhibitor, personnel, or unlock endpoints.
 - Create an initial shortlist before using profile matching or ranking endpoints.
 
-If you already have a company profile and want relevance-ranked results, start with [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) instead.
+If you already have a company profile and want relevance-ranked results, start with [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) instead.
 
 ## Endpoint
 `GET /external/events/list`
@@ -1150,7 +1150,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 
 ## Event detail
 
-Source: /api-reference/events/detail
+Source: /api-reference/events/get-event-detail
 
 Get detailed information for a single event.
 
@@ -1263,8 +1263,8 @@ Treat `exhibitorCount` and `personnelCount` on event detail as summary metadata 
 
 When you need current coverage numbers, call the event-scoped list endpoint and use its pagination metadata:
 
-- [List event exhibitors](/api-reference/exhibitors/list) for exhibitor totals.
-- [List event personnel](/api-reference/personnel/list) for personnel totals.
+- [List event exhibitors](/api-reference/exhibitors/list-event-exhibitors) for exhibitor totals.
+- [List event personnel](/api-reference/personnel/list-event-personnel) for personnel totals.
 - `semantics.counts` when present for visible, locked, and matched access context.
 
 ## Error responses
@@ -1284,7 +1284,7 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 
 ## Event brief details
 
-Source: /api-reference/events/brief
+Source: /api-reference/events/get-event-brief
 
 Fetch a lightweight summary for a single event.
 
@@ -1294,7 +1294,7 @@ Use this endpoint when you need a compact event snapshot instead of a list respo
 
 Use `GET /external/events/brief` for lightweight UI cards, quick previews, or background refreshes where full detail metadata is not necessary.
 
-Prefer [Event detail](/api-reference/events/detail) when your product needs category, topic, pricing, coordinate, or historical metadata.
+Prefer [Event detail](/api-reference/events/get-event-detail) when your product needs category, topic, pricing, coordinate, or historical metadata.
 
 ## Endpoint
 `GET /external/events/brief`
@@ -1375,7 +1375,7 @@ curl "https://platform.lensmor.com/external/events/brief?event_id=139574" \
 
 ## Events fit score
 
-Source: /api-reference/events/fit-score
+Source: /api-reference/events/score-one-event
 
 Score a single event against the authenticated caller's current profile context.
 
@@ -1385,7 +1385,7 @@ Use this endpoint when you already know the target event and want a compact comp
 
 Use `POST /external/events/fit-score` when your UI needs to answer a focused question: "Is this event a good fit for the current profile?"
 
-It works best after an event has already been selected from search, profile recommendations, or a saved shortlist. If you need to rank multiple candidates, use [Events rank](/api-reference/events/rank). If you need a full recommendation page from profile inputs, use [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged).
+It works best after an event has already been selected from search, profile recommendations, or a saved shortlist. If you need to rank multiple candidates, use [Events rank](/api-reference/events/rank-events). If you need a full recommendation page from profile inputs, use [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events).
 
 ## Endpoint
 `POST /external/events/fit-score`
@@ -1473,7 +1473,7 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 
 ## Events rank
 
-Source: /api-reference/events/rank
+Source: /api-reference/events/rank-events
 
 Rank multiple events for the authenticated caller.
 
@@ -1486,11 +1486,11 @@ Use `POST /external/events/rank` when another part of your workflow has already 
 Typical sources of a shortlist:
 
 - events selected by a user
-- events found from [Events list](/api-reference/events/list)
+- events found from [Events list](/api-reference/events/list-events)
 - events related to an exhibitor or contact
 - events imported from a CRM or spreadsheet
 
-If you do not have a shortlist yet, start with [Apply profile and get recommended events](/api-reference/profile-matching/actions-apply-recommended-events-paged) or [Events list](/api-reference/events/list).
+If you do not have a shortlist yet, start with [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) or [Events list](/api-reference/events/list-events).
 
 ## Endpoint
 `POST /external/events/rank`
@@ -1571,7 +1571,7 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 
 ## Unlock event
 
-Source: /api-reference/events/unlock
+Source: /api-reference/events/unlock-event-access
 
 Unlock full access to an event's exhibitor and personnel results.
 
@@ -1583,7 +1583,7 @@ Call `POST /external/events/:id/unlock` only after you have confirmed that an ev
 
 Typical sequence:
 
-1. Find the event with [Events list](/api-reference/events/list), [Rank events](/api-reference/events/rank), or profile matching.
+1. Find the event with [Events list](/api-reference/events/list-events), [Rank events](/api-reference/events/rank-events), or profile matching.
 2. Preview exhibitors or personnel for that event.
 3. Read `semantics.accessMode`, `semantics.counts`, and `semantics.unlock`.
 4. Unlock the event if the user wants full event-scoped coverage.
@@ -1677,7 +1677,7 @@ After a successful unlock, call event-scoped exhibitor or personnel list endpoin
 
 ## Exhibitors list
 
-Source: /api-reference/exhibitors/list
+Source: /api-reference/exhibitors/list-event-exhibitors
 
 List exhibitors for a specific event.
 
@@ -1833,7 +1833,7 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&indu
 
 `personnelLimit` asks the API to include a small personnel sample for each exhibitor when the service has a suitable sample for the current event, filters, and access state. It is not a guarantee that every exhibitor item will contain nested personnel rows.
 
-When your workflow needs buyer contacts for a specific company, call [Personnel list](/api-reference/personnel/list) with both `event_id` and `exhibitor_id`. Treat that event-scoped personnel response as the source of truth for people coverage and contact unlock state.
+When your workflow needs buyer contacts for a specific company, call [Personnel list](/api-reference/personnel/list-event-personnel) with both `event_id` and `exhibitor_id`. Treat that event-scoped personnel response as the source of truth for people coverage and contact unlock state.
 
 ## Access semantics
 
@@ -1843,7 +1843,7 @@ When an event is locked, this endpoint can return a preview slice instead of ful
 - `counts.visibleTotal` is the number of records currently visible.
 - `counts.remainingLockedCount` is the number of matching records hidden behind event unlock.
 - `pageState.accessible` indicates whether the requested page is visible under the current access state.
-- `unlock.requiredForMoreResults` tells you whether [Unlock event](/api-reference/events/unlock) is the next action.
+- `unlock.requiredForMoreResults` tells you whether [Unlock event](/api-reference/events/unlock-event-access) is the next action.
 
 ## Error responses
 - `400 Bad Request`
@@ -1855,14 +1855,14 @@ When an event is locked, this endpoint can return a preview slice instead of ful
 - This endpoint is event-scoped and requires `event_id` on every request.
 - `matched_event_ids` reflects the requested event scope.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
-- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock-event-access).
 - After event unlock, request the target page again and confirm `semantics.accessMode` moved to `full` before assuming all matching exhibitors are available.
 
 ---
 
 ## Exhibitors search
 
-Source: /api-reference/exhibitors/search
+Source: /api-reference/exhibitors/search-exhibitors-by-company-context
 
 Search exhibitors using company context.
 
@@ -1879,7 +1879,7 @@ Common use cases include:
 - Creating a shortlist before checking which events those companies attend.
 - Powering a prospecting workflow where the user provides a website and asks "who should we look at?"
 
-If you already know the exact company name and want a precision-first lookup, use [Search exhibitors by company name](/api-reference/exhibitors/search-by-company-name). If you need events directly from a company name, use [Search exhibitor events](/api-reference/exhibitors/search-events).
+If you already know the exact company name and want a precision-first lookup, use [Search exhibitors by company name](/api-reference/exhibitors/search-exhibitors-by-company-name). If you need events directly from a company name, use [Search exhibitor events](/api-reference/exhibitors/search-events-by-exhibitor-company-name).
 
 ## Endpoint
 `POST /external/exhibitors/search`
@@ -1982,7 +1982,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search" \
 | `matched_event_ids` | Related event identifiers from the search context. |
 | `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
 | `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
-| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Matching behavior
@@ -2020,7 +2020,7 @@ No matches are represented as a successful empty paginated response:
 
 ## Exhibitor company search
 
-Source: /api-reference/exhibitors/search-by-company-name
+Source: /api-reference/exhibitors/search-exhibitors-by-company-name
 
 Search exhibitors by company name using a precision-first matcher.
 
@@ -2036,10 +2036,10 @@ Choose this endpoint when:
 - you need exhibitor IDs for follow-up profile calls
 - you want an empty result instead of broad fuzzy matches when the name is ambiguous
 
-Use [Exhibitor event search](/api-reference/exhibitors/search-events) instead when the desired output is events related to a company name.
+Use [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) instead when the desired output is events related to a company name.
 
 <Warning>
-  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/balance) and confirm with the user before calling it in a credit-safe workflow.
+  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
 </Warning>
 
 ## Endpoint
@@ -2117,14 +2117,14 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 | `isRecommended`, `recommendationRank`, `matchStatus`, `matchScore`, `matchTier`, `matchReason` | Recommendation metadata when available. |
 | `buyingSignalTags` | Deduped buying-signal labels from the latest analysis batch. `[]` when none. |
 | `buyingSignalStatus` | Always `null` on this endpoint (no event-scoped task state). |
-| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list) for the object shape). `[]` when none. |
+| `buyingSignals` | Full latest-batch buying-signal objects (see [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) for the object shape). `[]` when none. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
 This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
 
-Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation.
 
 ## Matching behavior
 
@@ -2145,7 +2145,7 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 
 ## Exhibitor event search
 
-Source: /api-reference/exhibitors/search-events
+Source: /api-reference/exhibitors/search-events-by-exhibitor-company-name
 
 Search events directly from an exhibitor company name using a precision-first matcher.
 
@@ -2163,7 +2163,7 @@ This endpoint returns events, not exhibitor records. It is useful for:
 - starting an event workflow without first calling exhibitor search
 
 <Warning>
-  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/balance) before running it in bulk, and use a confirmation step when a user-facing workflow will spend credits.
+  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/get-credits-balance) before running it in bulk, and use a confirmation step when a user-facing workflow will spend credits.
 </Warning>
 
 ## Endpoint
@@ -2251,7 +2251,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 
 This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
 
-Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
 ## Error responses
 - `400 Bad Request`
@@ -2271,7 +2271,7 @@ Refresh [Credits balance](/api-reference/credits/balance) after successful searc
 
 ## Exhibitor profile details
 
-Source: /api-reference/exhibitors/profile
+Source: /api-reference/exhibitors/get-exhibitor-profile
 
 Fetch the profile for a single exhibitor.
 
@@ -2281,7 +2281,7 @@ Use this endpoint when you already know the exhibitor identifier and need a prof
 
 Use `GET /external/exhibitors/profile` after an exhibitor has been selected from an event list, company search, or recommendation result.
 
-This endpoint is best for showing a company profile card and retrieving the compact event references embedded on that profile. Use [Exhibitor related events](/api-reference/exhibitors/events) if you need a paginated event list.
+This endpoint is best for showing a company profile card and retrieving the compact event references embedded on that profile. Use [Exhibitor related events](/api-reference/exhibitors/list-exhibitor-related-events) if you need a paginated event list.
 
 ## Endpoint
 `GET /external/exhibitors/profile`
@@ -2356,7 +2356,7 @@ curl "https://platform.lensmor.com/external/exhibitors/profile?exhibitor_id=456"
 
 ## Exhibitor related events
 
-Source: /api-reference/exhibitors/events
+Source: /api-reference/exhibitors/list-exhibitor-related-events
 
 List events related to a single exhibitor.
 
@@ -2366,7 +2366,7 @@ Use this endpoint when you want the event history or current event associations 
 
 Use `GET /external/exhibitors/events` when you already have an `exhibitor_id` and need a paginated event list for that company.
 
-If you only have a company name, use [Exhibitor event search](/api-reference/exhibitors/search-events). If you need the company profile first, use [Exhibitor profile details](/api-reference/exhibitors/profile).
+If you only have a company name, use [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name). If you need the company profile first, use [Exhibitor profile details](/api-reference/exhibitors/get-exhibitor-profile).
 
 ## Endpoint
 `GET /external/exhibitors/events`
@@ -2448,7 +2448,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 
 ## Personnel list
 
-Source: /api-reference/personnel/list
+Source: /api-reference/personnel/list-event-personnel
 
 List personnel records for a specific event.
 
@@ -2463,7 +2463,7 @@ Common use cases:
 - browse people associated with an event
 - filter by department or seniority
 - find contacts for a selected exhibitor
-- collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock)
+- collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 ## Endpoint
 `GET /external/personnel/list`
@@ -2587,14 +2587,14 @@ Locked events can still return preview personnel results. Read `semantics` befor
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style response shape.
 - Emails are returned only when the contact is already unlocked for the caller.
-- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock).
+- Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock-event-access).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 
 ---
 
 ## Personnel profile details
 
-Source: /api-reference/personnel/profile
+Source: /api-reference/personnel/get-personnel-profile
 
 Fetch the profile for a single person.
 
@@ -2668,13 +2668,13 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 ## Notes
 - This response stays intentionally lightweight.
 - Emails are returned only when the contact is already unlocked for the caller.
-- The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+- The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
 
 ---
 
 ## Personnel related events
 
-Source: /api-reference/personnel/events
+Source: /api-reference/personnel/list-personnel-related-events
 
 List events related to a single person.
 
@@ -2684,7 +2684,7 @@ Use this endpoint when you want the event associations for one personnel profile
 
 Use `GET /external/personnel/events` when you already have a `personnel_id` and want to understand which events are associated with that person.
 
-If your starting point is a LinkedIn URL rather than a Lensmor personnel ID, use [Personnel events by LinkedIn](/api-reference/personnel/events-by-linkedin).
+If your starting point is a LinkedIn URL rather than a Lensmor personnel ID, use [Personnel events by LinkedIn](/api-reference/personnel/list-personnel-related-events-by-linkedin-url).
 
 ## Endpoint
 `GET /external/personnel/events`
@@ -2765,7 +2765,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 
 ## Personnel events by LinkedIn
 
-Source: /api-reference/personnel/events-by-linkedin
+Source: /api-reference/personnel/list-personnel-related-events-by-linkedin-url
 
 Find a person by LinkedIn URL and list related events.
 
@@ -2871,7 +2871,7 @@ LinkedIn URL matching can take longer than direct Lensmor ID lookups because the
 Recommended production behavior:
 
 - Use a request timeout that keeps the user workflow responsive.
-- If you already have `personnel.id`, prefer [Personnel events](/api-reference/personnel/events) with `personnel_id`.
+- If you already have `personnel.id`, prefer [Personnel events](/api-reference/personnel/list-personnel-related-events) with `personnel_id`.
 - If URL lookup times out or returns no match, keep the workflow usable by continuing with event-scoped personnel search, a selected `personnel_id`, or a retry action.
 - Do not block a whole lead-prioritization workflow on one slow LinkedIn URL lookup. Mark that person as unresolved and continue ranking the rest of the batch.
 
@@ -2884,7 +2884,7 @@ Recommended production behavior:
 ## Notes
 - The returned `personnel` object uses the same contact-style response shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
-- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
 
 ---
 
@@ -2958,8 +2958,8 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 - This endpoint is idempotent for personnel records with active or completed LinkedIn activity unlocks.
 - If LinkedIn activity data already exists, the API can mark the record as unlocked without creating a new task.
 - If activity data does not exist, the API creates an asynchronous LinkedIn activity analysis task and returns `taskId`.
-- This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock) for email unlock workflows.
-- Poll [Personnel list](/api-reference/personnel/list) or [Personnel profile](/api-reference/personnel/profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
+- This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email unlock workflows.
+- Poll [Personnel list](/api-reference/personnel/list-event-personnel) or [Personnel profile](/api-reference/personnel/get-personnel-profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
 
 ## Error responses
 - `400 Bad Request`
@@ -2971,7 +2971,7 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 
 ## Contacts search
 
-Source: /api-reference/contacts/search
+Source: /api-reference/contacts/search-contacts
 
 Search contacts by company name.
 
@@ -3059,7 +3059,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `sourceType` | Source context for the contact record. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
-| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data. |
+| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data. |
 | `linkedinActivityStatus` | Always `null` on this endpoint. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
@@ -3076,13 +3076,13 @@ No matching contacts can return an empty paginated response. Use this as a valid
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
-- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
 
 ---
 
 ## Unlock contact emails
 
-Source: /api-reference/contacts/unlock
+Source: /api-reference/contacts/unlock-contact-emails
 
 Start an asynchronous job to unlock email addresses for one or more personnel records.
 
@@ -3092,7 +3092,7 @@ Use this endpoint after finding contacts from personnel or contact search result
 
 Use `POST /external/contacts/unlock` when your integration already has selected personnel records and needs email addresses.
 
-This endpoint is intentionally asynchronous because email unlock can involve multiple records and credit checks. The create call returns a task identifier; your integration should poll [Get contact unlock task](/api-reference/contacts/unlock-task) until the job reaches a terminal state.
+This endpoint is intentionally asynchronous because email unlock can involve multiple records and credit checks. The create call returns a task identifier; your integration should poll [Get contact unlock task](/api-reference/contacts/get-contact-unlock-task) until the job reaches a terminal state.
 
 <Note>
   For best user experience, show the number of locked contacts and available credit balance before creating the unlock task.
@@ -3184,7 +3184,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 - `429 Too Many Requests`
 
 ## Notes
-- This endpoint creates an asynchronous unlock job. Poll [Get contact unlock task](/api-reference/contacts/unlock-task) with `task_id`.
+- This endpoint creates an asynchronous unlock job. Poll [Get contact unlock task](/api-reference/contacts/get-contact-unlock-task) with `task_id`.
 - Do not create duplicate unlock tasks while a prior task for the same selected contacts is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.
 
@@ -3192,7 +3192,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 
 ## Get contact unlock task
 
-Source: /api-reference/contacts/unlock-task
+Source: /api-reference/contacts/get-contact-unlock-task
 
 Check the status of a contact email unlock job.
 
@@ -3302,7 +3302,7 @@ Stop polling when `taskStatus` is `completed` or `failed`. If some items remain 
 
 ## Apply profile and get recommended events
 
-Source: /api-reference/profile-matching/actions-apply-recommended-events-paged
+Source: /api-reference/profile-matching/apply-profile-and-get-recommended-events
 
 Apply company profile inputs and return paged recommended events synchronously.
 
@@ -3319,7 +3319,7 @@ Good fits include:
 - A dashboard that combines event metadata with match score and matched exhibitor counts.
 - A one-request onboarding flow where users provide profile inputs and immediately see recommendations.
 
-If you need a neutral event catalog without profile scoring, use [Events list](/api-reference/events/list).
+If you need a neutral event catalog without profile scoring, use [Events list](/api-reference/events/list-events).
 
 ## Endpoint
 `POST /external/profile-matching/actions/apply-recommended-events/paged`
@@ -3523,7 +3523,7 @@ Each event item includes the full event detail shape:
 - This endpoint is synchronous but can take several seconds for broad profiles or large result sets. Show a loading state and keep user input editable.
 - `relevanceReason` can be `null`. Do not require it before displaying ranked recommendations.
 - Use `match_score`, `rank`, matched counts, event dates, geography, categories, and follow-up evidence together. Avoid presenting score differences as exact mathematical certainty.
-- For the top events, follow up with [Event detail](/api-reference/events/detail), then preview [List event exhibitors](/api-reference/exhibitors/list) or [List event personnel](/api-reference/personnel/list) before asking the user to unlock an event.
+- For the top events, follow up with [Event detail](/api-reference/events/get-event-detail), then preview [List event exhibitors](/api-reference/exhibitors/list-event-exhibitors) or [List event personnel](/api-reference/personnel/list-event-personnel) before asking the user to unlock an event.
 - If event summary counts are `null`, use the event-scoped list endpoint's `total` and `semantics` fields for the current access and filter context.
 
 ## Error responses
@@ -3543,7 +3543,7 @@ Each event item includes the full event detail shape:
 
 ## Recommended exhibitors for event
 
-Source: /api-reference/profile-matching/recommendations-exhibitors
+Source: /api-reference/profile-matching/get-recommended-exhibitors-for-event
 
 Return exhibitor recommendation state for a single event. Depending on the caller's current profile state, the endpoint can return populated recommendation metadata or an unranked fallback page.
 
@@ -3559,7 +3559,7 @@ Choose this endpoint when:
 - your product has profile or recommendation state for the caller
 - you want to inspect whether populated recommendation evidence is available
 
-Use [Exhibitors list](/api-reference/exhibitors/list) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
+Use [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
 
 ## Endpoint
 `GET /external/profile-matching/recommendations/exhibitors`
@@ -3690,7 +3690,7 @@ When recommendation metadata is unavailable, the endpoint returns deterministic 
 
 ## Filtering behavior
 
-Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
+Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name).
 
 ## Error responses
 - `400 Bad Request`
@@ -3953,7 +3953,7 @@ Prices can change by plan or product policy. Treat the API response and your com
 
 ## Final billing reconciliation
 
-Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/balance) and the affected resource.
+Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/get-credits-balance) and the affected resource.
 
 This is especially important when:
 
@@ -3986,7 +3986,7 @@ Use a confirmation step for operations that can spend credits:
   </Step>
 </Steps>
 
-For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
+For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck-an-external-action) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
 Some credit-consuming or task-producing routes accept `x-call-source`.
@@ -4012,16 +4012,16 @@ Recommended behavior:
 ## Related endpoints
 
 <CardGroup cols={2}>
-  <Card title="Credits balance" icon="coins" href="/api-reference/credits/balance">
+  <Card title="Credits balance" icon="coins" href="/api-reference/credits/get-credits-balance">
     Check available subscription and gift credits.
   </Card>
-  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock">
+  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
     Unlock full event-scoped coverage.
   </Card>
-  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock">
+  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.
   </Card>
-  <Card title="Exhibitor event search" icon="search" href="/api-reference/exhibitors/search-events">
+  <Card title="Exhibitor event search" icon="search" href="/api-reference/exhibitors/search-events-by-exhibitor-company-name">
     Search events from a company name.
   </Card>
 </CardGroup>

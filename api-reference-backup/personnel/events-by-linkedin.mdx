@@ -108,7 +108,7 @@ LinkedIn URL matching can take longer than direct Lensmor ID lookups because the
 Recommended production behavior:
 
 - Use a request timeout that keeps the user workflow responsive.
-- If you already have `personnel.id`, prefer [Personnel events](/api-reference/personnel/events) with `personnel_id`.
+- If you already have `personnel.id`, prefer [Personnel events](/api-reference/personnel/list-personnel-related-events) with `personnel_id`.
 - If URL lookup times out or returns no match, keep the workflow usable by continuing with event-scoped personnel search, a selected `personnel_id`, or a retry action.
 - Do not block a whole lead-prioritization workflow on one slow LinkedIn URL lookup. Mark that person as unresolved and continue ranking the rest of the batch.
 
@@ -121,4 +121,4 @@ Recommended production behavior:
 ## Notes
 - The returned `personnel` object uses the same contact-style response shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
-- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list) populates LinkedIn activity data.
+- The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.

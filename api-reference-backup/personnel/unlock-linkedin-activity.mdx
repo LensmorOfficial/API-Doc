@@ -12,5 +12,5 @@ Use this endpoint when your integration already has personnel IDs and wants to e
 - This endpoint is idempotent for personnel records with active or completed LinkedIn activity unlocks.
 - If LinkedIn activity data already exists, the API can mark the record as unlocked without creating a new task.
 - If activity data does not exist, the API creates an asynchronous LinkedIn activity analysis task and returns `taskId`.
-- This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock) for email unlock workflows.
-- Poll [Personnel list](/api-reference/personnel/list) or [Personnel profile](/api-reference/personnel/profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
+- This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email unlock workflows.
+- Poll [Personnel list](/api-reference/personnel/list-event-personnel) or [Personnel profile](/api-reference/personnel/get-personnel-profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.

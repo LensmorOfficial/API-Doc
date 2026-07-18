@@ -20,7 +20,7 @@ This endpoint returns events, not exhibitor records. It is useful for:
 - starting an event workflow without first calling exhibitor search
 
 <Warning>
-  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/balance) before running it in bulk, and use a confirmation step when a user-facing workflow will spend credits.
+  This endpoint can consume credits. Check [Credits balance](/api-reference/credits/get-credits-balance) before running it in bulk, and use a confirmation step when a user-facing workflow will spend credits.
 </Warning>
 
 ## Endpoint
@@ -108,7 +108,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 
 This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
 
-Refresh [Credits balance](/api-reference/credits/balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
 ## Error responses
 - `400 Bad Request`

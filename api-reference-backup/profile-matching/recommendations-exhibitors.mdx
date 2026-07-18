@@ -18,7 +18,7 @@ Choose this endpoint when:
 - your product has profile or recommendation state for the caller
 - you want to inspect whether populated recommendation evidence is available
 
-Use [Exhibitors list](/api-reference/exhibitors/list) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
+Use [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
 
 ## Endpoint
 `GET /external/profile-matching/recommendations/exhibitors`
@@ -149,7 +149,7 @@ When recommendation metadata is unavailable, the endpoint returns deterministic 
 
 ## Filtering behavior
 
-Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
+Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name).
 
 ## Error responses
 - `400 Bad Request`

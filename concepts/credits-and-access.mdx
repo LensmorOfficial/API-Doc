@@ -42,7 +42,7 @@ Prices can change by plan or product policy. Treat the API response and your com
 
 ## Final billing reconciliation
 
-Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/balance) and the affected resource.
+Precheck responses, endpoint docs, and UI estimates help users decide whether to proceed, but they are not final billing records. After a paid action, refresh [Credits balance](/api-reference/credits/get-credits-balance) and the affected resource.
 
 This is especially important when:
 
@@ -75,7 +75,7 @@ Use a confirmation step for operations that can spend credits:
   </Step>
 </Steps>
 
-For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
+For workflows that depend on access state, call [Actions precheck](/api-reference/actions/precheck-an-external-action) before execution. Precheck is read-only and returns whether the action is allowed, whether it should charge credits, and the expected credit amount when known.
 
 ## Headers
 Some credit-consuming or task-producing routes accept `x-call-source`.
@@ -101,16 +101,16 @@ Recommended behavior:
 ## Related endpoints
 
 <CardGroup cols={2}>
-  <Card title="Credits balance" icon="coins" href="/api-reference/credits/balance">
+  <Card title="Credits balance" icon="coins" href="/api-reference/credits/get-credits-balance">
     Check available subscription and gift credits.
   </Card>
-  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock">
+  <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
     Unlock full event-scoped coverage.
   </Card>
-  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock">
+  <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.
   </Card>
-  <Card title="Exhibitor event search" icon="search" href="/api-reference/exhibitors/search-events">
+  <Card title="Exhibitor event search" icon="search" href="/api-reference/exhibitors/search-events-by-exhibitor-company-name">
     Search events from a company name.
   </Card>
 </CardGroup>
