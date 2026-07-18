@@ -12,6 +12,7 @@
 - DTO/body source: `src/modules/external-api/dto/common/external-event-id-query.dto.ts`
 - Success status source: e2e in `test/e2e/external-events.e2e-spec.ts` asserts `201`
 - Response example source: `src/modules/external-api/services/external-events.service.ts#fitScore` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
+- Contract note: `score` and all three breakdown values use the `0`–`10` scale. The breakdown keys are exactly `profile_match`, `matched_exhibitor_density`, and `event_scale`.
 - Ambiguity note: PM draft fields such as `breakdown_details` and `limitations` are not emitted by the current service and are excluded.
 
 ## POST /external/events/rank

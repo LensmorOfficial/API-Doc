@@ -4,7 +4,7 @@ description: "Retrieve Lensmor recommended exhibitors for an event with profile 
 openapi: "openapi.json GET /external/profile-matching/recommendations/exhibitors"
 ---
 
-Return recommended exhibitors for a single event.
+Return exhibitor recommendation state for a single event. Depending on the caller's current profile state, the endpoint can return populated recommendation metadata or an unranked fallback page.
 
 Use this endpoint when you already know the target event and want exhibitor recommendations under the caller's current recommendation state.
 
@@ -16,7 +16,7 @@ Choose this endpoint when:
 
 - the user has already selected an event
 - your product has profile or recommendation state for the caller
-- you want exhibitor results filtered and ordered for relevance
+- you want to inspect whether populated recommendation evidence is available
 
 Use [Exhibitors list](/api-reference/exhibitors/list) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
 
@@ -70,15 +70,23 @@ curl "https://platform.lensmor.com/external/profile-matching/recommendations/exh
       "industry": "Retail Technology",
       "categories": ["Retail", "POS"],
       "employeeCount": 220,
+      "companySize": "201-500",
       "fundingRound": "Series B",
-      "techStacks": ["Cloudflare", "Nginx"]
+      "techStacks": ["Cloudflare", "Nginx"],
+      "isRecommended": true,
+      "recommendationRank": 1,
+      "matchStatus": "ready",
+      "matchScore": 91,
+      "matchTier": "top_match",
+      "reason": "Strong fit for the active profile."
     }
   ],
   "total": 87,
   "page": 1,
   "pageSize": 20,
   "totalPages": 5,
-  "hasMore": true
+  "hasMore": true,
+  "recommendationProcessing": false
 }
 ```
 
@@ -86,16 +94,62 @@ curl "https://platform.lensmor.com/external/profile-matching/recommendations/exh
 
 | Field | Description |
 | --- | --- |
-| `items` | Recommended exhibitor records. |
+| `items` | Event exhibitor rows. Treat them as recommendations only when recommendation evidence is populated. |
 | `id` | Exhibitor identifier. |
 | `companyName`, `description`, `website` | Display and web presence fields. |
 | `country`, `industry`, `categories` | Classification fields. |
-| `employeeCount`, `fundingRound`, `techStacks` | Enrichment and firmographic signals. |
+| `employeeCount`, `companySize`, `fundingRound`, `techStacks` | Enrichment and firmographic signals. |
+| `isRecommended` | Whether the row belongs to the active recommendation snapshot. |
+| `recommendationRank`, `matchScore`, `matchTier` | Populated recommendation evidence when available; otherwise `null`. |
+| `matchStatus` | Recommendation metadata status: `pending_unlock`, `processing`, `ready`, `failed`, or `null`. |
+| `reason` | Recommendation reason when available. The response field is `reason`, not `matchReason`. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+| `recommendationProcessing` | `true` while recommendation detail generation is still processing for the event. |
+| `code` | Fallback code. Currently `AI_SEARCH_RESULT_MISMATCH` when fallback rows are returned. |
+| `show_refresh_hint` | Optional fallback hint. The flag does not identify a cause or prescribe a required action. |
+
+## Fallback response
+
+When recommendation metadata is unavailable, the endpoint returns deterministic event exhibitor rows with null recommendation fields. Do not present their order as an ICP ranking.
+
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "description": "Retail analytics platform",
+      "logo": null,
+      "website": "https://acme.example",
+      "country": "United States",
+      "industry": "Retail Technology",
+      "categories": ["Retail", "POS"],
+      "employeeCount": 220,
+      "companySize": "201-500",
+      "fundingRound": "Series B",
+      "techStacks": ["Cloudflare", "Nginx"],
+      "isRecommended": false,
+      "recommendationRank": null,
+      "matchStatus": null,
+      "matchScore": null,
+      "matchTier": null,
+      "reason": null
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true,
+  "recommendationProcessing": false,
+  "code": "AI_SEARCH_RESULT_MISMATCH",
+  "show_refresh_hint": true
+}
+```
 
 ## Filtering behavior
 
-Use filters to narrow recommended exhibitors after recommendation state is established. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
+Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
 
 ## Error responses
 - `400 Bad Request`
@@ -108,3 +162,4 @@ Use filters to narrow recommended exhibitors after recommendation state is estab
 - The request parameter `event_id` refers to the `eventId` value returned by event endpoints.
 - `categories` is preserved when recommendation data contains category labels.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- Only call the response AI-ranked when at least one row contains populated recommendation evidence such as `isRecommended: true`, `recommendationRank`, `matchScore`, `matchTier`, or `reason`.

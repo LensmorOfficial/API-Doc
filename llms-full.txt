@@ -11,7 +11,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.23.0`
+Current documentation version: `v0.23.1`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -190,7 +190,7 @@ To test your integration safely:
 </Tip>
 
 ## Notes
-- Older examples that show `sk_...` are historical and are not the current API key format.
+- Use the full `sk_...` key value from **Settings -> API Keys**. The visible key prefix alone is not enough for authentication.
 - Invalid or missing keys return the shared API error format described in [Error conventions](/concepts/errors).
 
 ---
@@ -201,11 +201,43 @@ Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
-## Unreleased
+## v0.23.1
+
+Released July 19, 2026.
+
+### Fixed
+
+- Standardized current API-key guidance on the Business `sk_` format across human and LLM-facing documentation.
+- Defined the event fit score as a `0`–`10` value with the exact `profile_match`, `matched_exhibitor_density`, and `event_scale` breakdown fields.
+- Added the dedicated recommended-exhibitor response contract, including `recommendationProcessing`, fallback `code`, `show_refresh_hint`, and the item-level `reason` field.
 
 ### Changed
 
-- Clarified live API edge cases for best-effort nested personnel samples, event summary counts, LinkedIn URL lookup fallback, shortlist ranking, exhibitor event search billing, and item-level contact unlock outcomes.
+- Updated OpenAPI metadata to version `0.23.1`.
+
+## v0.23.0
+
+Released June 29, 2026.
+
+### Changed
+
+- Clarified task-source behavior for `x-call-source` on LinkedIn activity unlock and outreach message generation workflows.
+- Updated OpenAPI metadata to version `0.23.0`.
+
+### Fixed
+
+- Added missing `taskCenterId` metadata to the outreach message generation response schema.
+- Added missing `status`, `create_time`, and `update_time` fields to the outreach message detail response schema.
+
+## v0.22.0
+
+Released June 18, 2026.
+
+### Added
+
+- Added documentation for phone number unlock workflows and AI-powered outreach message generation.
+- Converted existing contact and outreach endpoint pages to OpenAPI-driven format with interactive playground support.
+- Updated OpenAPI metadata to version `0.22.0`.
 
 ## v0.21.0
 
@@ -1412,17 +1444,18 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 | Field | Description |
 | --- | --- |
 | `event` | Compact event object for the scored event. |
-| `score` | Numeric compatibility score for the authenticated caller's current profile context. |
-| `recommendation` | Human-readable recommendation category. |
-| `breakdown.profile_match` | Profile-context compatibility component. |
-| `breakdown.matched_exhibitor_density` | Signal based on relevant exhibitor overlap or density. |
-| `breakdown.event_scale` | Signal based on event size and scale. |
+| `score` | Overall compatibility score on a `0`–`10` scale. |
+| `recommendation` | Exact decision enum: `recommended`, `consider`, or `not_recommended`. |
+| `breakdown.profile_match` | Profile-context compatibility component on a `0`–`10` scale. |
+| `breakdown.matched_exhibitor_density` | Matched-exhibitor density component on a `0`–`10` scale. This is not verified buyer or attendee density. |
+| `breakdown.event_scale` | Component derived from the Lensmor exhibitor count and capped at `10`. It does not provide a qualitative size benchmark by itself. |
 
 ## Interpretation guidance
 
 - Use `score` for display and ordering, but avoid treating small differences as exact truth.
-- Use `recommendation` as the primary user-facing label.
-- Use `breakdown` to explain why an event is strong or weak when your UI has space for detail.
+- Treat `7`–`10` as `recommended`, `4` to below `7` as `consider`, and below `4` as `not_recommended`.
+- Preserve the three returned breakdown fields exactly. Do not invent additional dimensions.
+- A zero score does not identify the cause. Do not infer missing profile configuration or missing coverage unless another API field or error states that explicitly.
 
 ## Error responses
 - `400 Bad Request`
@@ -1432,7 +1465,7 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
 - `429 Too Many Requests`
 
 ## Notes
-- This endpoint uses `POST` because the request body can contain structured profile context that does not fit cleanly in query parameters. It does not create a persistent resource.
+- This endpoint uses `POST` to compute a profile-dependent result for the supplied `event_id`. It does not create a persistent resource.
 - The current implementation returns `event`, `score`, `recommendation`, and `breakdown` only.
 - Older draft fields such as `breakdown_details` are not part of the live response.
 
@@ -3512,7 +3545,7 @@ Each event item includes the full event detail shape:
 
 Source: /api-reference/profile-matching/recommendations-exhibitors
 
-Return recommended exhibitors for a single event.
+Return exhibitor recommendation state for a single event. Depending on the caller's current profile state, the endpoint can return populated recommendation metadata or an unranked fallback page.
 
 Use this endpoint when you already know the target event and want exhibitor recommendations under the caller's current recommendation state.
 
@@ -3524,7 +3557,7 @@ Choose this endpoint when:
 
 - the user has already selected an event
 - your product has profile or recommendation state for the caller
-- you want exhibitor results filtered and ordered for relevance
+- you want to inspect whether populated recommendation evidence is available
 
 Use [Exhibitors list](/api-reference/exhibitors/list) when you need the broader event-scoped exhibitor catalog with preview/full access semantics.
 
@@ -3578,15 +3611,23 @@ curl "https://platform.lensmor.com/external/profile-matching/recommendations/exh
       "industry": "Retail Technology",
       "categories": ["Retail", "POS"],
       "employeeCount": 220,
+      "companySize": "201-500",
       "fundingRound": "Series B",
-      "techStacks": ["Cloudflare", "Nginx"]
+      "techStacks": ["Cloudflare", "Nginx"],
+      "isRecommended": true,
+      "recommendationRank": 1,
+      "matchStatus": "ready",
+      "matchScore": 91,
+      "matchTier": "top_match",
+      "reason": "Strong fit for the active profile."
     }
   ],
   "total": 87,
   "page": 1,
   "pageSize": 20,
   "totalPages": 5,
-  "hasMore": true
+  "hasMore": true,
+  "recommendationProcessing": false
 }
 ```
 
@@ -3594,16 +3635,62 @@ curl "https://platform.lensmor.com/external/profile-matching/recommendations/exh
 
 | Field | Description |
 | --- | --- |
-| `items` | Recommended exhibitor records. |
+| `items` | Event exhibitor rows. Treat them as recommendations only when recommendation evidence is populated. |
 | `id` | Exhibitor identifier. |
 | `companyName`, `description`, `website` | Display and web presence fields. |
 | `country`, `industry`, `categories` | Classification fields. |
-| `employeeCount`, `fundingRound`, `techStacks` | Enrichment and firmographic signals. |
+| `employeeCount`, `companySize`, `fundingRound`, `techStacks` | Enrichment and firmographic signals. |
+| `isRecommended` | Whether the row belongs to the active recommendation snapshot. |
+| `recommendationRank`, `matchScore`, `matchTier` | Populated recommendation evidence when available; otherwise `null`. |
+| `matchStatus` | Recommendation metadata status: `pending_unlock`, `processing`, `ready`, `failed`, or `null`. |
+| `reason` | Recommendation reason when available. The response field is `reason`, not `matchReason`. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+| `recommendationProcessing` | `true` while recommendation detail generation is still processing for the event. |
+| `code` | Fallback code. Currently `AI_SEARCH_RESULT_MISMATCH` when fallback rows are returned. |
+| `show_refresh_hint` | Optional fallback hint. The flag does not identify a cause or prescribe a required action. |
+
+## Fallback response
+
+When recommendation metadata is unavailable, the endpoint returns deterministic event exhibitor rows with null recommendation fields. Do not present their order as an ICP ranking.
+
+```json
+{
+  "items": [
+    {
+      "id": "456",
+      "companyName": "Acme Retail Systems",
+      "description": "Retail analytics platform",
+      "logo": null,
+      "website": "https://acme.example",
+      "country": "United States",
+      "industry": "Retail Technology",
+      "categories": ["Retail", "POS"],
+      "employeeCount": 220,
+      "companySize": "201-500",
+      "fundingRound": "Series B",
+      "techStacks": ["Cloudflare", "Nginx"],
+      "isRecommended": false,
+      "recommendationRank": null,
+      "matchStatus": null,
+      "matchScore": null,
+      "matchTier": null,
+      "reason": null
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 5,
+  "hasMore": true,
+  "recommendationProcessing": false,
+  "code": "AI_SEARCH_RESULT_MISMATCH",
+  "show_refresh_hint": true
+}
+```
 
 ## Filtering behavior
 
-Use filters to narrow recommended exhibitors after recommendation state is established. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
+Use filters to narrow the returned event exhibitor rows. Apply the same recommendation-evidence check after filtering. For exact company-name lookup, use [Exhibitor company search](/api-reference/exhibitors/search-by-company-name).
 
 ## Error responses
 - `400 Bad Request`
@@ -3616,6 +3703,7 @@ Use filters to narrow recommended exhibitors after recommendation state is estab
 - The request parameter `event_id` refers to the `eventId` value returned by event endpoints.
 - `categories` is preserved when recommendation data contains category labels.
 - `techStacks` is always returned as an array; when no data is available, the API returns `techStacks: []`.
+- Only call the response AI-ranked when at least one row contains populated recommendation evidence such as `isRecommended: true`, `recommendationRank`, `matchScore`, `matchTier`, or `reason`.
 
 ---
 
