@@ -41,6 +41,7 @@
 | Method | Path | Reason |
 | --- | --- | --- |
 | GET/POST | /external/agent-files/* | Agent file transport endpoints; not customer-facing documentation. |
+| GET/POST | /external/integrations/* | Agent-only integration bridge endpoints; not part of the customer-facing API contract. |
 | POST | /external/debug/events/:id/reset-unlock | Debug endpoint behind `ExternalApiDebugEnabledGuard`; never publish. |
 | POST | /external/profile-matching/recommendations/events/paged | Deprecated compatibility path; new docs use `/actions/apply-recommended-events/paged`. |
 
@@ -55,6 +56,6 @@
 
 ## Verification notes
 - Included exactly 28 customer-facing routes in Mintlify and OpenAPI
-- Confirmed Agent Files, Debug, and deprecated profile-matching route are intentionally excluded
+- Confirmed Agent Files, Agent-only Integrations, Debug, and deprecated profile-matching route are intentionally excluded
 - Confirmed customer-facing auth docs use Business `sk_...` examples
 - Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`

@@ -48,4 +48,7 @@ jobs:
           fi
 
       - name: Lint OpenAPI
-        run: npx --yes @redocly/cli@2.39.0 lint openapi.json
+        run: |
+          redocly_output="$(npx --yes @redocly/cli@2.39.0 lint openapi.json --format json)"
+          printf '%s\n' "$redocly_output"
+          printf '%s\n' "$redocly_output" | jq -e '.totals.errors == 0 and .totals.warnings == 0'

@@ -3,7 +3,11 @@
   "info": {
     "title": "Lensmor API",
     "version": "0.23.1",
-    "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching."
+    "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
+    "license": {
+      "name": "Lensmor Terms of Service",
+      "url": "https://www.lensmor.com/terms"
+    }
   },
   "servers": [
     {
@@ -17,25 +21,32 @@
   ],
   "tags": [
     {
-      "name": "Credits"
+      "name": "Credits",
+      "description": "Inspect the credit balance available to the authenticated API key owner."
     },
     {
-      "name": "Actions"
+      "name": "Actions",
+      "description": "Preflight access and credit-sensitive actions before executing them."
     },
     {
-      "name": "Events"
+      "name": "Events",
+      "description": "Discover, inspect, score, rank, and unlock trade show event records."
     },
     {
-      "name": "Exhibitors"
+      "name": "Exhibitors",
+      "description": "Search and inspect exhibiting companies and their related events."
     },
     {
-      "name": "Personnel"
+      "name": "Personnel",
+      "description": "Browse event personnel, related events, LinkedIn activity, and outreach content."
     },
     {
-      "name": "Contacts"
+      "name": "Contacts",
+      "description": "Search contacts and run asynchronous email or phone unlock workflows."
     },
     {
-      "name": "Profile Matching"
+      "name": "Profile Matching",
+      "description": "Apply a buyer profile to rank events and recommend exhibitors."
     }
   ],
   "paths": {
@@ -45,6 +56,7 @@
           "Credits"
         ],
         "summary": "Get credits balance",
+        "description": "Return subscription, gift, and total credits for the authenticated API key owner without spending credits.",
         "operationId": "getExternalCreditsBalance",
         "responses": {
           "200": {
@@ -53,6 +65,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreditBalance"
+                },
+                "example": {
+                  "totalAmount": 35050,
+                  "totalBalance": 30050,
+                  "subscriptionAmount": 35000,
+                  "subscriptionBalance": 30000,
+                  "giftAmount": 50,
+                  "giftBalance": 50,
+                  "resetAt": 1714521600000
                 }
               }
             }
@@ -72,6 +93,7 @@
           "Actions"
         ],
         "summary": "Precheck an external action",
+        "description": "Evaluate access and expected credit behavior for a supported action without executing or charging it.",
         "operationId": "precheckExternalAction",
         "requestBody": {
           "required": true,
@@ -79,6 +101,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ActionPrecheckRequest"
+              },
+              "example": {
+                "action_type": "query_event_personnel",
+                "call_source": "api",
+                "params": {
+                  "event_id": "26855"
+                }
               }
             }
           }
@@ -90,6 +119,22 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ActionPrecheckResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "action_type": "query_event_personnel",
+                  "allowed": true,
+                  "should_charge": false,
+                  "credits": 0,
+                  "reason_code": "ok",
+                  "biz_code": "",
+                  "detail": {
+                    "event_id": "26855",
+                    "access_mode": "preview",
+                    "preview_limit": 50,
+                    "unlock_action_type": "unlock_event_contacts",
+                    "unlock_credits": 2000
+                  }
                 }
               }
             }
@@ -112,6 +157,7 @@
           "Events"
         ],
         "summary": "List events",
+        "description": "Search and filter the event catalog by keyword, geography, date, type, and quality with pagination.",
         "operationId": "listEvents",
         "parameters": [
           {
@@ -188,6 +234,32 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "26855",
+                      "eventId": "26855",
+                      "name": "CES 2025",
+                      "nickname": "Consumer Electronics Show 2025",
+                      "description": "Consumer technology trade show in Las Vegas.",
+                      "url": "https://www.ces.tech/",
+                      "dateStart": "2025-01-07",
+                      "dateEnd": "2025-01-10",
+                      "venue": "Las Vegas Convention Center",
+                      "city": "Las Vegas",
+                      "region": "Nevada",
+                      "country": "United States",
+                      "exhibitorCount": 3259,
+                      "image": "https://example.com/ces-image.png",
+                      "dataSource": "Lensmor"
+                    }
+                  ],
+                  "total": 42,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 3,
+                  "hasMore": true
                 }
               }
             }
@@ -207,6 +279,7 @@
           "Events"
         ],
         "summary": "Get event detail",
+        "description": "Return the detailed public event record for one Lensmor event identifier.",
         "operationId": "getEventDetail",
         "parameters": [
           {
@@ -227,6 +300,23 @@
                     "event": {
                       "$ref": "#/components/schemas/EventDetail"
                     }
+                  }
+                },
+                "example": {
+                  "event": {
+                    "id": "26855",
+                    "eventId": "26855",
+                    "name": "CES 2025",
+                    "description": "Consumer technology trade show in Las Vegas.",
+                    "url": "https://www.ces.tech/",
+                    "dateStart": "2025-01-07",
+                    "dateEnd": "2025-01-10",
+                    "venue": "Las Vegas Convention Center",
+                    "city": "Las Vegas",
+                    "region": "Nevada",
+                    "country": "United States",
+                    "exhibitorCount": 3259,
+                    "dataSource": "Lensmor"
                   }
                 }
               }
@@ -250,6 +340,7 @@
           "Events"
         ],
         "summary": "Get event brief",
+        "description": "Return a lightweight event record with coverage counts, top categories, and data freshness.",
         "operationId": "getEventBrief",
         "parameters": [
           {
@@ -295,6 +386,29 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "event": {
+                    "id": "123",
+                    "eventId": "139574",
+                    "name": "NRF 2026",
+                    "description": "Retail industry event",
+                    "url": "https://example.com/events/nrf-2026",
+                    "dateStart": "2026-01-12",
+                    "dateEnd": "2026-01-15",
+                    "venue": "Javits Center",
+                    "city": "New York",
+                    "region": "NY",
+                    "country": "United States",
+                    "exhibitorCount": 950,
+                    "dataSource": "database"
+                  },
+                  "summary": {
+                    "attendeeCount": 40000,
+                    "exhibitorCount": 950,
+                    "topCategories": [],
+                    "dataFreshness": "database_snapshot"
+                  }
                 }
               }
             }
@@ -317,6 +431,7 @@
           "Events"
         ],
         "summary": "Score one event",
+        "description": "Calculate a profile-dependent fit score and rationale for one event without unlocking it.",
         "operationId": "scoreEventFit",
         "requestBody": {
           "$ref": "#/components/requestBodies/EventIdBody"
@@ -328,6 +443,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventFitScore"
+                },
+                "example": {
+                  "event": {
+                    "id": "123",
+                    "eventId": "139574",
+                    "name": "NRF 2026",
+                    "description": "Retail industry event",
+                    "url": "https://example.com/events/nrf-2026",
+                    "dateStart": "2026-01-12",
+                    "dateEnd": "2026-01-15",
+                    "venue": "Javits Center",
+                    "city": "New York",
+                    "region": "NY",
+                    "country": "United States",
+                    "exhibitorCount": 950,
+                    "dataSource": "database"
+                  },
+                  "score": 8.1,
+                  "recommendation": "recommended",
+                  "breakdown": {
+                    "profile_match": 8.1,
+                    "matched_exhibitor_density": 1.9,
+                    "event_scale": 9.5
+                  }
                 }
               }
             }
@@ -353,6 +492,7 @@
           "Events"
         ],
         "summary": "Rank events",
+        "description": "Rank a supplied set of event identifiers against the authenticated user's profile.",
         "operationId": "rankEvents",
         "requestBody": {
           "required": true,
@@ -372,6 +512,12 @@
                     "minItems": 1
                   }
                 }
+              },
+              "example": {
+                "event_ids": [
+                  "139574",
+                  "139575"
+                ]
               }
             }
           }
@@ -394,6 +540,24 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "items": [
+                    {
+                      "event_id": "139574",
+                      "name": "NRF 2026",
+                      "rank": 1,
+                      "match_score": 0.86,
+                      "reasons": []
+                    },
+                    {
+                      "event_id": "139575",
+                      "name": "Shoptalk 2026",
+                      "rank": 2,
+                      "match_score": 0.79,
+                      "reasons": []
+                    }
+                  ]
                 }
               }
             }
@@ -419,6 +583,7 @@
           "Events"
         ],
         "summary": "Unlock event access",
+        "description": "Unlock full exhibitor and personnel access for an event; a first unlock can consume 2,000 credits and repeated unlocks are idempotent.",
         "operationId": "unlockEvent",
         "parameters": [
           {
@@ -435,6 +600,22 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventUnlockResult"
+                },
+                "example": {
+                  "success": true,
+                  "alreadyUnlocked": false,
+                  "creditsUsed": 2000,
+                  "balanceAfter": {
+                    "subscriptionBalance": 0,
+                    "permanentBalance": 451021,
+                    "totalBalance": 451021,
+                    "unlimited": false
+                  },
+                  "event": {
+                    "id": "26855",
+                    "eventId": "26855",
+                    "name": "CES 2025"
+                  }
                 }
               }
             }
@@ -460,6 +641,7 @@
           "Exhibitors"
         ],
         "summary": "List event exhibitors",
+        "description": "Return paginated exhibitors for an event with preview or full-access semantics and visible coverage counts.",
         "operationId": "listExhibitors",
         "parameters": [
           {
@@ -539,6 +721,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExhibitorPageWithSemantics"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "456",
+                      "companyName": "Acme Retail Systems",
+                      "domain": "acme.example",
+                      "website": "https://acme.example",
+                      "industry": "Retail Technology",
+                      "country": "United States",
+                      "matched_event_ids": [
+                        "139574"
+                      ]
+                    }
+                  ],
+                  "total": 87,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 5,
+                  "hasMore": true,
+                  "recommendationProcessing": false,
+                  "recommendationProcessingFeature": "none",
+                  "semantics": {
+                    "accessMode": "preview",
+                    "previewLimit": 50,
+                    "counts": {
+                      "actualTotal": 87,
+                      "visibleTotal": 50,
+                      "remainingLockedCount": 37
+                    },
+                    "pageState": {
+                      "requestedPage": 1,
+                      "accessible": true,
+                      "maxAccessiblePage": 1
+                    },
+                    "unlock": {
+                      "requiredForMoreResults": true,
+                      "actionType": "unlock_event_exhibitors",
+                      "credits": 2000
+                    }
+                  }
                 }
               }
             }
@@ -561,6 +784,7 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company context",
+        "description": "Search exhibitor records using a company website URL or target-audience context.",
         "operationId": "searchExhibitors",
         "requestBody": {
           "$ref": "#/components/requestBodies/ExhibitorSearchBody"
@@ -572,6 +796,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExhibitorPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "456",
+                      "companyName": "Acme Retail Systems",
+                      "domain": "acme.example",
+                      "website": "https://acme.example",
+                      "industry": "Retail Technology",
+                      "country": "United States",
+                      "matched_event_ids": [
+                        "139574"
+                      ]
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -594,6 +838,7 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company name",
+        "description": "Run a precision-first exhibitor lookup by company name; a successful search attempt can consume 50 credits.",
         "operationId": "searchExhibitorsByCompanyName",
         "requestBody": {
           "$ref": "#/components/requestBodies/CompanyNameBody"
@@ -605,6 +850,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExhibitorPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "456",
+                      "companyName": "Acme Retail Systems",
+                      "domain": "acme.example",
+                      "website": "https://acme.example",
+                      "industry": "Retail Technology",
+                      "country": "United States",
+                      "matched_event_ids": [
+                        "139574"
+                      ]
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -627,6 +892,7 @@
           "Exhibitors"
         ],
         "summary": "Search events by exhibitor company name",
+        "description": "Find events associated with a company name; a successful reverse event search can consume 50 credits.",
         "operationId": "searchEventsByExhibitorCompanyName",
         "parameters": [
           {
@@ -643,6 +909,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "123",
+                      "eventId": "139574",
+                      "name": "Shoptalk 2026",
+                      "dateStart": "2026-03-15",
+                      "dateEnd": "2026-03-18",
+                      "city": "Las Vegas",
+                      "country": "United States"
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -668,6 +952,7 @@
           "Exhibitors"
         ],
         "summary": "Get exhibitor profile",
+        "description": "Return the public company profile for one exhibitor identifier.",
         "operationId": "getExhibitorProfile",
         "parameters": [
           {
@@ -681,6 +966,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExhibitorProfile"
+                },
+                "example": {
+                  "id": "456",
+                  "companyName": "Acme Retail Systems",
+                  "domain": "acme.example",
+                  "website": "https://acme.example",
+                  "industry": "Retail Technology",
+                  "employeeCount": 220,
+                  "country": "United States",
+                  "fundingRound": "Series B",
+                  "matched_event_ids": [
+                    "139574"
+                  ],
+                  "events": [
+                    {
+                      "id": "123",
+                      "eventId": "139574",
+                      "name": "NRF 2026"
+                    }
+                  ]
                 }
               }
             }
@@ -703,6 +1008,7 @@
           "Exhibitors"
         ],
         "summary": "List exhibitor related events",
+        "description": "Return paginated events associated with one exhibitor identifier.",
         "operationId": "listExhibitorEvents",
         "parameters": [
           {
@@ -722,6 +1028,24 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "123",
+                      "eventId": "139574",
+                      "name": "NRF 2026",
+                      "dateStart": "2026-01-12",
+                      "dateEnd": "2026-01-15",
+                      "city": "New York",
+                      "country": "United States"
+                    }
+                  ],
+                  "total": 12,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -744,6 +1068,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
+        "description": "Return paginated people for an event with preview or full-access semantics and visible coverage counts.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -801,6 +1126,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactPageWithSemantics"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "789",
+                      "fullName": "Jane Smith",
+                      "title": "VP of Retail Technology",
+                      "companyName": "Acme Retail Systems",
+                      "email": null,
+                      "contactUnlockStatus": "locked"
+                    }
+                  ],
+                  "total": 42,
+                  "page": 1,
+                  "pageSize": 50,
+                  "totalPages": 1,
+                  "hasMore": false,
+                  "semantics": {
+                    "accessMode": "preview",
+                    "previewLimit": 50
+                  }
                 }
               }
             }
@@ -823,6 +1169,7 @@
           "Personnel"
         ],
         "summary": "Get personnel profile",
+        "description": "Return the public professional profile for one personnel identifier.",
         "operationId": "getPersonnelProfile",
         "parameters": [
           {
@@ -836,6 +1183,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactItem"
+                },
+                "example": {
+                  "id": "789",
+                  "fullName": "Jane Smith",
+                  "title": "VP of Retail Technology",
+                  "department": "Technology",
+                  "seniorityLevel": "vp",
+                  "linkedinUrl": "https://linkedin.com/in/jane-smith",
+                  "companyName": "Acme Retail Systems",
+                  "email": null,
+                  "contactUnlockStatus": "locked"
                 }
               }
             }
@@ -858,6 +1216,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events",
+        "description": "Return paginated events associated with one personnel identifier.",
         "operationId": "listPersonnelEvents",
         "parameters": [
           {
@@ -877,6 +1236,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EventPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "139574",
+                      "eventId": "139574",
+                      "name": "Retail Technology Expo 2026"
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -899,6 +1272,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events by LinkedIn URL",
+        "description": "Resolve a public LinkedIn profile URL to a personnel record and its related events.",
         "operationId": "listPersonnelEventsByLinkedin",
         "parameters": [
           {
@@ -936,6 +1310,29 @@
                       "$ref": "#/components/schemas/EventPage"
                     }
                   }
+                },
+                "example": {
+                  "personnel": {
+                    "id": "789",
+                    "fullName": "Jane Smith",
+                    "linkedinUrl": "https://linkedin.com/in/jane-smith",
+                    "email": null,
+                    "contactUnlockStatus": "locked"
+                  },
+                  "events": {
+                    "items": [
+                      {
+                        "id": "139574",
+                        "eventId": "139574",
+                        "name": "Retail Technology Expo 2026"
+                      }
+                    ],
+                    "total": 1,
+                    "page": 1,
+                    "pageSize": 20,
+                    "totalPages": 1,
+                    "hasMore": false
+                  }
                 }
               }
             }
@@ -958,6 +1355,7 @@
           "Personnel"
         ],
         "summary": "Unlock LinkedIn activity",
+        "description": "Start asynchronous LinkedIn activity analysis for one or more personnel records in an event context.",
         "operationId": "unlockLinkedinActivity",
         "parameters": [
           {
@@ -970,6 +1368,12 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LinkedinActivityUnlockRequest"
+              },
+              "example": {
+                "personnel_ids": [
+                  "789"
+                ],
+                "event_id": "139574"
               }
             }
           }
@@ -981,6 +1385,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LinkedinActivityUnlockResponse"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "personnel_id": "789",
+                      "success": true,
+                      "alreadyUnlocked": false,
+                      "taskId": "task_321",
+                      "error": null
+                    }
+                  ]
                 }
               }
             }
@@ -1006,6 +1421,7 @@
           "Contacts"
         ],
         "summary": "Search contacts",
+        "description": "Search public contact records by required company name and optional role or person-name filters.",
         "operationId": "searchContacts",
         "parameters": [
           {
@@ -1048,6 +1464,25 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "101",
+                      "fullName": "Jane Doe",
+                      "title": "VP Marketing",
+                      "companyName": "Acme",
+                      "email": null,
+                      "contactUnlockStatus": "locked",
+                      "linkedinActivity": null,
+                      "linkedinActivityStatus": null
+                    }
+                  ],
+                  "total": 1,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 1,
+                  "hasMore": false
                 }
               }
             }
@@ -1070,6 +1505,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact emails",
+        "description": "Start an asynchronous email unlock task that can consume 15 credits per chargeable contact.",
         "operationId": "unlockContactEmails",
         "parameters": [
           {
@@ -1101,6 +1537,13 @@
                     "maxLength": 100
                   }
                 }
+              },
+              "example": {
+                "personnel_ids": [
+                  "789",
+                  "790"
+                ],
+                "event_id": "139574"
               }
             }
           }
@@ -1112,6 +1555,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactUnlockAccepted"
+                },
+                "example": {
+                  "status": "accepted",
+                  "task_id": "321",
+                  "job_id": "321"
                 }
               }
             }
@@ -1143,6 +1591,7 @@
           "Contacts"
         ],
         "summary": "Get contact unlock task",
+        "description": "Poll an email unlock task and inspect terminal job status plus item-level email results.",
         "operationId": "getContactUnlockTask",
         "parameters": [
           {
@@ -1161,6 +1610,21 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactUnlockTask"
+                },
+                "example": {
+                  "taskId": "321",
+                  "taskStatus": "processing",
+                  "items": [
+                    {
+                      "personnelId": "789",
+                      "status": "unlocked",
+                      "email": "jane@acme.example"
+                    },
+                    {
+                      "personnelId": "790",
+                      "status": "processing"
+                    }
+                  ]
                 }
               }
             }
@@ -1183,6 +1647,7 @@
           "Profile Matching"
         ],
         "summary": "Apply profile and get recommended events",
+        "description": "Apply profile-matching input synchronously and return a paginated list of recommended events without spending credits.",
         "operationId": "applyRecommendedEventsPaged",
         "requestBody": {
           "$ref": "#/components/requestBodies/ProfileMatchingBody"
@@ -1194,6 +1659,25 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProfileEventRecommendationPage"
+                },
+                "example": {
+                  "status": "completed",
+                  "items": [
+                    {
+                      "id": "10067",
+                      "eventId": "10067",
+                      "name": "American Banker Digital Banking 2026"
+                    }
+                  ],
+                  "total": 42,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 3,
+                  "hasMore": true,
+                  "condition_tags": {},
+                  "profile_version": 12,
+                  "active_result_version": 12,
+                  "is_stale": false
                 }
               }
             }
@@ -1219,6 +1703,7 @@
           "Profile Matching"
         ],
         "summary": "Get recommended exhibitors for event",
+        "description": "Return paginated exhibitors recommended for the authenticated user's profile within one event.",
         "operationId": "getRecommendedExhibitors",
         "parameters": [
           {
@@ -1287,6 +1772,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecommendedExhibitorPage"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "456",
+                      "companyName": "Acme Retail Systems",
+                      "isRecommended": true,
+                      "recommendationRank": 1,
+                      "matchStatus": "ready",
+                      "matchScore": 91,
+                      "matchTier": "top_match",
+                      "reason": "Strong fit for the active profile."
+                    }
+                  ],
+                  "total": 87,
+                  "page": 1,
+                  "pageSize": 20,
+                  "totalPages": 5,
+                  "hasMore": true,
+                  "recommendationProcessing": false
                 }
               }
             }
@@ -1309,6 +1814,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact phone numbers",
+        "description": "Start an asynchronous phone unlock task that consumes credits per chargeable contact.",
         "operationId": "unlockContactPhones",
         "parameters": [
           {
@@ -1321,6 +1827,12 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PhoneUnlockRequest"
+              },
+              "example": {
+                "personnel_ids": [
+                  "789"
+                ],
+                "event_id": "139574"
               }
             }
           }
@@ -1332,6 +1844,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContactUnlockAccepted"
+                },
+                "example": {
+                  "status": "accepted",
+                  "task_id": "phone_321",
+                  "job_id": "phone_321"
                 }
               }
             }
@@ -1363,6 +1880,7 @@
           "Contacts"
         ],
         "summary": "Get phone unlock task",
+        "description": "Poll a phone unlock task and inspect terminal job status plus item-level phone results.",
         "operationId": "getPhoneUnlockTask",
         "parameters": [
           {
@@ -1381,6 +1899,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PhoneUnlockTask"
+                },
+                "example": {
+                  "taskId": "phone_321",
+                  "taskStatus": "completed",
+                  "items": [
+                    {
+                      "personnelId": "789",
+                      "status": "unlocked",
+                      "phone": "+1 415 555 0100"
+                    }
+                  ]
                 }
               }
             }
@@ -1403,6 +1932,7 @@
           "Personnel"
         ],
         "summary": "Generate outreach messages",
+        "description": "Start asynchronous AI outreach generation for one or more personnel records and selected channels.",
         "operationId": "generateOutreachMessage",
         "parameters": [
           {
@@ -1415,6 +1945,17 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/OutreachMessageRequest"
+              },
+              "example": {
+                "personnel_ids": [
+                  "789"
+                ],
+                "event_id": "139574",
+                "channels": [
+                  "email",
+                  "linkedin_message"
+                ],
+                "outreach_purpose": "Book a product demo"
               }
             }
           }
@@ -1426,6 +1967,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OutreachMessageResponse"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "personnel_id": "789",
+                      "success": true,
+                      "taskId": "outreach_321",
+                      "error": null
+                    }
+                  ],
+                  "taskCenterId": "outreach_batch_321"
                 }
               }
             }
@@ -1451,6 +2003,7 @@
           "Personnel"
         ],
         "summary": "Get outreach message detail",
+        "description": "Return the most recent generated outreach content for one personnel and event combination.",
         "operationId": "getOutreachDetail",
         "parameters": [
           {
@@ -1481,6 +2034,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OutreachDetail"
+                },
+                "example": {
+                  "found": true,
+                  "channels": [
+                    "email",
+                    "linkedin_message"
+                  ],
+                  "messages": {
+                    "email": "Hi Jane, I would like to compare notes before Retail Technology Expo.",
+                    "linkedin_message": "Hi Jane, are you open to a quick conversation before the event?"
+                  },
+                  "outreach_purpose": "Book a product demo",
+                  "tone": "professional",
+                  "status": "ready"
                 }
               }
             }
@@ -1616,6 +2183,9 @@
                   "maxLength": 100
                 }
               }
+            },
+            "example": {
+              "event_id": "139574"
             }
           }
         }
@@ -1658,6 +2228,11 @@
                   ]
                 }
               ]
+            },
+            "example": {
+              "company_url": "https://acme.example",
+              "page": 1,
+              "pageSize": 20
             }
           }
         }
@@ -1689,6 +2264,11 @@
                   "default": 20
                 }
               }
+            },
+            "example": {
+              "company_name": "Acme",
+              "page": 1,
+              "pageSize": 20
             }
           }
         }
@@ -1774,6 +2354,13 @@
                   ]
                 }
               ]
+            },
+            "example": {
+              "company_url": "https://acme.example",
+              "page": 1,
+              "pageSize": 20,
+              "country": "United States",
+              "future": 1
             }
           }
         }
@@ -1836,56 +2423,6 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
-            }
-          }
-        }
-      },
-      "EventPage": {
-        "description": "Paginated events",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/EventPage"
-            }
-          }
-        }
-      },
-      "ExhibitorPage": {
-        "description": "Paginated exhibitors",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ExhibitorPage"
-            }
-          }
-        }
-      },
-      "ExhibitorPageWithSemantics": {
-        "description": "Paginated exhibitors with access semantics",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ExhibitorPageWithSemantics"
-            }
-          }
-        }
-      },
-      "ContactPage": {
-        "description": "Paginated contacts",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ContactPage"
-            }
-          }
-        }
-      },
-      "ContactPageWithSemantics": {
-        "description": "Paginated contacts with access semantics",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ContactPageWithSemantics"
             }
           }
         }

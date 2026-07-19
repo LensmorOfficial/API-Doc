@@ -38,6 +38,70 @@ class PublicAssetSyncTests(unittest.TestCase):
         self.assertEqual(outputs[self.sync.OPENAPI_ROOT], source)
         self.assertEqual(outputs[self.sync.OPENAPI_BACKUP], source)
 
+    def test_public_openapi_has_descriptions_and_examples(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        operations: list[tuple[str, str, dict]] = []
+        for path, path_item in spec["paths"].items():
+            for method, operation in path_item.items():
+                if method.lower() in self.sync.HTTP_METHODS:
+                    operations.append((method.upper(), path, operation))
+
+        self.assertEqual(len(operations), 28)
+        self.assertFalse(
+            any(path.startswith("/external/integrations/") for _, path, _ in operations)
+        )
+        self.assertTrue(spec["info"]["license"]["name"].strip())
+        self.assertEqual(
+            [tag["name"] for tag in spec["tags"] if not tag.get("description", "").strip()],
+            [],
+        )
+
+        missing_descriptions: list[str] = []
+        missing_request_examples: list[str] = []
+        missing_response_examples: list[str] = []
+
+        for method, path, operation in operations:
+            label = f"{method} {path}"
+            if not operation.get("description", "").strip():
+                missing_descriptions.append(label)
+
+            request_body = operation.get("requestBody")
+            if request_body:
+                if "$ref" in request_body:
+                    request_body = spec["components"]["requestBodies"][
+                        request_body["$ref"].rsplit("/", 1)[-1]
+                    ]
+                media = request_body.get("content", {}).get("application/json", {})
+                if "example" not in media and "examples" not in media:
+                    missing_request_examples.append(label)
+
+            success_responses = [
+                response
+                for status, response in operation["responses"].items()
+                if status.startswith("2")
+            ]
+            has_example = False
+            for response in success_responses:
+                if "$ref" in response:
+                    response = spec["components"]["responses"][response["$ref"].rsplit("/", 1)[-1]]
+                media = response.get("content", {}).get("application/json", {})
+                if "example" in media or "examples" in media:
+                    has_example = True
+            if not has_example:
+                missing_response_examples.append(label)
+
+        self.assertEqual(missing_descriptions, [])
+        self.assertEqual(missing_request_examples, [])
+        self.assertEqual(missing_response_examples, [])
+
+    def test_agent_integrations_are_explicitly_excluded(self) -> None:
+        inventory = (
+            ROOT / "docs" / "endpoint-inventory" / "external-api-endpoints.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("/external/integrations/*", inventory)
+        self.assertIn("Agent-only", inventory)
+
     def test_llms_full_covers_every_navigation_entry(self) -> None:
         outputs = self.sync.build_outputs()
         llms_full = outputs[self.sync.LLMS_FULL].decode("utf-8")
