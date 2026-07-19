@@ -10,7 +10,7 @@ Use this endpoint after `POST /external/contacts/unlock-phone` returns `task_id`
 
 ## When to use this endpoint
 
-Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job completaskStatus` is `completed` or `failed`. If some items remain failed while the task is completed, handle those item statuses individually.
+Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job completes or fails. Stop polling when `taskStatus` is `completed` or `failed`, and handle item-level failures independently.
 
 ## Notes
 - Phone number is present only when the individual item has been unlocked successfully.

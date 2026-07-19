@@ -235,8 +235,13 @@ Released June 18, 2026.
 
 ### Added
 
-- Added documentation for phone number unlock workflows and AI-powered outreach message generation.
-- Converted existing contact and outreach endpoint pages to OpenAPI-driven format with interactive playground support.
+- Added documentation for phone number unlock workflow:
+  - `POST /external/contacts/unlock-phone` — start an asynchronous phone number unlock job.
+  - `GET /external/contacts/unlock-phone-tasks/{taskId}` — poll phone unlock task status and retrieve results.
+- Added documentation for AI-powered outreach message generation:
+  - `POST /external/personnel/generate-outreach-message` — generate personalized outreach messages for personnel.
+  - `GET /external/personnel/outreach` — retrieve generated outreach message content.
+- Converted existing endpoint pages (contacts unlock, unlock task, LinkedIn activity unlock) to OpenAPI-driven format with interactive playground support.
 - Updated OpenAPI metadata to version `0.22.0`.
 
 ## v0.21.0
@@ -2969,6 +2974,63 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 
 ---
 
+## Generate outreach messages
+
+Source: /api-reference/personnel/generate-outreach-messages
+
+Generate AI-powered personalized outreach messages for one or more personnel in an event context.
+
+Use this endpoint when your integration needs AI-generated cold outreach content tailored to each contact's role, company, and event participation.
+
+## When to use this endpoint
+
+Use `POST /external/personnel/generate-outreach-message` when you want to:
+
+- Generate personalized cold emails for event contacts
+- Create LinkedIn connection messages referencing shared event context
+- Batch-produce outreach content for multiple contacts at once
+
+This endpoint is asynchronous. Each personnel item may create a background task. Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the generated content once processing completes.
+
+<Note>
+  Channels must be one or more of: `email`, `linkedin_message`. You can request both simultaneously.
+</Note>
+
+## Credit behavior
+
+Outreach message generation consumes credits per personnel record processed.
+
+- Maximum 50 personnel IDs per request.
+- Insufficient balance returns `402 Payment Required`.
+
+## Notes
+- Poll [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) with `personnel_id` and `event_id` to retrieve generated messages.
+- Messages are generated using AI based on the contact's profile, company context, and event participation data.
+
+---
+
+## Get outreach message detail
+
+Source: /api-reference/personnel/get-outreach-message-detail
+
+Retrieve the generated outreach message for a specific personnel record in an event context.
+
+Use this endpoint after [Generate outreach messages](/api-reference/personnel/generate-outreach-messages) to fetch the AI-generated content.
+
+## When to use this endpoint
+
+Use `GET /external/personnel/outreach` when:
+
+- Polling for outreach generation completion after calling the generate endpoint
+- Retrieving previously generated messages for display or export
+- Checking whether outreach content already exists before triggering a new generation
+
+## Notes
+- Returns the most recent outreach generation result for the given personnel and event combination.
+- Re-generating outreach for the same personnel + event will overwrite previous content.
+
+---
+
 ## Contacts search
 
 Source: /api-reference/contacts/search-contacts
@@ -3200,12 +3262,12 @@ Use this endpoint after `POST /external/contacts/unlock` returns `task_id`.
 
 ## When to use this endpoint
 
-Use `GET /external/contacts/unlock-tasks/:taskId` to make email unlock workflows resumable. The task ID can be stored in your database, background worker, or frontend state and polled until the job completes or fails.
+Use `GET /external/contacts/unlock-tasks/{taskId}` to make email unlock workflows resumable. The task ID can be stored in your database, background worker, or frontend state and polled until the job completes or fails.
 
 Do not assume the unlock result is ready immediately after creating the task.
 
 ## Endpoint
-`GET /external/contacts/unlock-tasks/:taskId`
+`GET /external/contacts/unlock-tasks/{taskId}`
 
 ## Authentication
 See [Authentication](/authentication)
@@ -3296,6 +3358,61 @@ Stop polling when `taskStatus` is `completed` or `failed`. If some items remain 
 
 ## Notes
 - `email` is present only when the individual item has been unlocked successfully.
+- Failed items can include `errorCode`.
+
+---
+
+## Unlock contact phone numbers
+
+Source: /api-reference/contacts/unlock-contact-phone-numbers
+
+Start an asynchronous job to unlock phone numbers for one or more personnel records.
+
+Use this endpoint after finding contacts from personnel or contact search results when you need direct phone numbers rather than email addresses.
+
+## When to use this endpoint
+
+Use `POST /external/contacts/unlock-phone` when your integration needs verified phone numbers for outbound calling or SMS workflows.
+
+This endpoint is asynchronous. The create call returns a task identifier; poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) until the job reaches a terminal state.
+
+<Note>
+  Phone unlock is a separate workflow from email unlock. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email addresses.
+</Note>
+
+<Warning>
+  A `201 Created` response means the task was accepted. Always inspect item-level results before counting a contact phone as delivered.
+</Warning>
+
+## Credit behavior
+
+Phone unlock costs credits per chargeable contact.
+
+- Already unlocked contacts are not charged again.
+- Insufficient balance returns `402 Payment Required`.
+- The API rejects batches larger than 100 personnel IDs.
+
+## Notes
+- This endpoint creates an asynchronous unlock job. Poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) with `task_id`.
+- Do not create duplicate unlock tasks while a prior task is still pending or processing.
+- See [Credits and access](/concepts/credits-and-access) for shared credit behavior.
+
+---
+
+## Get phone unlock task
+
+Source: /api-reference/contacts/get-phone-unlock-task
+
+Check the status of a phone number unlock job.
+
+Use this endpoint after `POST /external/contacts/unlock-phone` returns `task_id`.
+
+## When to use this endpoint
+
+Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job completes or fails. Stop polling when `taskStatus` is `completed` or `failed`, and handle item-level failures independently.
+
+## Notes
+- Phone number is present only when the individual item has been unlocked successfully.
 - Failed items can include `errorCode`.
 
 ---

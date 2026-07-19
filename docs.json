@@ -135,6 +135,143 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/api-reference/actions/precheck",
+      "destination": "/api-reference/actions/precheck-an-external-action",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/contacts/search",
+      "destination": "/api-reference/contacts/search-contacts",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/contacts/unlock",
+      "destination": "/api-reference/contacts/unlock-contact-emails",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/contacts/unlock-phone",
+      "destination": "/api-reference/contacts/unlock-contact-phone-numbers",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/contacts/unlock-phone-task",
+      "destination": "/api-reference/contacts/get-phone-unlock-task",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/contacts/unlock-task",
+      "destination": "/api-reference/contacts/get-contact-unlock-task",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/credits/balance",
+      "destination": "/api-reference/credits/get-credits-balance",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/brief",
+      "destination": "/api-reference/events/get-event-brief",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/detail",
+      "destination": "/api-reference/events/get-event-detail",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/fit-score",
+      "destination": "/api-reference/events/score-one-event",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/list",
+      "destination": "/api-reference/events/list-events",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/rank",
+      "destination": "/api-reference/events/rank-events",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/events/unlock",
+      "destination": "/api-reference/events/unlock-event-access",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/events",
+      "destination": "/api-reference/exhibitors/list-exhibitor-related-events",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/list",
+      "destination": "/api-reference/exhibitors/list-event-exhibitors",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/profile",
+      "destination": "/api-reference/exhibitors/get-exhibitor-profile",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/search",
+      "destination": "/api-reference/exhibitors/search-exhibitors-by-company-context",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/search-by-company-name",
+      "destination": "/api-reference/exhibitors/search-exhibitors-by-company-name",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/exhibitors/search-events",
+      "destination": "/api-reference/exhibitors/search-events-by-exhibitor-company-name",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/events",
+      "destination": "/api-reference/personnel/list-personnel-related-events",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/events-by-linkedin",
+      "destination": "/api-reference/personnel/list-personnel-related-events-by-linkedin-url",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/generate-outreach-message",
+      "destination": "/api-reference/personnel/generate-outreach-messages",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/list",
+      "destination": "/api-reference/personnel/list-event-personnel",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/outreach",
+      "destination": "/api-reference/personnel/get-outreach-message-detail",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/profile",
+      "destination": "/api-reference/personnel/get-personnel-profile",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/profile-matching/actions-apply-recommended-events-paged",
+      "destination": "/api-reference/profile-matching/apply-profile-and-get-recommended-events",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/profile-matching/recommendations-exhibitors",
+      "destination": "/api-reference/profile-matching/get-recommended-exhibitors-for-event",
+      "permanent": true
+    }
+  ],
   "description": "Lensmor API documentation for event intelligence, trade show discovery, exhibitor research, profile matching, credits, and contact email unlock workflows.",
   "seo": {
     "indexing": "navigable",
