@@ -36,6 +36,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events, `0` returns non-starred events; omit to include both. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -50,7 +51,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-call-source: api" \
-  -d '{"company_name":"Acme","page":1,"pageSize":20}'
+  -d '{"company_name":"Acme","sponsor_match_starred":1,"page":1,"pageSize":20}'
 ```
 
 ## Response example
@@ -70,11 +71,10 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": null,
       "exhibitorCount": 100,
-      "personnelCount": 50,
+      "sponsorMatchStarred": 1,
       "image": null,
-      "dataSource": null,
+      "dataSource": "Lensmor",
       "matchedExhibitors": [
         {
           "id": "456",
@@ -100,13 +100,15 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Event location fields. Values can be `null` or empty strings when the event source does not provide normalized location metadata. |
-| `attendeeCount`, `exhibitorCount`, `personnelCount` | Event scale and coverage fields when available. |
+| `exhibitorCount` | Exhibitor coverage count when available. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `matchedExhibitors` | Matched company records that connect the input to the returned event. Treat this as the primary evidence that the company-name input matched the returned event. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
-This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+This endpoint consumes `50` credits after the company-name matcher finds at least one event. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
@@ -118,8 +120,8 @@ Refresh [Credits balance](/api-reference/credits/get-credits-balance) after succ
 
 ## Notes
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
-- This endpoint currently consumes `50` credits per successful search attempt. See [Credits and access](/concepts/credits-and-access).
+- This endpoint consumes `50` credits only for a non-empty result. See [Credits and access](/concepts/credits-and-access).
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
 - Longer queries use strict token or prefix admission instead of permissive `contains` matching.
-- No matches return an empty paginated success response rather than `404 Not Found`.
+- No matches return an empty paginated success response rather than `404 Not Found`, and do not consume credits.
 - `matchedExhibitors` contains only the admitted matched exhibitors that actually participate in the returned event, and event results are returned in deterministic recency order.

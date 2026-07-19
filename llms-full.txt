@@ -11,7 +11,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.23.1`
+Current documentation version: `v0.23.2`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -52,8 +52,8 @@ Authorization: Bearer sk_your_api_key
 | A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
 | A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
 | A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
-| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. |
-| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. This can consume credits. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. Non-empty results cost `50` credits. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. Non-empty results cost `50` credits. |
 | Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) | Starts an async email unlock task. |
 
 ## Recommended integration path
@@ -200,6 +200,23 @@ To test your integration safely:
 Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.23.2
+
+Released July 19, 2026.
+
+### Changed
+
+- Clarified that exhibitor company search and exhibitor event search consume `50` credits only when the result is non-empty; empty results consume no credits.
+- Documented phone unlock at `150` credits per chargeable contact.
+- Added `sponsor_match_starred` to the exhibitor event-search request and documented `sponsorMatchStarred` plus the canonical `Lensmor` event data source.
+- Added `linkedin_message_types` and typed LinkedIn InMail, connection-note, and connected-message response variants.
+
+### Fixed
+
+- Added phone, phone-unlock, event-count, and outreach status fields to the shared contact response contract.
+- Updated email and phone unlock submission responses to cover both asynchronous `accepted` and no-work `success` outcomes, including skipped personnel details.
+- Updated OpenAPI metadata to version `0.23.2`.
 
 ## v0.23.1
 
@@ -822,10 +839,11 @@ This pattern is especially important for [Unlock event](/api-reference/events/un
 | --- | --- | --- |
 | Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
 | Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. A completed task can contain mixed item-level outcomes. |
-| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits per successful company search attempt. |
-| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
+| Contact phone unlock | `POST /external/contacts/unlock-phone` | Starts an async task and charges `150` credits per chargeable contact. |
+| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits only when the result is non-empty. |
+| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits only when the result is non-empty. |
 
-Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
+Other read-only list, profile, heuristic-search, and precheck endpoints do not spend credits by themselves. Treat the two company-name lookup endpoints above as explicit paid exceptions.
 
 ## Rate-limit friendly polling
 
@@ -1110,6 +1128,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 3259,
+      "sponsorMatchStarred": 0,
       "image": "https://example.com/ces-image.png",
       "dataSource": "Lensmor"
     }
@@ -1136,7 +1155,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `dataSource` | Source category for the returned record (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses
@@ -1214,6 +1234,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
     "priceLower": "0",
     "priceUpper": "0",
     "eventType": "In-person",
+    "sponsorMatchStarred": 0,
     "categories": [
       {
         "id": 11,
@@ -1260,7 +1281,9 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
-| `image`, `dataSource` | Media and source metadata. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `image` | Event image URL when available. |
+| `dataSource` | Always `Lensmor` for public event records. |
 
 ## Count fields
 
@@ -1281,7 +1304,7 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
-- `dataSource` indicates the data origin (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values.
+- `dataSource` is always `"Lensmor"` for public event records.
 - `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
 - This endpoint does not unlock event-scoped exhibitor or personnel access by itself.
 
@@ -1338,8 +1361,9 @@ curl "https://platform.lensmor.com/external/events/brief?event_id=139574" \
     "region": "NY",
     "country": "United States",
     "exhibitorCount": 950,
+    "sponsorMatchStarred": 0,
     "image": null,
-    "dataSource": "database"
+    "dataSource": "Lensmor"
   },
   "summary": {
     "attendeeCount": 40000,
@@ -1431,8 +1455,9 @@ curl -X POST "https://platform.lensmor.com/external/events/fit-score" \
     "region": "NY",
     "country": "United States",
     "exhibitorCount": 950,
+    "sponsorMatchStarred": 0,
     "image": null,
-    "dataSource": "database"
+    "dataSource": "Lensmor"
   },
   "score": 8.1,
   "recommendation": "recommended",
@@ -2044,7 +2069,7 @@ Choose this endpoint when:
 Use [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) instead when the desired output is events related to a company name.
 
 <Warning>
-  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
+  This endpoint consumes `50` credits only when the response contains at least one exhibitor. An empty result does not consume credits. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
 </Warning>
 
 ## Endpoint
@@ -2063,11 +2088,17 @@ See [Authentication](/authentication)
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
+## Headers
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
 ## Request example
 ```bash
 curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company-name" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
+  -H "x-call-source: api" \
   -d '{"company_name":"Acme","page":1,"pageSize":20}'
 ```
 
@@ -2127,7 +2158,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 
 ## Credit behavior
 
-This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+This endpoint consumes `50` credits after the company-name matcher finds at least one exhibitor. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation.
 
@@ -2143,7 +2174,7 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 
 ## Notes
 - This endpoint uses `POST` because company name matching may evolve to accept additional body parameters. It does not create a persistent resource.
-- No matches return an empty paginated success response rather than `404 Not Found`.
+- No matches return an empty paginated success response rather than `404 Not Found`, and do not consume credits.
 - If you need event results for a company name, use `POST /external/exhibitors/search-events`.
 
 ---
@@ -2184,6 +2215,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events, `0` returns non-starred events; omit to include both. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
@@ -2198,7 +2230,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-call-source: api" \
-  -d '{"company_name":"Acme","page":1,"pageSize":20}'
+  -d '{"company_name":"Acme","sponsor_match_starred":1,"page":1,"pageSize":20}'
 ```
 
 ## Response example
@@ -2218,11 +2250,10 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
       "city": "Las Vegas",
       "region": "Nevada",
       "country": "United States",
-      "attendeeCount": null,
       "exhibitorCount": 100,
-      "personnelCount": 50,
+      "sponsorMatchStarred": 1,
       "image": null,
-      "dataSource": null,
+      "dataSource": "Lensmor",
       "matchedExhibitors": [
         {
           "id": "456",
@@ -2248,13 +2279,15 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | `name`, `nickname`, `description`, `url` | Event display and source fields. |
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Event location fields. Values can be `null` or empty strings when the event source does not provide normalized location metadata. |
-| `attendeeCount`, `exhibitorCount`, `personnelCount` | Event scale and coverage fields when available. |
+| `exhibitorCount` | Exhibitor coverage count when available. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `matchedExhibitors` | Matched company records that connect the input to the returned event. Treat this as the primary evidence that the company-name input matched the returned event. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
-This endpoint currently consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+This endpoint consumes `50` credits after the company-name matcher finds at least one event. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
@@ -2266,10 +2299,10 @@ Refresh [Credits balance](/api-reference/credits/get-credits-balance) after succ
 
 ## Notes
 - This endpoint is separate from `GET /external/exhibitors/events`, which requires a known `exhibitor_id`.
-- This endpoint currently consumes `50` credits per successful search attempt. See [Credits and access](/concepts/credits-and-access).
+- This endpoint consumes `50` credits only for a non-empty result. See [Credits and access](/concepts/credits-and-access).
 - Compact-normalized queries shorter than `3` characters use exact-only matching after case, whitespace, and connector-punctuation normalization.
 - Longer queries use strict token or prefix admission instead of permissive `contains` matching.
-- No matches return an empty paginated success response rather than `404 Not Found`.
+- No matches return an empty paginated success response rather than `404 Not Found`, and do not consume credits.
 - `matchedExhibitors` contains only the admitted matched exhibitors that actually participate in the returned event, and event results are returned in deterministic recency order.
 
 ---
@@ -2413,8 +2446,9 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
       "region": "NY",
       "country": "United States",
       "exhibitorCount": 950,
+      "sponsorMatchStarred": 0,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 12,
@@ -2435,7 +2469,9 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `image`, `dataSource` | Media and source metadata. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `image` | Event image URL when available. |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses
@@ -2517,13 +2553,18 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
       "companyName": "Acme Retail Systems",
       "sourceType": "exhibitor",
       "email": null,
+      "phone": null,
       "contactUnlockStatus": "locked",
+      "phoneUnlockStatus": null,
       "linkedinActivity": {
         "activityLevel": "ACTIVE",
         "isActive": true,
         "latestPostAt": "1747123200000"
       },
-      "linkedinActivityStatus": "ready"
+      "linkedinActivityStatus": "ready",
+      "eventCount": 5,
+      "outreachMessageStatus": "ready",
+      "outreachMessageChannels": ["email", "linkedin_message"]
     }
   ],
   "total": 3,
@@ -2569,9 +2610,14 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 | `companyName` | Associated company or exhibitor name. |
 | `sourceType` | Source context for the person record. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
+| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
 | `linkedinActivity` | LinkedIn activity object (`activityLevel` `ACTIVE`/`WARM`/`DORMANT`/`""`, `isActive`, `latestPostAt` unix ms or `null`) when the caller has unlocked it and analysis is complete; otherwise `null`. Independent of `contactUnlockStatus`. |
 | `linkedinActivityStatus` | `ready` (data available), `processing` (unlock/analysis running), or `null` (not unlocked / no record). |
+| `eventCount` | Number of events associated with the personnel record. |
+| `outreachMessageStatus` | Current outreach generation status when a record exists. |
+| `outreachMessageChannels` | Channels associated with the latest outreach record. |
 | `semantics` | Access metadata for preview/full event coverage. |
 
 ## Access semantics
@@ -2643,7 +2689,10 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
   "companyName": "Acme Retail Systems",
   "sourceType": "exhibitor",
   "email": null,
-  "contactUnlockStatus": "locked"
+  "phone": null,
+  "contactUnlockStatus": "locked",
+  "phoneUnlockStatus": null,
+  "eventCount": 5
 }
 ```
 
@@ -2658,7 +2707,10 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
 | `companyName` | Associated company or exhibitor. |
 | `sourceType` | Source context, such as exhibitor-derived data. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Current contact access state for this API key owner. |
+| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
+| `eventCount` | Number of associated events. |
 
 ## Email access
 
@@ -2731,8 +2783,9 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
       "region": "NY",
       "country": "United States",
       "exhibitorCount": 950,
+      "sponsorMatchStarred": 0,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 5,
@@ -2753,7 +2806,9 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `image`, `dataSource` | Media and source metadata. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `image` | Event image URL when available. |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses
@@ -2822,7 +2877,10 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
     "companyName": "Acme Retail Systems",
     "sourceType": "exhibitor",
     "email": null,
-    "contactUnlockStatus": "locked"
+    "phone": null,
+    "contactUnlockStatus": "locked",
+    "phoneUnlockStatus": null,
+    "eventCount": 5
   },
   "events": {
     "items": [
@@ -2840,8 +2898,9 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
         "region": "NY",
         "country": "United States",
         "exhibitorCount": 950,
+        "sponsorMatchStarred": 0,
         "image": null,
-        "dataSource": "database"
+        "dataSource": "Lensmor"
       }
     ],
     "total": 1,
@@ -2860,9 +2919,14 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 | `personnel` | Matched person record using the standard contact-style response shape. |
 | `personnel.id` | Personnel identifier for profile and email unlock workflows. |
 | `personnel.email` | Email if already unlocked for the caller; otherwise `null`. |
+| `personnel.phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `personnel.contactUnlockStatus` | Current contact access state. |
+| `personnel.phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
+| `personnel.eventCount` | Number of associated events. |
 | `events` | Paginated event results connected to the matched person. |
 | `events.items[].eventId` | Public event identifier for event-scoped follow-up calls. |
+| `events.items[].sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `events.items[].dataSource` | Always `Lensmor` for public event records. |
 | `events.total`, `events.page`, `events.pageSize`, `events.totalPages`, `events.hasMore` | Pagination metadata. |
 
 ## URL normalization
@@ -2993,8 +3057,28 @@ Use `POST /external/personnel/generate-outreach-message` when you want to:
 This endpoint is asynchronous. Each personnel item may create a background task. Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the generated content once processing completes.
 
 <Note>
-  Channels must be one or more of: `email`, `linkedin_message`. You can request both simultaneously.
+  Channels must be one or more of: `email`, `linkedin_message`. When requesting LinkedIn output, use `linkedin_message_types` to choose `inmail`, `connection_note`, and/or `connected_message`.
 </Note>
+
+## Request body
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | Maximum `50` personnel IDs. |
+| `event_id` | Yes | string | Supports external `eventId` or internal event ID. |
+| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. |
+| `linkedin_message_types` | No | string[] | LinkedIn variants: `inmail`, `connection_note`, `connected_message`. |
+| `outreach_purpose` | No | string | Purpose or offer context for personalization. |
+
+```json
+{
+  "personnel_ids": ["789"],
+  "event_id": "139574",
+  "channels": ["email", "linkedin_message"],
+  "linkedin_message_types": ["inmail", "connection_note"],
+  "outreach_purpose": "Invite the contact to a product demo"
+}
+```
 
 ## Credit behavior
 
@@ -3027,6 +3111,8 @@ Use `GET /external/personnel/outreach` when:
 
 ## Notes
 - Returns the most recent outreach generation result for the given personnel and event combination.
+- `messages.linkedin` can contain separate `inmail`, `connection_note`, and `connected_message` objects. InMail can include `subject` and `body`; the other variants contain `body`.
+- `messages.linkedin_message` remains available as the legacy single-message field when present.
 - Re-generating outreach for the same personnel + event will overwrite previous content.
 
 ---
@@ -3095,9 +3181,12 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
       "companyName": "Acme",
       "sourceType": "exhibitor",
       "email": null,
+      "phone": null,
       "contactUnlockStatus": "locked",
+      "phoneUnlockStatus": null,
       "linkedinActivity": null,
-      "linkedinActivityStatus": null
+      "linkedinActivityStatus": null,
+      "eventCount": 3
     }
   ],
   "total": 1,
@@ -3120,7 +3209,10 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `companyName` | Matched company name. |
 | `sourceType` | Source context for the contact record. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
+| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
+| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
+| `eventCount` | Number of associated events when available. |
 | `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data. |
 | `linkedinActivityStatus` | Always `null` on this endpoint. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
@@ -3161,7 +3253,7 @@ This endpoint is intentionally asynchronous because email unlock can involve mul
 </Note>
 
 <Warning>
-  A `201 Created` response means the unlock task was accepted. It does not guarantee that every submitted personnel record will return an email. Always inspect item-level task results before counting a contact as enriched.
+  A `201 Created` response means the request was processed. `status: "accepted"` means a task was created; `status: "success"` means there was no chargeable work to enqueue. Neither state guarantees that every submitted personnel record will return an email.
 </Warning>
 
 ## Endpoint
@@ -3206,9 +3298,11 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
 
 | Field | Description |
 | --- | --- |
-| `status` | Initial task acceptance state. Usually `accepted` when the task was created. |
-| `task_id` | Identifier used to poll task status. Store this value. |
-| `job_id` | Alias for the background job identifier. It currently matches `task_id`. |
+| `status` | `accepted` when an asynchronous task was created, or `success` when there was no chargeable work to enqueue. |
+| `task_id` | Identifier used to poll task status. Present only when `status` is `accepted`. |
+| `job_id` | Alias for `task_id`. Present only when `status` is `accepted`. |
+| `skipped_personnel_ids` | Personnel IDs omitted from the unlock task, when applicable. |
+| `skipped_detail` | Optional grouped reasons for skipped IDs, including invalid, missing, unlinked, already unlocked, or currently unlocking records. |
 
 ## Polling pattern
 
@@ -3366,7 +3460,7 @@ Stop polling when `taskStatus` is `completed` or `failed`. If some items remain 
 
 Source: /api-reference/contacts/unlock-contact-phone-numbers
 
-Start an asynchronous job to unlock phone numbers for one or more personnel records.
+Submit a request to unlock phone numbers for one or more personnel records. Chargeable work creates an asynchronous task; a request with no chargeable work completes immediately without a task.
 
 Use this endpoint after finding contacts from personnel or contact search results when you need direct phone numbers rather than email addresses.
 
@@ -3374,26 +3468,33 @@ Use this endpoint after finding contacts from personnel or contact search result
 
 Use `POST /external/contacts/unlock-phone` when your integration needs verified phone numbers for outbound calling or SMS workflows.
 
-This endpoint is asynchronous. The create call returns a task identifier; poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) until the job reaches a terminal state.
+When the response has `status: "accepted"`, the create call returns a task identifier. Poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) until that job reaches a terminal state. When the response has `status: "success"`, no task was created and there is nothing to poll.
 
 <Note>
   Phone unlock is a separate workflow from email unlock. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email addresses.
 </Note>
 
 <Warning>
-  A `201 Created` response means the task was accepted. Always inspect item-level results before counting a contact phone as delivered.
+  A `201 Created` response means the request was processed. `status: "accepted"` means a task was created; `status: "success"` means there was no chargeable work to enqueue. Neither state guarantees that every submitted personnel record will return a phone number.
 </Warning>
 
 ## Credit behavior
 
-Phone unlock costs credits per chargeable contact.
+Phone unlock costs `150` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
 - Insufficient balance returns `402 Payment Required`.
 - The API rejects batches larger than 100 personnel IDs.
 
+If there is no chargeable work to enqueue, the endpoint can return `status: "success"` without `task_id` or `job_id`. The response can also include `skipped_personnel_ids` and `skipped_detail` so the caller can explain invalid, missing, unlinked, already unlocked, or currently unlocking records.
+
+## Response handling
+
+- For `status: "accepted"`, use `task_id` (or its `job_id` alias) to poll the phone unlock task.
+- For `status: "success"`, do not poll. Inspect `skipped_personnel_ids` and `skipped_detail` to explain why no task was needed.
+
 ## Notes
-- This endpoint creates an asynchronous unlock job. Poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) with `task_id`.
+- Only poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) when `status` is `accepted` and `task_id` is present.
 - Do not create duplicate unlock tasks while a prior task is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.
 
@@ -3515,6 +3616,7 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
       "priceUpper": "2395",
       "eventType": "conference_led",
       "quality": "Standard",
+      "sponsorMatchStarred": 0,
       "sourceTags": [],
       "categories": [
         {
@@ -3606,7 +3708,8 @@ Each event item includes the full event detail shape:
 | `verified`, `future`, `historic` | integer | Status flags (0 or 1). |
 | `historicEvent` | string \| null | Name of the recurring event series. |
 | `image` | string \| null | Event image URL. |
-| `dataSource` | string | Source label (e.g. `"Lensmor"`, `"local_import"`). |
+| `sponsorMatchStarred` | integer | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | string | Always `Lensmor` for public event records. |
 | `exhibitorCount`, `personnelCount` | integer \| null | Known counts when available. |
 | `eventTypes` | array | Event type metadata. |
 | `createTime`, `updateTime` | string | Unix timestamps in milliseconds as strings. |
@@ -4031,7 +4134,7 @@ Use the identifier returned by the matching resource endpoint:
 
 Source: /concepts/credits-and-access
 
-Some Lensmor API operations are credit-aware. Read-only discovery endpoints are available with a valid API key, while unlock and reverse-lookup workflows may consume credits.
+Some Lensmor API operations are credit-aware. Most read-only discovery endpoints are available with a valid API key, while unlock and paid company-name lookup workflows may consume credits.
 
 API credits are shared with the Lensmor SaaS app. The API key belongs to a subscribed Lensmor user account, and API usage draws from the same credit pool as product usage in the app.
 
@@ -4062,8 +4165,9 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | --- | --- | --- |
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
-| Exhibitor company search | `50` credits | `POST /external/exhibitors/search-by-company-name` finds exhibitor company records from a company name. |
-| Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
+| Contact phone unlock | `150` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
+| Exhibitor company search | `50` credits for a non-empty result | `POST /external/exhibitors/search-by-company-name` charges only when at least one exhibitor is returned. Empty results are free. |
+| Exhibitor event search | `50` credits for a non-empty result | `POST /external/exhibitors/search-events` charges only when at least one event is returned. Empty results are free. |
 | LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
@@ -4113,7 +4217,7 @@ Supported values are:
 - `api` — default customer API usage.
 - `agent` — agent-driven usage.
 
-If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
+If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor company search, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
 
 ## Handling `402 Payment Required`
 

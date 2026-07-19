@@ -21,7 +21,7 @@ Choose this endpoint when:
 Use [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) instead when the desired output is events related to a company name.
 
 <Warning>
-  This endpoint consumes `50` credits per successful search attempt. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
+  This endpoint consumes `50` credits only when the response contains at least one exhibitor. An empty result does not consume credits. Check [Credits balance](/api-reference/credits/get-credits-balance) and confirm with the user before calling it in a credit-safe workflow.
 </Warning>
 
 ## Endpoint
@@ -40,11 +40,17 @@ See [Authentication](/authentication)
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
+## Headers
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
 ## Request example
 ```bash
 curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company-name" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
+  -H "x-call-source: api" \
   -d '{"company_name":"Acme","page":1,"pageSize":20}'
 ```
 
@@ -104,7 +110,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-by-company
 
 ## Credit behavior
 
-This endpoint consumes `50` credits per successful search attempt. If the account cannot spend the required credits, the API returns `402 Payment Required`.
+This endpoint consumes `50` credits after the company-name matcher finds at least one exhibitor. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation.
 
@@ -120,5 +126,5 @@ This endpoint is precision-first. It is designed to avoid surprising broad match
 
 ## Notes
 - This endpoint uses `POST` because company name matching may evolve to accept additional body parameters. It does not create a persistent resource.
-- No matches return an empty paginated success response rather than `404 Not Found`.
+- No matches return an empty paginated success response rather than `404 Not Found`, and do not consume credits.
 - If you need event results for a company name, use `POST /external/exhibitors/search-events`.

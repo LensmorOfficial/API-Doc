@@ -19,8 +19,28 @@ Use `POST /external/personnel/generate-outreach-message` when you want to:
 This endpoint is asynchronous. Each personnel item may create a background task. Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the generated content once processing completes.
 
 <Note>
-  Channels must be one or more of: `email`, `linkedin_message`. You can request both simultaneously.
+  Channels must be one or more of: `email`, `linkedin_message`. When requesting LinkedIn output, use `linkedin_message_types` to choose `inmail`, `connection_note`, and/or `connected_message`.
 </Note>
+
+## Request body
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | Maximum `50` personnel IDs. |
+| `event_id` | Yes | string | Supports external `eventId` or internal event ID. |
+| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. |
+| `linkedin_message_types` | No | string[] | LinkedIn variants: `inmail`, `connection_note`, `connected_message`. |
+| `outreach_purpose` | No | string | Purpose or offer context for personalization. |
+
+```json
+{
+  "personnel_ids": ["789"],
+  "event_id": "139574",
+  "channels": ["email", "linkedin_message"],
+  "linkedin_message_types": ["inmail", "connection_note"],
+  "outreach_purpose": "Invite the contact to a product demo"
+}
+```
 
 ## Credit behavior
 

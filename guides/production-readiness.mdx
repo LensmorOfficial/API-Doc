@@ -64,10 +64,11 @@ This pattern is especially important for [Unlock event](/api-reference/events/un
 | --- | --- | --- |
 | Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
 | Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. A completed task can contain mixed item-level outcomes. |
-| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits per successful company search attempt. |
-| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits per successful search attempt. |
+| Contact phone unlock | `POST /external/contacts/unlock-phone` | Starts an async task and charges `150` credits per chargeable contact. |
+| Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits only when the result is non-empty. |
+| Exhibitor event search | `POST /external/exhibitors/search-events` | Charges `50` credits only when the result is non-empty. |
 
-Read-only list, profile, search, and precheck endpoints do not spend credits by themselves.
+Other read-only list, profile, heuristic-search, and precheck endpoints do not spend credits by themselves. Treat the two company-name lookup endpoints above as explicit paid exceptions.
 
 ## Rate-limit friendly polling
 

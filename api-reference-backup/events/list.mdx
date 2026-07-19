@@ -81,6 +81,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 3259,
+      "sponsorMatchStarred": 0,
       "image": "https://example.com/ces-image.png",
       "dataSource": "Lensmor"
     }
@@ -107,7 +108,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `dataSource` | Source category for the returned record (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses

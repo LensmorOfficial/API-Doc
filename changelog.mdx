@@ -5,6 +5,23 @@ description: "Versioned Lensmor API documentation updates, newly documented endp
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.23.2
+
+Released July 19, 2026.
+
+### Changed
+
+- Clarified that exhibitor company search and exhibitor event search consume `50` credits only when the result is non-empty; empty results consume no credits.
+- Documented phone unlock at `150` credits per chargeable contact.
+- Added `sponsor_match_starred` to the exhibitor event-search request and documented `sponsorMatchStarred` plus the canonical `Lensmor` event data source.
+- Added `linkedin_message_types` and typed LinkedIn InMail, connection-note, and connected-message response variants.
+
+### Fixed
+
+- Added phone, phone-unlock, event-count, and outreach status fields to the shared contact response contract.
+- Updated email and phone unlock submission responses to cover both asynchronous `accepted` and no-work `success` outcomes, including skipped personnel details.
+- Updated OpenAPI metadata to version `0.23.2`.
+
 ## v0.23.1
 
 Released July 19, 2026.

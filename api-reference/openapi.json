@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.23.1",
+    "version": "0.23.2",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -251,6 +251,7 @@
                       "region": "Nevada",
                       "country": "United States",
                       "exhibitorCount": 3259,
+                      "sponsorMatchStarred": 0,
                       "image": "https://example.com/ces-image.png",
                       "dataSource": "Lensmor"
                     }
@@ -316,6 +317,7 @@
                     "region": "Nevada",
                     "country": "United States",
                     "exhibitorCount": 3259,
+                    "sponsorMatchStarred": 0,
                     "dataSource": "Lensmor"
                   }
                 }
@@ -401,7 +403,8 @@
                     "region": "NY",
                     "country": "United States",
                     "exhibitorCount": 950,
-                    "dataSource": "database"
+                    "sponsorMatchStarred": 0,
+                    "dataSource": "Lensmor"
                   },
                   "summary": {
                     "attendeeCount": 40000,
@@ -458,7 +461,8 @@
                     "region": "NY",
                     "country": "United States",
                     "exhibitorCount": 950,
-                    "dataSource": "database"
+                    "sponsorMatchStarred": 0,
+                    "dataSource": "Lensmor"
                   },
                   "score": 8.1,
                   "recommendation": "recommended",
@@ -838,8 +842,13 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company name",
-        "description": "Run a precision-first exhibitor lookup by company name; a successful search attempt can consume 50 credits.",
+        "description": "Run a precision-first exhibitor lookup by company name. A non-empty result consumes 50 credits; an empty result does not consume credits.",
         "operationId": "searchExhibitorsByCompanyName",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
         "requestBody": {
           "$ref": "#/components/requestBodies/CompanyNameBody"
         },
@@ -880,6 +889,9 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
@@ -892,7 +904,7 @@
           "Exhibitors"
         ],
         "summary": "Search events by exhibitor company name",
-        "description": "Find events associated with a company name; a successful reverse event search can consume 50 credits.",
+        "description": "Find events associated with a company name. A non-empty result consumes 50 credits; an empty result does not consume credits.",
         "operationId": "searchEventsByExhibitorCompanyName",
         "parameters": [
           {
@@ -900,7 +912,7 @@
           }
         ],
         "requestBody": {
-          "$ref": "#/components/requestBodies/CompanyNameBody"
+          "$ref": "#/components/requestBodies/SearchEventsByCompanyNameBody"
         },
         "responses": {
           "201": {
@@ -908,7 +920,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventPage"
+                  "$ref": "#/components/schemas/EventReverseSearchPage"
                 },
                 "example": {
                   "items": [
@@ -919,7 +931,15 @@
                       "dateStart": "2026-03-15",
                       "dateEnd": "2026-03-18",
                       "city": "Las Vegas",
-                      "country": "United States"
+                      "country": "United States",
+                      "sponsorMatchStarred": 1,
+                      "dataSource": "Lensmor",
+                      "matchedExhibitors": [
+                        {
+                          "id": "456",
+                          "companyName": "Acme Retail Systems"
+                        }
+                      ]
                     }
                   ],
                   "total": 1,
@@ -1135,7 +1155,12 @@
                       "title": "VP of Retail Technology",
                       "companyName": "Acme Retail Systems",
                       "email": null,
-                      "contactUnlockStatus": "locked"
+                      "phone": null,
+                      "contactUnlockStatus": "locked",
+                      "phoneUnlockStatus": null,
+                      "eventCount": 5,
+                      "outreachMessageStatus": null,
+                      "outreachMessageChannels": []
                     }
                   ],
                   "total": 42,
@@ -1193,7 +1218,12 @@
                   "linkedinUrl": "https://linkedin.com/in/jane-smith",
                   "companyName": "Acme Retail Systems",
                   "email": null,
-                  "contactUnlockStatus": "locked"
+                  "phone": null,
+                  "contactUnlockStatus": "locked",
+                  "phoneUnlockStatus": null,
+                  "eventCount": 5,
+                  "outreachMessageStatus": null,
+                  "outreachMessageChannels": []
                 }
               }
             }
@@ -1317,7 +1347,10 @@
                     "fullName": "Jane Smith",
                     "linkedinUrl": "https://linkedin.com/in/jane-smith",
                     "email": null,
-                    "contactUnlockStatus": "locked"
+                    "phone": null,
+                    "contactUnlockStatus": "locked",
+                    "phoneUnlockStatus": null,
+                    "eventCount": 5
                   },
                   "events": {
                     "items": [
@@ -1473,9 +1506,12 @@
                       "title": "VP Marketing",
                       "companyName": "Acme",
                       "email": null,
+                      "phone": null,
                       "contactUnlockStatus": "locked",
+                      "phoneUnlockStatus": null,
                       "linkedinActivity": null,
-                      "linkedinActivityStatus": null
+                      "linkedinActivityStatus": null,
+                      "eventCount": 3
                     }
                   ],
                   "total": 1,
@@ -1550,11 +1586,11 @@
         },
         "responses": {
           "201": {
-            "description": "Unlock task accepted",
+            "description": "Unlock submission accepted, or completed with no chargeable work",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContactUnlockAccepted"
+                  "$ref": "#/components/schemas/ContactUnlockSubmission"
                 },
                 "example": {
                   "status": "accepted",
@@ -1814,7 +1850,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact phone numbers",
-        "description": "Start an asynchronous phone unlock task that consumes credits per chargeable contact.",
+        "description": "Start an asynchronous phone unlock task that consumes 150 credits per chargeable contact.",
         "operationId": "unlockContactPhones",
         "parameters": [
           {
@@ -1839,11 +1875,11 @@
         },
         "responses": {
           "201": {
-            "description": "Phone unlock task accepted",
+            "description": "Phone unlock submission accepted, or completed with no chargeable work",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContactUnlockAccepted"
+                  "$ref": "#/components/schemas/ContactUnlockSubmission"
                 },
                 "example": {
                   "status": "accepted",
@@ -1955,6 +1991,10 @@
                   "email",
                   "linkedin_message"
                 ],
+                "linkedin_message_types": [
+                  "inmail",
+                  "connection_note"
+                ],
                 "outreach_purpose": "Book a product demo"
               }
             }
@@ -2043,7 +2083,16 @@
                   ],
                   "messages": {
                     "email": "Hi Jane, I would like to compare notes before Retail Technology Expo.",
-                    "linkedin_message": "Hi Jane, are you open to a quick conversation before the event?"
+                    "linkedin_message": "Hi Jane, are you open to a quick conversation before the event?",
+                    "linkedin": {
+                      "inmail": {
+                        "subject": "Retail Technology Expo",
+                        "body": "Hi Jane, I would like to compare notes before the event."
+                      },
+                      "connection_note": {
+                        "body": "Hi Jane, would be glad to connect before the event."
+                      }
+                    }
                   },
                   "outreach_purpose": "Book a product demo",
                   "tone": "professional",
@@ -2267,6 +2316,51 @@
             },
             "example": {
               "company_name": "Acme",
+              "page": 1,
+              "pageSize": 20
+            }
+          }
+        }
+      },
+      "SearchEventsByCompanyNameBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "company_name"
+              ],
+              "properties": {
+                "company_name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "sponsor_match_starred": {
+                  "type": "integer",
+                  "enum": [
+                    0,
+                    1
+                  ],
+                  "description": "Filter to events whose Sponsor Match starred state is 0 or 1. Omit the field to include both states."
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "pageSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100,
+                  "default": 20
+                }
+              }
+            },
+            "example": {
+              "company_name": "Acme",
+              "sponsor_match_starred": 1,
               "page": 1,
               "pageSize": 20
             }
@@ -2572,6 +2666,14 @@
               "null"
             ]
           },
+          "sponsorMatchStarred": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Sponsor Match starred state returned by Lensmor."
+          },
           "image": {
             "type": [
               "string",
@@ -2579,10 +2681,8 @@
             ]
           },
           "dataSource": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "const": "Lensmor"
           }
         },
         "additionalProperties": true
@@ -2713,6 +2813,79 @@
           }
         },
         "additionalProperties": true
+      },
+      "MatchedExhibitorSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "companyName"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "EventReverseSearchItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventItem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "matchedExhibitors"
+            ],
+            "properties": {
+              "matchedExhibitors": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MatchedExhibitorSummary"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "EventReverseSearchPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventReverseSearchItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        }
       },
       "EventFitScore": {
         "type": "object",
@@ -3449,8 +3622,26 @@
               "null"
             ]
           },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "contactUnlockStatus": {
             "type": "string"
+          },
+          "phoneUnlockStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ready",
+              "processing",
+              "failed",
+              null
+            ]
           },
           "linkedinActivity": {
             "type": [
@@ -3477,6 +3668,26 @@
               "string",
               "null"
             ]
+          },
+          "eventCount": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "outreachMessageStatus": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current outreach generation state when this endpoint includes outreach metadata."
+          },
+          "outreachMessageChannels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Generated or requested outreach channels when outreach metadata is present."
           }
         }
       },
@@ -3611,25 +3822,90 @@
         },
         "additionalProperties": true
       },
-      "ContactUnlockAccepted": {
+      "ContactUnlockSubmission": {
         "type": "object",
         "required": [
-          "status",
-          "task_id",
-          "job_id"
+          "status"
         ],
         "properties": {
           "status": {
             "type": "string",
-            "const": "accepted"
+            "enum": [
+              "accepted",
+              "success"
+            ],
+            "description": "accepted when an asynchronous task was created; success when there was no chargeable work to enqueue."
           },
           "task_id": {
-            "type": "string"
+            "type": "string",
+            "description": "TaskCenter identifier. Present when status is accepted."
           },
           "job_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Alias of task_id. Present when status is accepted."
+          },
+          "skipped_personnel_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skipped_detail": {
+            "type": "object",
+            "properties": {
+              "invalid_personnel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "missing_personnel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "unlinked_personnel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "already_unlocked_personnel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "unlocking_personnel_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           }
-        }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "status": {
+                "const": "accepted"
+              }
+            },
+            "required": [
+              "task_id",
+              "job_id"
+            ]
+          },
+          {
+            "properties": {
+              "status": {
+                "const": "success"
+              }
+            }
+          }
+        ]
       },
       "ContactUnlockTask": {
         "type": "object",
@@ -3991,6 +4267,18 @@
               ]
             }
           },
+          "linkedin_message_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "inmail",
+                "connection_note",
+                "connected_message"
+              ]
+            },
+            "description": "LinkedIn message variants to generate when linkedin_message is requested."
+          },
           "outreach_purpose": {
             "type": "string"
           }
@@ -4074,6 +4362,38 @@
                   "string",
                   "null"
                 ]
+              },
+              "linkedin": {
+                "type": "object",
+                "properties": {
+                  "inmail": {
+                    "type": "object",
+                    "properties": {
+                      "subject": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "connection_note": {
+                    "type": "object",
+                    "properties": {
+                      "body": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "connected_message": {
+                    "type": "object",
+                    "properties": {
+                      "body": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
               }
             }
           },

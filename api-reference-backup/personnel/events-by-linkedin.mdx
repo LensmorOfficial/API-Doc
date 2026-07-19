@@ -54,7 +54,10 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
     "companyName": "Acme Retail Systems",
     "sourceType": "exhibitor",
     "email": null,
-    "contactUnlockStatus": "locked"
+    "phone": null,
+    "contactUnlockStatus": "locked",
+    "phoneUnlockStatus": null,
+    "eventCount": 5
   },
   "events": {
     "items": [
@@ -72,8 +75,9 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
         "region": "NY",
         "country": "United States",
         "exhibitorCount": 950,
+        "sponsorMatchStarred": 0,
         "image": null,
-        "dataSource": "database"
+        "dataSource": "Lensmor"
       }
     ],
     "total": 1,
@@ -92,9 +96,14 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 | `personnel` | Matched person record using the standard contact-style response shape. |
 | `personnel.id` | Personnel identifier for profile and email unlock workflows. |
 | `personnel.email` | Email if already unlocked for the caller; otherwise `null`. |
+| `personnel.phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `personnel.contactUnlockStatus` | Current contact access state. |
+| `personnel.phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
+| `personnel.eventCount` | Number of associated events. |
 | `events` | Paginated event results connected to the matched person. |
 | `events.items[].eventId` | Public event identifier for event-scoped follow-up calls. |
+| `events.items[].sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `events.items[].dataSource` | Always `Lensmor` for public event records. |
 | `events.total`, `events.page`, `events.pageSize`, `events.totalPages`, `events.hasMore` | Pagination metadata. |
 
 ## URL normalization

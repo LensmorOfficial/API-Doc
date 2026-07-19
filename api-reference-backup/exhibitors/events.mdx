@@ -54,8 +54,9 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
       "region": "NY",
       "country": "United States",
       "exhibitorCount": 950,
+      "sponsorMatchStarred": 0,
       "image": null,
-      "dataSource": "database"
+      "dataSource": "Lensmor"
     }
   ],
   "total": 12,
@@ -76,7 +77,9 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
-| `image`, `dataSource` | Media and source metadata. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `image` | Event image URL when available. |
+| `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Error responses

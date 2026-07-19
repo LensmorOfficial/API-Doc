@@ -7,7 +7,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.23.1`
+Current documentation version: `v0.23.2`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -48,8 +48,8 @@ Authorization: Bearer sk_your_api_key
 | A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
 | A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
 | A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
-| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. |
-| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. This can consume credits. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. Non-empty results cost `50` credits. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. Non-empty results cost `50` credits. |
 | Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) | Starts an async email unlock task. |
 
 ## Recommended integration path

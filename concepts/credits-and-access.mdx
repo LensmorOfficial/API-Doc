@@ -3,7 +3,7 @@ title: "Credits and access"
 description: "Learn how Lensmor credits, locked event access, preview limits, unlock guidance, and credit-safe integration patterns work across the API."
 ---
 
-Some Lensmor API operations are credit-aware. Read-only discovery endpoints are available with a valid API key, while unlock and reverse-lookup workflows may consume credits.
+Some Lensmor API operations are credit-aware. Most read-only discovery endpoints are available with a valid API key, while unlock and paid company-name lookup workflows may consume credits.
 
 API credits are shared with the Lensmor SaaS app. The API key belongs to a subscribed Lensmor user account, and API usage draws from the same credit pool as product usage in the app.
 
@@ -34,8 +34,9 @@ Unlocking an event grants full access to event-scoped exhibitor and personnel re
 | --- | --- | --- |
 | Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
-| Exhibitor company search | `50` credits | `POST /external/exhibitors/search-by-company-name` finds exhibitor company records from a company name. |
-| Exhibitor event search | `50` credits | `POST /external/exhibitors/search-events` reverse-lookups events from a company name. |
+| Contact phone unlock | `150` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
+| Exhibitor company search | `50` credits for a non-empty result | `POST /external/exhibitors/search-by-company-name` charges only when at least one exhibitor is returned. Empty results are free. |
+| Exhibitor event search | `50` credits for a non-empty result | `POST /external/exhibitors/search-events` charges only when at least one event is returned. Empty results are free. |
 | LinkedIn activity unlock | No email-unlock charge | `POST /external/personnel/unlock-linkedin-activity` unlocks or starts analysis for LinkedIn activity. It does not unlock contact emails. |
 
 Prices can change by plan or product policy. Treat the API response and your commercial agreement as the source of truth for billing.
@@ -85,7 +86,7 @@ Supported values are:
 - `api` — default customer API usage.
 - `agent` — agent-driven usage.
 
-If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
+If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor company search, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
 
 ## Handling `402 Payment Required`
 
