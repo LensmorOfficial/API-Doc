@@ -1,0 +1,51 @@
+name: Docs Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  docs-quality:
+    name: Docs Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run public asset tests
+        run: python3 -m unittest scripts/test_sync_public_assets.py
+
+      - name: Verify generated assets are current
+        run: python3 scripts/sync-public-assets.py --check
+
+      - name: Validate JSON and OpenAPI artifacts
+        run: |
+          jq empty docs.json api-catalog.json openapi.json api-reference/openapi.json api-reference-backup/openapi.json
+          cmp -s openapi.json api-reference/openapi.json
+          cmp -s openapi.json api-reference-backup/openapi.json
+
+      - name: Reject legacy API key guidance
+        run: |
+          if rg -n 'uak_' README.md index.mdx authentication.mdx guides concepts llms.txt llms-full.txt openapi.json api-reference/openapi.json api-catalog.json scripts; then
+            exit 1
+          fi
+
+      - name: Lint OpenAPI
+        run: npx --yes @redocly/cli@2.39.0 lint openapi.json
