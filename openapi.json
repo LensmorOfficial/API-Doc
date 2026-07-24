@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.24.0",
+    "version": "0.24.1",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -1228,7 +1228,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
-        "description": "Return paginated people for an event with preview or full-access semantics and visible coverage counts.",
+        "description": "Return paginated people for an event with event-scoped attendee source labels and preview or full base-event access semantics. The sourceType array can contain exhibitor, social, and visitors; labels are not mutually exclusive. The endpoint does not currently accept a source filter. Visitor is a separate access layer, so semantics.accessMode does not by itself confirm Visitor access.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -1294,6 +1294,10 @@
                       "fullName": "Jane Smith",
                       "title": "VP of Retail Technology",
                       "companyName": "Acme Retail Systems",
+                      "sourceType": [
+                        "exhibitor",
+                        "social"
+                      ],
                       "email": null,
                       "phone": null,
                       "contactUnlockStatus": "locked",
@@ -1334,7 +1338,7 @@
           "Personnel"
         ],
         "summary": "Get personnel profile",
-        "description": "Return the public professional profile for one personnel identifier.",
+        "description": "Return the public professional profile for one personnel identifier. The sourceType array can aggregate non-exclusive attendee source labels across the person's associated events.",
         "operationId": "getPersonnelProfile",
         "parameters": [
           {
@@ -1357,6 +1361,10 @@
                   "seniorityLevel": "vp",
                   "linkedinUrl": "https://linkedin.com/in/jane-smith",
                   "companyName": "Acme Retail Systems",
+                  "sourceType": [
+                    "exhibitor",
+                    "visitors"
+                  ],
                   "email": null,
                   "phone": null,
                   "contactUnlockStatus": "locked",
@@ -1594,7 +1602,7 @@
           "Contacts"
         ],
         "summary": "Search contacts",
-        "description": "Search public contact records by required company name and optional role or person-name filters.",
+        "description": "Search public contact records by required company name and optional role or person-name filters. Returned sourceType arrays can aggregate non-exclusive attendee source labels across associated events.",
         "operationId": "searchContacts",
         "parameters": [
           {
@@ -1645,6 +1653,10 @@
                       "fullName": "Jane Doe",
                       "title": "VP Marketing",
                       "companyName": "Acme",
+                      "sourceType": [
+                        "social",
+                        "visitors"
+                      ],
                       "email": null,
                       "phone": null,
                       "contactUnlockStatus": "locked",
@@ -3892,7 +3904,7 @@
           },
           "sourceType": {
             "type": "array",
-            "description": "Normalized Lensmor source labels for this person. Possible values are exhibitor, social, and visitors.",
+            "description": "Lensmor source/business labels for this person. Source labels are not mutually exclusive. Product mapping: Exhibitor is exhibitor, Social Signals is social, and Visitor is visitors. Visitor represents registered attendees obtained through organizer or data-provider partnerships; Social Signals is not proof of official registration. Event personnel lists return event-scoped labels, while personnel profile and contact search can aggregate labels across associated events.",
             "items": {
               "type": "string",
               "enum": [

@@ -1,0 +1,71 @@
+---
+title: "Attendee source types"
+description: "Map Lensmor attendee labels to API sourceType values and understand event scope, multi-source people, visitor access, and filtering behavior."
+---
+
+Lensmor groups people connected to an event under **Attendees**. The `sourceType` array explains how each person is connected to the event or to Lensmor's broader event graph.
+
+## Product labels and API values
+
+| Product label | API value | Meaning |
+| --- | --- | --- |
+| **Exhibitor** | `exhibitor` | A person associated with a company exhibiting at the event. |
+| **Social Signals** | `social` | A person identified through LinkedIn signals connected to the event. This label is not proof of official event registration. |
+| **Visitor** | `visitors` | A registered event attendee obtained through organizer or data-provider partnerships. Visitor data is available only for selected events. |
+
+<Note>
+  The product displays **Visitor** in the singular, while the current API value is `"visitors"`.
+</Note>
+
+## Labels are not mutually exclusive
+
+`sourceType` is an array because one person can have more than one source relationship:
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+Do not force each person into a single category. Preserve every returned value and treat an empty array as “no supported source label is available.”
+
+## Source scope differs by endpoint
+
+- `GET /external/personnel/list` returns source labels in the requested event context.
+- `GET /external/personnel/profile` can aggregate source labels across the person's associated events.
+- `GET /external/contacts/search` can also return source labels aggregated across associated events because the search is company-scoped rather than event-scoped.
+
+If your UI needs to say “this person is a Visitor for this event,” use the event-scoped personnel list rather than an aggregated profile or contact-search result.
+
+## Visitor access
+
+Visitor is a separate access layer from base event access:
+
+- Base event access expands event-scoped exhibitor and personnel coverage.
+- Visitor access adds eligible registered attendee records for events where visitor data is available.
+- Call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before attempting a paid unlock.
+- A visitor precheck can return `visitor_data_available: false`; treat that as an expected event-level availability state.
+
+The `semantics.accessMode` field on the personnel list describes base event preview/full access. It does not by itself prove that the separate Visitor layer is unlocked.
+
+## Filtering
+
+`GET /external/personnel/list` does not currently accept a `sourceType` filter. Fetch the accessible event-scoped result set, then segment it client-side:
+
+```js
+const visitors = items.filter((person) =>
+  person.sourceType?.includes("visitors")
+);
+```
+
+Because labels can overlap, a person may appear in more than one client-side segment.
+
+## Related workflows
+
+- [Build attendee intelligence](/guides/build-attendee-intelligence)
+- [Find and unlock an event](/guides/find-and-unlock-event)
+- [Credits and access](/concepts/credits-and-access)
+- [List event personnel](/api-reference/personnel/list-event-personnel)

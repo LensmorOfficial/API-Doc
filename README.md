@@ -4,7 +4,7 @@
 [![API](https://img.shields.io/badge/API-REST-orange.svg)](https://www.lensmor.com/platform?utm_source=github&utm_medium=readme&utm_campaign=API-Doc)
 [![Docs](https://img.shields.io/badge/Docs-api.lensmor.com-green.svg)](https://api.lensmor.com/)
 
-Lensmor provides developer-facing access to event, exhibitor, personnel, contact, and profile-matching data through the Lensmor API.
+Lensmor provides developer-facing access to event, exhibitor, attendee-source, registered Visitor, contact, and profile-matching data through the Lensmor API.
 
 This repository hosts the public documentation site for developers integrating with [Lensmor](https://www.lensmor.com/?utm_source=github&utm_medium=readme&utm_campaign=API-Doc) — an AI-native event intelligence platform for B2B teams.
 
@@ -14,6 +14,7 @@ Use the API to:
 
 - Check credit balance before running credit-consuming workflows
 - Browse and inspect event data
+- Build attendee intelligence with Exhibitor, Social Signals, and registered Visitor source labels
 - Search exhibitors using company context and optional event scope
 - Retrieve exhibitor and personnel profiles
 - Search contacts with company-based inputs and unlock contact emails
@@ -53,10 +54,12 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 - `openapi.json` — OpenAPI 3.1 specification for documented endpoints
 - `api-catalog.json` — machine-readable API catalog pointing to the OpenAPI file
 - `llms.txt` and `llms-full.txt` — LLM-friendly documentation entry points
+- `zh-Hans/` — Simplified Chinese core onboarding, attendee, access, and contact-unlock guides
 - `api-reference/credits/` — credit balance endpoint
 - `concepts/errors.mdx` — shared error conventions
 - `concepts/pagination.mdx` — pagination behavior
 - `concepts/identifiers.mdx` — identifier conventions
+- `concepts/attendee-source-types.mdx` — product-to-API attendee source mapping and multi-source behavior
 - `concepts/credits-and-access.mdx` — credit costs, preview access, and unlock behavior
 - `concepts/rate-limits.mdx` — rate-limit headers and `429` behavior
 - `api-reference/events/` — event endpoints
@@ -67,10 +70,10 @@ curl -X GET "https://platform.lensmor.com/external/events/list?page=1&pageSize=2
 
 ## Typical use cases
 
-- Build event discovery workflows
-- Match exhibitors to a company profile or target audience
-- Enrich sales, partnership, or market research pipelines
-- Explore people and organizations connected to relevant events
+- Build event discovery and field-marketing workflows
+- Segment accessible attendees by Exhibitor, Social Signals, and registered Visitor source
+- Match target accounts and exhibiting companies to relevant events
+- Prioritize selected attendees and enrich their contact data for sales engagement or CRM workflows
 
 ## Local preview
 
@@ -80,7 +83,7 @@ pnpm dlx mintlify dev
 
 ## Changelog
 
-See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.24.0`.
+See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.24.1`.
 
 ---
 

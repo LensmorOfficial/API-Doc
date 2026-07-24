@@ -1,13 +1,13 @@
 ---
 title: "Lensmor API Documentation"
-description: "Lensmor API documentation for building event intelligence workflows, discovering trade shows, evaluating exhibitors, and unlocking contact data."
+description: "Build event and attendee intelligence workflows with trade show discovery, Exhibitor and Social Signals data, registered Visitor access, and contact enrichment."
 ---
 
-Build event intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
+Build event and attendee intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitors and attendee source types, access registered Visitor data when available, and unlock contact details when your team is ready to act.
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.24.0`
+Current documentation version: `v0.24.1`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -33,8 +33,11 @@ Authorization: Bearer sk_your_api_key
   <Card title="Evaluate exhibitor opportunities" icon="building-2" href="/api-reference/exhibitors/search-exhibitors-by-company-context">
     Match target accounts or buyer profiles against exhibitor data and related event presence.
   </Card>
+  <Card title="Understand attendee sources" icon="users-round" href="/guides/build-attendee-intelligence">
+    Distinguish Exhibitor, Social Signals, and registered Visitor records while preserving people with multiple source labels.
+  </Card>
   <Card title="Unlock event-level coverage" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
-    Move from preview results to base event coverage, visitor access, or both in one atomic action.
+    Move from preview results to base event coverage, registered Visitor access, or both in one atomic action.
   </Card>
   <Card title="Enrich contacts" icon="mail-check" href="/guides/unlock-contact-emails">
     Start asynchronous email unlock jobs and poll task status until contact data is ready.
@@ -47,7 +50,7 @@ Authorization: Bearer sk_your_api_key
 | --- | --- | --- |
 | A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
 | A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
-| A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
+| A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people; personnel records can include Exhibitor, Social Signals, and Visitor source labels. |
 | An event that needs both base and visitor access | [Unlock full event access](/api-reference/events/unlock-full-event-access) | Prechecks and atomically unlocks missing access layers for up to `5000` credits. |
 | A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. Non-empty results cost `50` credits. |
 | A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. Non-empty results cost `50` credits. |
@@ -64,6 +67,9 @@ Authorization: Bearer sk_your_api_key
   </Step>
   <Step title="Discover the event or account context">
     Use Events, Exhibitors, Personnel, Contacts, or Profile Matching endpoints depending on your workflow.
+  </Step>
+  <Step title="Preserve attendee source context">
+    Treat `sourceType` as a multi-value array and keep event-scoped labels separate from source labels aggregated across a person's related events.
   </Step>
   <Step title="Respect preview and rate-limit semantics">
     Read `semantics` metadata, handle `402 Payment Required`, and back off on `429 Too Many Requests`.
@@ -83,7 +89,7 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - **Credits** — inspect the API key owner's current credit balance.
 - **Events** — browse, score, rank, inspect event details, and unlock base or visitor access.
 - **Exhibitors** — list exhibitors, search by company context, inspect profiles, and fetch related events.
-- **Personnel** — list people, inspect profiles, and fetch related events.
+- **Personnel** — list people, interpret attendee source labels, inspect profiles, and fetch related events.
 - **Contacts** — search contacts, unlock emails, and poll unlock tasks.
 - **Profile Matching** — apply profile inputs and retrieve recommended events or exhibitors.
 
@@ -92,6 +98,7 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - [Error conventions](/concepts/errors)
 - [Pagination conventions](/concepts/pagination)
 - [Identifiers](/concepts/identifiers)
+- [Attendee source types](/concepts/attendee-source-types)
 - [Credits and access](/concepts/credits-and-access)
 - [Rate limits](/concepts/rate-limits)
 

@@ -7,11 +7,11 @@ It intentionally uses plain Markdown code fences without Mintlify-specific metad
 
 Source: /index
 
-Build event intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitor and personnel data, and unlock contact details when your team is ready to act.
+Build event and attendee intelligence workflows with the Lensmor API. Use it to discover trade shows, evaluate event fit, inspect exhibitors and attendee source types, access registered Visitor data when available, and unlock contact details when your team is ready to act.
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.24.0`
+Current documentation version: `v0.24.1`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -37,8 +37,11 @@ Authorization: Bearer sk_your_api_key
   <Card title="Evaluate exhibitor opportunities" icon="building-2" href="/api-reference/exhibitors/search-exhibitors-by-company-context">
     Match target accounts or buyer profiles against exhibitor data and related event presence.
   </Card>
+  <Card title="Understand attendee sources" icon="users-round" href="/guides/build-attendee-intelligence">
+    Distinguish Exhibitor, Social Signals, and registered Visitor records while preserving people with multiple source labels.
+  </Card>
   <Card title="Unlock event-level coverage" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
-    Move from preview results to base event coverage, visitor access, or both in one atomic action.
+    Move from preview results to base event coverage, registered Visitor access, or both in one atomic action.
   </Card>
   <Card title="Enrich contacts" icon="mail-check" href="/guides/unlock-contact-emails">
     Start asynchronous email unlock jobs and poll task status until contact data is ready.
@@ -51,7 +54,7 @@ Authorization: Bearer sk_your_api_key
 | --- | --- | --- |
 | A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
 | A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
-| A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
+| A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people; personnel records can include Exhibitor, Social Signals, and Visitor source labels. |
 | An event that needs both base and visitor access | [Unlock full event access](/api-reference/events/unlock-full-event-access) | Prechecks and atomically unlocks missing access layers for up to `5000` credits. |
 | A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. Non-empty results cost `50` credits. |
 | A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. Non-empty results cost `50` credits. |
@@ -68,6 +71,9 @@ Authorization: Bearer sk_your_api_key
   </Step>
   <Step title="Discover the event or account context">
     Use Events, Exhibitors, Personnel, Contacts, or Profile Matching endpoints depending on your workflow.
+  </Step>
+  <Step title="Preserve attendee source context">
+    Treat `sourceType` as a multi-value array and keep event-scoped labels separate from source labels aggregated across a person's related events.
   </Step>
   <Step title="Respect preview and rate-limit semantics">
     Read `semantics` metadata, handle `402 Payment Required`, and back off on `429 Too Many Requests`.
@@ -87,7 +93,7 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - **Credits** — inspect the API key owner's current credit balance.
 - **Events** — browse, score, rank, inspect event details, and unlock base or visitor access.
 - **Exhibitors** — list exhibitors, search by company context, inspect profiles, and fetch related events.
-- **Personnel** — list people, inspect profiles, and fetch related events.
+- **Personnel** — list people, interpret attendee source labels, inspect profiles, and fetch related events.
 - **Contacts** — search contacts, unlock emails, and poll unlock tasks.
 - **Profile Matching** — apply profile inputs and retrieve recommended events or exhibitors.
 
@@ -96,6 +102,7 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 - [Error conventions](/concepts/errors)
 - [Pagination conventions](/concepts/pagination)
 - [Identifiers](/concepts/identifiers)
+- [Attendee source types](/concepts/attendee-source-types)
 - [Credits and access](/concepts/credits-and-access)
 - [Rate limits](/concepts/rate-limits)
 
@@ -201,6 +208,23 @@ To test your integration safely:
 Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.24.1
+
+Released July 24, 2026.
+
+### Added
+
+- Added the Attendee source taxonomy that maps product labels to API values: Exhibitor (`exhibitor`), Social Signals (`social`), and Visitor (`visitors`).
+- Added an attendee-intelligence guide for field marketing, account-based event planning, sales engagement, and CRM enrichment workflows.
+- Added Simplified Chinese navigation and translations for the core onboarding, attendee, access, and contact-unlock documentation.
+
+### Changed
+
+- Clarified that `sourceType` is a non-exclusive array and that personnel profile and contact search can aggregate labels across associated events.
+- Clarified that Visitor represents registered attendees obtained through organizer or data-provider partnerships and remains a separate access layer from base event access.
+- Added attendee source labels to Personnel List, Personnel Profile, and Contact Search OpenAPI examples.
+- Updated OpenAPI metadata to version `0.24.1`.
 
 ## v0.24.0
 
@@ -318,7 +342,7 @@ The Lensmor API is designed around a typical event-intelligence workflow:
 
 1. Start with a company profile, buyer profile, keyword, or target market.
 2. Discover relevant trade shows and event records.
-3. Inspect exhibitors and people connected to those events.
+3. Inspect exhibitors and people connected to those events, including their Exhibitor, Social Signals, and Visitor source labels.
 4. Unlock base event access, visitor access, full event access, or contact fields only when the data is actionable.
 
 ## Before you begin
@@ -353,7 +377,7 @@ The response includes subscription credits, gift credits, the total balance, and
 | Search for events by keyword, country, city, or date | `GET /external/events/list` | Read-only |
 | Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` | Read-only |
 | Browse companies inside a selected event | `GET /external/exhibitors/list` | Read-only unless the user unlocks event access |
-| Browse people inside a selected event | `GET /external/personnel/list` | Read-only unless the user unlocks event access or emails |
+| Browse people inside a selected event | `GET /external/personnel/list` | Read-only; returned `sourceType` labels identify accessible Exhibitor, Social Signals, and Visitor records |
 | Unlock complete exhibitor and personnel coverage | `POST /external/events/:id/unlock` | `2000` credits when base event access is still locked |
 | Unlock visitor records after base event access | `POST /external/events/:id/visitors/unlock` | `3000` credits when visitor access is still locked |
 | Unlock missing base and visitor layers together | `POST /external/events/:id/full-access/unlock` | Dynamic cost from `0` to `5000` credits |
@@ -396,9 +420,22 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&page
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields tell you whether more data is available and which action unlocks it.
+Personnel items can include a multi-value `sourceType` array:
 
-For visitor or combined full access, call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before execution. Precheck is read-only and returns current access state, eligibility, and expected credits.
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+The values map to the product's **Exhibitor**, **Social Signals**, and **Visitor** labels. A person can have multiple labels, and the API uses `"visitors"` for the product's singular Visitor label. See [Attendee source types](/concepts/attendee-source-types).
+
+When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields describe base event access and tell you whether more base personnel coverage is available.
+
+Visitor is a separate registered-attendee data layer. For Visitor or combined full access, call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before execution. Precheck is read-only and returns current access state, Visitor availability, eligibility, and expected credits.
 
 ## 5. Handle errors and limits
 
@@ -414,6 +451,9 @@ See [Error conventions](/concepts/errors), [Credits and access](/concepts/credit
 ## Next steps
 
 <CardGroup cols={2}>
+  <Card title="Build attendee intelligence" icon="users-round" href="/guides/build-attendee-intelligence">
+    Segment Exhibitor, Social Signals, and Visitor records without losing multi-source context.
+  </Card>
   <Card title="Find and unlock an event" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
     Learn how preview, base event, visitor, and atomic full access work.
   </Card>
@@ -421,6 +461,129 @@ See [Error conventions](/concepts/errors), [Credits and access](/concepts/credit
     Start an email unlock task and poll until the result is ready.
   </Card>
 </CardGroup>
+
+---
+
+## Build attendee intelligence
+
+Source: /guides/build-attendee-intelligence
+
+Use this guide to build field-marketing, account-based event planning, and sales-engagement workflows around the people connected to an event.
+
+Lensmor Attendees include three source labels:
+
+- **Exhibitor** (`exhibitor`) — people associated with exhibiting companies.
+- **Social Signals** (`social`) — people identified from LinkedIn signals connected to the event.
+- **Visitor** (`visitors`) — registered attendees obtained through organizer or data-provider partnerships.
+
+A person can have multiple labels. See [Attendee source types](/concepts/attendee-source-types) for the complete mapping and scope rules.
+
+## Recommended workflow
+
+<Steps>
+  <Step title="Discover and verify the event">
+    Search the event catalog, rank events, or apply profile matching. Fetch event detail before using its `eventId` in attendee requests.
+  </Step>
+  <Step title="Inspect accessible attendees">
+    Call `GET /external/personnel/list` and read both each person's `sourceType` array and the response-level `semantics` object.
+  </Step>
+  <Step title="Check Visitor availability">
+    Use the Visitor or full-access action precheck. Visitor data is available only for selected events.
+  </Step>
+  <Step title="Unlock the required access layer">
+    Unlock base event access for broader exhibitor/personnel coverage, Visitor access for registered attendee records, or full access for both missing layers.
+  </Step>
+  <Step title="Prioritize and enrich selected people">
+    Segment accessible records client-side, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
+  </Step>
+</Steps>
+
+## 1. List people for an event
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Each item can include a multi-value `sourceType`:
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "title": "VP of Partnerships",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"],
+  "contactUnlockStatus": "locked"
+}
+```
+
+Use the event-scoped list when you need source meaning for one selected event. Personnel profile and contact search can aggregate labels across multiple associated events.
+
+## 2. Segment the accessible audience
+
+The personnel endpoint does not currently provide a server-side source filter. Preserve overlapping labels and segment the returned items in your application:
+
+```js
+const bySource = {
+  exhibitor: items.filter((person) => person.sourceType?.includes("exhibitor")),
+  social: items.filter((person) => person.sourceType?.includes("social")),
+  visitors: items.filter((person) => person.sourceType?.includes("visitors")),
+};
+```
+
+Do not add the three segment counts together to calculate unique people because the same person can appear in multiple segments.
+
+## 3. Check Visitor availability and access
+
+Visitor data is a separate layer. Precheck before showing an unlock confirmation:
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_visitors",
+    "call_source": "api",
+    "params": {
+      "event_id": "139574"
+    }
+  }'
+```
+
+Inspect `allowed`, `credits`, `reason`, and `detail.visitor_data_available`. If base event access is still locked, use the full-access precheck or unlock base event access first.
+
+<Warning>
+  `semantics.accessMode: "full"` on the personnel list refers to base event access. Always use Visitor precheck state when your workflow specifically requires registered Visitor records.
+</Warning>
+
+## 4. Enrich only selected people
+
+After prioritizing attendees, collect their personnel IDs and call the contact email or phone unlock workflow. Both workflows can consume credits and run asynchronously, so show the user the selected scope, check balance, and poll the returned task ID.
+
+## Example use cases
+
+### Field marketing
+
+Compare Exhibitor, Social Signals, and Visitor records to understand the accessible event audience, then prioritize registered Visitors or relevant exhibiting-company contacts for campaign planning.
+
+### Account-based event planning
+
+Combine `GET /external/exhibitors/list` with event personnel. Identify target accounts exhibiting at the event, then inspect the source labels and roles of people connected to those companies.
+
+### Sales engagement
+
+Use source labels, title, department, and seniority to shortlist relevant attendees. Unlock contact fields only after the user confirms the final outreach list.
+
+### CRM enrichment
+
+Store the person ID, event ID, full `sourceType` array, and unlock state in your own integration. Preserve the event context so aggregated profile labels are not mistaken for event-specific registration.
+
+## Current limitations
+
+- Event list and event detail do not currently expose a public `hasVisitors` field. Use Visitor action precheck for a known event.
+- Personnel list does not currently accept a source filter.
+- Visitor coverage varies by event and must not be inferred from event category, size, or location.
 
 ---
 
@@ -518,9 +681,9 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 
 Source: /guides/find-and-unlock-event
 
-Use this guide when your integration needs to move from discovery to base event coverage, visitor access, or both.
+Use this guide when your integration needs to move from discovery to base event coverage, registered Visitor access, or both.
 
-Event unlocks are intentionally explicit. Lensmor lets you preview exhibitor and personnel data first, then choose the access layer the user actually needs.
+Event unlocks are intentionally explicit. Lensmor lets you preview exhibitor and personnel data first, then choose the access layer the user actually needs. Visitor records are registered event attendees obtained through organizer or data-provider partnerships and are available only for selected events.
 
 ## Recommended workflow
 
@@ -574,6 +737,7 @@ Locked events can return a response like this:
       "fullName": "Jane Doe",
       "title": "VP of Partnerships",
       "companyName": "Example Retail Co",
+      "sourceType": ["exhibitor", "social"],
       "email": null,
       "contactUnlockStatus": "locked"
     }
@@ -608,7 +772,7 @@ Locked events can return a response like this:
 }
 ```
 
-Use `semantics` to decide whether to unlock. Do not infer full access from pagination alone.
+Use `semantics` to decide whether to unlock base event coverage. `semantics.accessMode` does not describe the separate Visitor layer, so do not infer Visitor access from pagination or `"full"` base access alone.
 
 ## 4. Unlock base event access
 
@@ -645,7 +809,7 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 
 Visitor access is separate from base event access:
 
-- `POST /external/events/:id/visitors/unlock` costs `3000` credits and requires base event access, an active subscription, and visitor data.
+- `POST /external/events/:id/visitors/unlock` costs `3000` credits and requires base event access, an active subscription, and registered Visitor data for the event.
 - `POST /external/events/:id/full-access/unlock` atomically charges only for missing layers: `2000` for base event access plus `3000` for visitor access.
 
 Precheck the intended action before execution:
@@ -663,7 +827,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
   }'
 ```
 
-Continue only when `allowed` is `true`, show the returned `credits` to the user, and refresh the balance after execution. If full-access precheck returns `no_contacts_available` because visitor data is unavailable, use base event unlock when exhibitor and personnel coverage is still needed.
+Continue only when `allowed` is `true`, show the returned `credits` to the user, and refresh the balance after execution. Read `detail.visitor_data_available` instead of inferring availability from the event category or list counts. If full-access precheck returns `no_contacts_available` because Visitor data is unavailable, use base event unlock when exhibitor and personnel coverage is still needed.
 
 ## Common mistakes
 
@@ -673,6 +837,7 @@ Continue only when `allowed` is `true`, show the returned `credits` to the user,
 - Ignoring `semantics`. It tells you whether a list is in preview mode or has full access.
 - Calling visitor unlock before base event access. Precheck returns `state_conflict` in that state.
 - Treating base event access and visitor access as the same layer. They have separate access records and credit costs.
+- Treating Social Signals as official registration evidence. Only the Visitor label represents registered attendees in the current source taxonomy.
 
 ## Related endpoints
 
@@ -694,6 +859,9 @@ Continue only when `allowed` is `true`, show the returned `credits` to the user,
   </Card>
   <Card title="List event personnel" icon="users" href="/api-reference/personnel/list-event-personnel">
     Fetch people associated with a selected event.
+  </Card>
+  <Card title="Attendee source types" icon="tags" href="/concepts/attendee-source-types">
+    Map product attendee labels to API `sourceType` values.
   </Card>
 </CardGroup>
 
@@ -729,12 +897,13 @@ Most personnel responses include `id`, name, title, company context, and `contac
   "fullName": "Jane Doe",
   "title": "VP of Partnerships",
   "companyName": "Example Retail Co",
+  "sourceType": ["exhibitor", "visitors"],
   "email": null,
   "contactUnlockStatus": "locked"
 }
 ```
 
-Only send records that are still locked. Already unlocked contacts are not charged again, but filtering them out keeps your task easier to audit.
+Preserve the full `sourceType` array when moving a selected attendee into your enrichment workflow. Only send records that are still locked. Already unlocked contacts are not charged again, but filtering them out keeps your task easier to audit.
 
 ## 2. Start the unlock task
 
@@ -1794,7 +1963,7 @@ Source: /api-reference/events/unlock-event-visitor-access
 
 Unlock the visitor data layer for an event that already has base event access.
 
-Use this endpoint when the caller needs visitor records in addition to the exhibitor and personnel coverage unlocked by [Unlock event](/api-reference/events/unlock-event-access).
+Use this endpoint when the caller needs registered Visitor records in addition to the exhibitor and personnel coverage unlocked by [Unlock event](/api-reference/events/unlock-event-access). Visitor records are obtained through organizer or data-provider partnerships and are available only for selected events.
 
 ## Prerequisites
 
@@ -1804,7 +1973,11 @@ Before executing this paid action:
 2. Call [Actions precheck](/api-reference/actions/precheck-an-external-action) with `action_type: "unlock_event_visitors"` and the selected `event_id`.
 3. Continue only when precheck returns `allowed: true`.
 
-Visitor access requires an active subscription, available visitor data for the event, and enough credits.
+Visitor access requires an active subscription, available Visitor data for the event, and enough credits.
+
+<Note>
+  The product label is **Visitor**, while personnel responses use the API source value `"visitors"`. See [Attendee source types](/concepts/attendee-source-types).
+</Note>
 
 <Warning>
   The first successful visitor unlock consumes `3000` credits. Precheck is read-only and should be used before the paid call.
@@ -2836,7 +3009,7 @@ Source: /api-reference/personnel/list-event-personnel
 
 List personnel records for a specific event.
 
-Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
+Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
 
 ## When to use this endpoint
 
@@ -2847,7 +3020,12 @@ Common use cases:
 - browse people associated with an event
 - filter by department or seniority
 - find contacts for a selected exhibitor
+- segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
+
+<Note>
+  The endpoint does not currently accept a source filter. Fetch the accessible result set and segment it client-side. See [Attendee source types](/concepts/attendee-source-types).
+</Note>
 
 ## Endpoint
 `GET /external/personnel/list`
@@ -2894,7 +3072,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane-smith",
       "companyName": "Acme Retail Systems",
-      "sourceType": ["exhibitor"],
+      "sourceType": ["exhibitor", "social"],
       "email": null,
       "phone": null,
       "contactUnlockStatus": "locked",
@@ -2951,7 +3129,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor name. |
-| `sourceType` | Normalized source labels for the person record. Values can include `exhibitor`, `social`, and `visitors`; an empty array means no supported source label is available. |
+| `sourceType` | Event-scoped, non-exclusive source labels. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. An empty array means no supported source label is available. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
@@ -2967,7 +3145,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 
 Locked events can still return preview personnel results. Read `semantics` before deciding whether to unlock the event:
 
-- `accessMode` tells you whether the response is preview or full access.
+- `accessMode` tells you whether base event coverage is preview or full access. It does not describe the separate Visitor access layer.
 - `counts.remainingLockedCount` tells you whether more records are hidden.
 - `unlock.requiredForMoreResults` tells you whether event unlock is useful for this query.
 - `guidance.message` provides a user-facing explanation.
@@ -2980,6 +3158,8 @@ Locked events can still return preview personnel results. Read `semantics` befor
 
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style response shape.
+- A person can have multiple source labels. Preserve every value rather than assigning one exclusive category.
+- Visitor records are registered attendees obtained through organizer or data-provider partnerships. Visitor availability and access must be checked separately.
 - Emails are returned only when the contact is already unlocked for the caller.
 - Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock-event-access).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
@@ -2998,7 +3178,7 @@ Use this endpoint when you already know the personnel identifier and need profil
 
 Use `GET /external/personnel/profile` after a user selects a person from a personnel list, contact search result, or LinkedIn-based event lookup.
 
-This endpoint is intentionally lightweight. Use it to confirm the person's identity and current email unlock state before starting a contact unlock workflow.
+This endpoint is intentionally lightweight. Use it to confirm the person's identity, aggregated source labels, and current email unlock state before starting a contact unlock workflow.
 
 ## Endpoint
 `GET /external/personnel/profile`
@@ -3030,7 +3210,7 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
   "seniorityLevel": "vp",
   "linkedinUrl": "https://linkedin.com/in/jane-smith",
   "companyName": "Acme Retail Systems",
-  "sourceType": ["exhibitor"],
+  "sourceType": ["exhibitor", "visitors"],
   "email": null,
   "phone": null,
   "contactUnlockStatus": "locked",
@@ -3048,7 +3228,7 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | Public LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor. |
-| `sourceType` | Normalized source labels such as `exhibitor`, `social`, and `visitors`. |
+| `sourceType` | Non-exclusive source labels aggregated across the person's associated events. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Current contact access state for this API key owner. |
@@ -3067,6 +3247,8 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 
 ## Notes
 - This response stays intentionally lightweight.
+- Use [Personnel list](/api-reference/personnel/list-event-personnel) when you need source labels for one specific event. Profile labels can reflect multiple associated events.
+- See [Attendee source types](/concepts/attendee-source-types) for label meanings and Visitor access behavior.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
 
@@ -3466,7 +3648,7 @@ Source: /api-reference/contacts/search-contacts
 
 Search contacts by company name.
 
-Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering.
+Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering and attendee source context aggregated across associated events.
 
 ## When to use this endpoint
 
@@ -3522,7 +3704,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane",
       "companyName": "Acme",
-      "sourceType": ["exhibitor"],
+      "sourceType": ["social", "visitors"],
       "email": null,
       "phone": null,
       "contactUnlockStatus": "locked",
@@ -3550,7 +3732,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | LinkedIn profile URL when available. |
 | `companyName` | Matched company name. |
-| `sourceType` | Normalized source labels for the contact record. Values can include `exhibitor`, `social`, and `visitors`. |
+| `sourceType` | Non-exclusive source labels aggregated across associated events. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
@@ -3572,6 +3754,7 @@ No matching contacts can return an empty paginated response. Use this as a valid
 
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
+- Use [Personnel list](/api-reference/personnel/list-event-personnel) when you need source labels for one specific event. See [Attendee source types](/concepts/attendee-source-types) for the full mapping.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
 - Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
 
@@ -4473,6 +4656,79 @@ Use the identifier returned by the matching resource endpoint:
 
 ---
 
+## Attendee source types
+
+Source: /concepts/attendee-source-types
+
+Lensmor groups people connected to an event under **Attendees**. The `sourceType` array explains how each person is connected to the event or to Lensmor's broader event graph.
+
+## Product labels and API values
+
+| Product label | API value | Meaning |
+| --- | --- | --- |
+| **Exhibitor** | `exhibitor` | A person associated with a company exhibiting at the event. |
+| **Social Signals** | `social` | A person identified through LinkedIn signals connected to the event. This label is not proof of official event registration. |
+| **Visitor** | `visitors` | A registered event attendee obtained through organizer or data-provider partnerships. Visitor data is available only for selected events. |
+
+<Note>
+  The product displays **Visitor** in the singular, while the current API value is `"visitors"`.
+</Note>
+
+## Labels are not mutually exclusive
+
+`sourceType` is an array because one person can have more than one source relationship:
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+Do not force each person into a single category. Preserve every returned value and treat an empty array as “no supported source label is available.”
+
+## Source scope differs by endpoint
+
+- `GET /external/personnel/list` returns source labels in the requested event context.
+- `GET /external/personnel/profile` can aggregate source labels across the person's associated events.
+- `GET /external/contacts/search` can also return source labels aggregated across associated events because the search is company-scoped rather than event-scoped.
+
+If your UI needs to say “this person is a Visitor for this event,” use the event-scoped personnel list rather than an aggregated profile or contact-search result.
+
+## Visitor access
+
+Visitor is a separate access layer from base event access:
+
+- Base event access expands event-scoped exhibitor and personnel coverage.
+- Visitor access adds eligible registered attendee records for events where visitor data is available.
+- Call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before attempting a paid unlock.
+- A visitor precheck can return `visitor_data_available: false`; treat that as an expected event-level availability state.
+
+The `semantics.accessMode` field on the personnel list describes base event preview/full access. It does not by itself prove that the separate Visitor layer is unlocked.
+
+## Filtering
+
+`GET /external/personnel/list` does not currently accept a `sourceType` filter. Fetch the accessible event-scoped result set, then segment it client-side:
+
+```js
+const visitors = items.filter((person) =>
+  person.sourceType?.includes("visitors")
+);
+```
+
+Because labels can overlap, a person may appear in more than one client-side segment.
+
+## Related workflows
+
+- [Build attendee intelligence](/guides/build-attendee-intelligence)
+- [Find and unlock an event](/guides/find-and-unlock-event)
+- [Credits and access](/concepts/credits-and-access)
+- [List event personnel](/api-reference/personnel/list-event-personnel)
+
+---
+
 ## Credits and access
 
 Source: /concepts/credits-and-access
@@ -4503,7 +4759,9 @@ When an event is locked, list responses may include `semantics` metadata describ
 - whether more results require unlocking the event
 - which unlock action and credit amount applies
 
-Base event unlock grants full access to event-scoped exhibitor and personnel results. Visitor access is a separate data layer that can be unlocked after base event access or together through the full-access endpoint.
+Base event unlock grants full access to event-scoped exhibitor and personnel results. Visitor access is a separate registered-attendee data layer, sourced through organizer or data-provider partnerships, that can be unlocked after base event access or together through the full-access endpoint.
+
+`semantics.accessMode` on an event-scoped list describes base event access only. It does not prove that Visitor access is unlocked. Use the Visitor or full-access action precheck when registered Visitor records are required.
 
 ## Credit-consuming operations
 | Operation | Typical cost | Notes |
@@ -4587,7 +4845,10 @@ Recommended behavior:
     Unlock base event-scoped exhibitor and personnel coverage.
   </Card>
   <Card title="Unlock full event access" icon="key-round" href="/api-reference/events/unlock-full-event-access">
-    Unlock missing base and visitor access layers in one atomic call.
+    Unlock missing base and registered Visitor access layers in one atomic call.
+  </Card>
+  <Card title="Attendee source types" icon="tags" href="/concepts/attendee-source-types">
+    Understand Exhibitor, Social Signals, and Visitor labels.
   </Card>
   <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.

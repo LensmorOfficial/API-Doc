@@ -1,0 +1,90 @@
+---
+title: "Credits 与访问权限"
+description: "了解 Lensmor Credits、展会 Preview、基础 Event Access、Visitor Access、联系方式解锁和安全计费流程。"
+---
+
+Lensmor 的大多数只读发现接口只需要有效 API Key；展会解锁、联系方式解锁和部分企业搜索可能消耗 Credits。
+
+API 与 Lensmor SaaS 共用订阅账号的 Credits 余额。
+
+## Credits 余额
+
+使用 `GET /external/credits/balance` 查看：
+
+- `subscriptionBalance` — 当前订阅周期的 Credits。
+- `addonBalance` — 有效的一次性 Add-On Credits。
+- `giftBalance` — 不过期的 Gift Credits。
+- `totalBalance` — 当前可用总余额。
+- `resetAt` — 最早的订阅 Credits 到期时间戳，或 `null`。
+- `addonExpireAt` — 最晚的 Add-On Credits 到期时间戳，或 `null`。
+
+## Preview 与访问层
+
+展会范围的 Exhibitor 和 Personnel List 在 Event Access 未解锁时仍可能返回预览结果。`semantics` 会说明：
+
+- 当前是 `preview` 还是基础 `full` access
+- 当前可见结果数量
+- 是否还有结果需要解锁
+- 对应操作和预计 Credits
+
+基础 Event Access 用于扩大 Exhibitor 和 Personnel 覆盖。Visitor Access 是独立的注册参会访客数据层，数据来自主办方或数据合作伙伴。
+
+<Warning>
+  `semantics.accessMode` 只描述基础 Event Access，不能证明 Visitor Access 已解锁。需要 Visitor 时，请使用 Visitor 或 Full Access action precheck。
+</Warning>
+
+## 可能消耗 Credits 的操作
+
+| 操作 | 常见成本 | 说明 |
+| --- | --- | --- |
+| 基础 Event Access | `2000` Credits | 展会尚未解锁且有可用人员数据时，扩大 Exhibitor/Personnel 覆盖。 |
+| Visitor Access | `3000` Credits | 需要基础 Event Access、有效订阅和可用 Visitor 数据；重复解锁免费。 |
+| Full Event Access | `0`–`5000` Credits | 一次补齐缺失的基础层和 Visitor 层。 |
+| Contact Email Unlock | 每个可计费联系人 `15` Credits | 创建异步任务，已解锁联系人不重复计费。 |
+| Contact Phone Unlock | 每个可计费联系人 `150` Credits | 创建异步任务，已解锁联系人不重复计费。 |
+| Exhibitor Company Search | 非空结果 `50` Credits | 空结果不消耗 Credits。 |
+| Exhibitor Event Search | 非空结果 `50` Credits | 空结果不消耗 Credits。 |
+
+价格可能随套餐或产品政策调整。接口响应和商业协议是最终计费依据。
+
+## 安全集成模式
+
+<Steps>
+  <Step title="确认目标数据">
+    向用户展示即将解锁或搜索的展会、企业或联系人。
+  </Step>
+  <Step title="检查当前余额">
+    调用 `GET /external/credits/balance`。
+  </Step>
+  <Step title="展示预计成本">
+    对访问相关操作执行 precheck，并显示返回的 Credits。
+  </Step>
+  <Step title="用户确认后执行">
+    只有用户确认后才调用付费接口。
+  </Step>
+  <Step title="刷新最终状态">
+    操作完成后重新获取余额、访问状态和目标数据。
+  </Step>
+</Steps>
+
+## 最终计费核对
+
+Precheck 和界面估算不是最终账单。付费操作后应刷新 Credits Balance 和目标资源，特别是以下情况：
+
+- 展会或联系人可能已经解锁
+- 异步任务包含成功、失败和不符合条件的混合结果
+- 请求超时后需要判断是否真的执行成功
+
+## 处理 `402 Payment Required`
+
+- 停止自动重试
+- 展示所需 Credits 或余额不足提示
+- 让用户选择增加 Credits、缩小范围或取消
+- 避免对同一个解锁意图重复创建任务
+
+## 相关文档
+
+- [参会人员来源类型](/zh-Hans/concepts/attendee-source-types)
+- [查找并解锁展会](/zh-Hans/guides/find-and-unlock-event)
+- [解锁联系人邮箱](/zh-Hans/guides/unlock-contact-emails)
+- [Credits Balance（英文）](/api-reference/credits/get-credits-balance)

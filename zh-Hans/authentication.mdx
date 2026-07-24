@@ -1,0 +1,77 @@
+---
+title: "身份验证"
+description: "了解如何使用用户 API Key 和 Bearer Token 调用 Lensmor API，并安全管理生产环境密钥。"
+---
+
+所有 Lensmor API 请求都需要用户 API Key。
+
+## 获取 API Key
+
+1. 登录或创建 [Lensmor App](https://app.lensmor.com) 账号。
+2. 升级到付费订阅。
+3. 打开 **Settings → API Keys**。
+4. 点击 **Create API Key**，填写标签并立即复制完整密钥。密钥只显示一次。
+
+API Key 以 `sk_` 开头：
+
+```text
+sk_your_api_key
+```
+
+建议将密钥保存到服务端环境变量：
+
+```bash
+export LENSMOR_API_KEY="sk_your_api_key"
+```
+
+<Note>
+  API Key 面向已订阅账号。如果升级后仍未看到 API Keys，请联系 Lensmor 支持。
+</Note>
+
+## Base URL
+
+`https://platform.lensmor.com`
+
+例如，`GET /external/events/list` 的完整请求地址是 `GET https://platform.lensmor.com/external/events/list`。
+
+## Header 格式
+
+```http
+Authorization: Bearer sk_your_api_key
+```
+
+## 请求示例
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+缺少、格式错误、已撤销或无效的密钥会返回 `401 Unauthorized`。
+
+## 安全建议
+
+- 将 API Key 存放在 Secret Manager 或服务端环境变量中。
+- 不要把 API Key 放进浏览器 JavaScript、移动端安装包、公开代码仓库或分析事件。
+- 不要记录完整 `Authorization` Header。
+- 密钥意外泄露后应立即轮换。
+- 浏览器应用应通过自己的服务端代理调用 Lensmor API。
+
+<Warning>
+  用户 API Key 是敏感凭证。它可以访问 Lensmor 数据，并可能触发与 Lensmor SaaS 共用 Credits 的付费工作流。
+</Warning>
+
+## 测试与生产环境
+
+Lensmor 当前没有独立 Sandbox，所有 API 请求都会访问生产 Base URL。
+
+安全测试建议：
+
+- 优先使用只读接口，例如 Events List、Event Detail、Exhibitors List、Personnel List 和 Credits Balance。
+- 工作流验证完成前，不要调用 Event、Visitor、Full Access、Contact Unlock 或付费企业搜索接口。
+- 付费操作前调用 `GET /external/credits/balance`。
+- API 与 Lensmor SaaS 共用订阅账号的 Credits。
+
+<Tip>
+  先完成只读数据流和错误处理，再启用任何会消耗 Credits 的操作。
+</Tip>

@@ -29,7 +29,9 @@ When an event is locked, list responses may include `semantics` metadata describ
 - whether more results require unlocking the event
 - which unlock action and credit amount applies
 
-Base event unlock grants full access to event-scoped exhibitor and personnel results. Visitor access is a separate data layer that can be unlocked after base event access or together through the full-access endpoint.
+Base event unlock grants full access to event-scoped exhibitor and personnel results. Visitor access is a separate registered-attendee data layer, sourced through organizer or data-provider partnerships, that can be unlocked after base event access or together through the full-access endpoint.
+
+`semantics.accessMode` on an event-scoped list describes base event access only. It does not prove that Visitor access is unlocked. Use the Visitor or full-access action precheck when registered Visitor records are required.
 
 ## Credit-consuming operations
 | Operation | Typical cost | Notes |
@@ -113,7 +115,10 @@ Recommended behavior:
     Unlock base event-scoped exhibitor and personnel coverage.
   </Card>
   <Card title="Unlock full event access" icon="key-round" href="/api-reference/events/unlock-full-event-access">
-    Unlock missing base and visitor access layers in one atomic call.
+    Unlock missing base and registered Visitor access layers in one atomic call.
+  </Card>
+  <Card title="Attendee source types" icon="tags" href="/concepts/attendee-source-types">
+    Understand Exhibitor, Social Signals, and Visitor labels.
   </Card>
   <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.

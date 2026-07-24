@@ -52,3 +52,20 @@ jobs:
           redocly_output="$(npx --yes @redocly/cli@2.39.0 lint openapi.json --format json)"
           printf '%s\n' "$redocly_output"
           printf '%s\n' "$redocly_output" | jq -e '.totals.errors == 0 and .totals.warnings == 0'
+
+  mintlify-deployment:
+    name: Mintlify Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate Mintlify build
+        run: npx --yes mintlify@4.2.740 validate

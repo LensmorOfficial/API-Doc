@@ -3,9 +3,9 @@ title: "Find and unlock an event"
 description: "Find a relevant trade show, inspect preview data, and unlock base event, visitor, or atomic full access with credit-safe prechecks."
 ---
 
-Use this guide when your integration needs to move from discovery to base event coverage, visitor access, or both.
+Use this guide when your integration needs to move from discovery to base event coverage, registered Visitor access, or both.
 
-Event unlocks are intentionally explicit. Lensmor lets you preview exhibitor and personnel data first, then choose the access layer the user actually needs.
+Event unlocks are intentionally explicit. Lensmor lets you preview exhibitor and personnel data first, then choose the access layer the user actually needs. Visitor records are registered event attendees obtained through organizer or data-provider partnerships and are available only for selected events.
 
 ## Recommended workflow
 
@@ -59,6 +59,7 @@ Locked events can return a response like this:
       "fullName": "Jane Doe",
       "title": "VP of Partnerships",
       "companyName": "Example Retail Co",
+      "sourceType": ["exhibitor", "social"],
       "email": null,
       "contactUnlockStatus": "locked"
     }
@@ -93,7 +94,7 @@ Locked events can return a response like this:
 }
 ```
 
-Use `semantics` to decide whether to unlock. Do not infer full access from pagination alone.
+Use `semantics` to decide whether to unlock base event coverage. `semantics.accessMode` does not describe the separate Visitor layer, so do not infer Visitor access from pagination or `"full"` base access alone.
 
 ## 4. Unlock base event access
 
@@ -130,7 +131,7 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
 
 Visitor access is separate from base event access:
 
-- `POST /external/events/:id/visitors/unlock` costs `3000` credits and requires base event access, an active subscription, and visitor data.
+- `POST /external/events/:id/visitors/unlock` costs `3000` credits and requires base event access, an active subscription, and registered Visitor data for the event.
 - `POST /external/events/:id/full-access/unlock` atomically charges only for missing layers: `2000` for base event access plus `3000` for visitor access.
 
 Precheck the intended action before execution:
@@ -148,7 +149,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
   }'
 ```
 
-Continue only when `allowed` is `true`, show the returned `credits` to the user, and refresh the balance after execution. If full-access precheck returns `no_contacts_available` because visitor data is unavailable, use base event unlock when exhibitor and personnel coverage is still needed.
+Continue only when `allowed` is `true`, show the returned `credits` to the user, and refresh the balance after execution. Read `detail.visitor_data_available` instead of inferring availability from the event category or list counts. If full-access precheck returns `no_contacts_available` because Visitor data is unavailable, use base event unlock when exhibitor and personnel coverage is still needed.
 
 ## Common mistakes
 
@@ -158,6 +159,7 @@ Continue only when `allowed` is `true`, show the returned `credits` to the user,
 - Ignoring `semantics`. It tells you whether a list is in preview mode or has full access.
 - Calling visitor unlock before base event access. Precheck returns `state_conflict` in that state.
 - Treating base event access and visitor access as the same layer. They have separate access records and credit costs.
+- Treating Social Signals as official registration evidence. Only the Visitor label represents registered attendees in the current source taxonomy.
 
 ## Related endpoints
 
@@ -179,5 +181,8 @@ Continue only when `allowed` is `true`, show the returned `credits` to the user,
   </Card>
   <Card title="List event personnel" icon="users" href="/api-reference/personnel/list-event-personnel">
     Fetch people associated with a selected event.
+  </Card>
+  <Card title="Attendee source types" icon="tags" href="/concepts/attendee-source-types">
+    Map product attendee labels to API `sourceType` values.
   </Card>
 </CardGroup>

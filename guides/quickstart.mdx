@@ -9,7 +9,7 @@ The Lensmor API is designed around a typical event-intelligence workflow:
 
 1. Start with a company profile, buyer profile, keyword, or target market.
 2. Discover relevant trade shows and event records.
-3. Inspect exhibitors and people connected to those events.
+3. Inspect exhibitors and people connected to those events, including their Exhibitor, Social Signals, and Visitor source labels.
 4. Unlock base event access, visitor access, full event access, or contact fields only when the data is actionable.
 
 ## Before you begin
@@ -44,7 +44,7 @@ The response includes subscription credits, gift credits, the total balance, and
 | Search for events by keyword, country, city, or date | `GET /external/events/list` | Read-only |
 | Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` | Read-only |
 | Browse companies inside a selected event | `GET /external/exhibitors/list` | Read-only unless the user unlocks event access |
-| Browse people inside a selected event | `GET /external/personnel/list` | Read-only unless the user unlocks event access or emails |
+| Browse people inside a selected event | `GET /external/personnel/list` | Read-only; returned `sourceType` labels identify accessible Exhibitor, Social Signals, and Visitor records |
 | Unlock complete exhibitor and personnel coverage | `POST /external/events/:id/unlock` | `2000` credits when base event access is still locked |
 | Unlock visitor records after base event access | `POST /external/events/:id/visitors/unlock` | `3000` credits when visitor access is still locked |
 | Unlock missing base and visitor layers together | `POST /external/events/:id/full-access/unlock` | Dynamic cost from `0` to `5000` credits |
@@ -87,9 +87,22 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&page
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
-When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields tell you whether more data is available and which action unlocks it.
+Personnel items can include a multi-value `sourceType` array:
 
-For visitor or combined full access, call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before execution. Precheck is read-only and returns current access state, eligibility, and expected credits.
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+The values map to the product's **Exhibitor**, **Social Signals**, and **Visitor** labels. A person can have multiple labels, and the API uses `"visitors"` for the product's singular Visitor label. See [Attendee source types](/concepts/attendee-source-types).
+
+When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields describe base event access and tell you whether more base personnel coverage is available.
+
+Visitor is a separate registered-attendee data layer. For Visitor or combined full access, call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before execution. Precheck is read-only and returns current access state, Visitor availability, eligibility, and expected credits.
 
 ## 5. Handle errors and limits
 
@@ -105,6 +118,9 @@ See [Error conventions](/concepts/errors), [Credits and access](/concepts/credit
 ## Next steps
 
 <CardGroup cols={2}>
+  <Card title="Build attendee intelligence" icon="users-round" href="/guides/build-attendee-intelligence">
+    Segment Exhibitor, Social Signals, and Visitor records without losing multi-source context.
+  </Card>
   <Card title="Find and unlock an event" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
     Learn how preview, base event, visitor, and atomic full access work.
   </Card>

@@ -12,7 +12,7 @@ Use this endpoint when you already know the personnel identifier and need profil
 
 Use `GET /external/personnel/profile` after a user selects a person from a personnel list, contact search result, or LinkedIn-based event lookup.
 
-This endpoint is intentionally lightweight. Use it to confirm the person's identity and current email unlock state before starting a contact unlock workflow.
+This endpoint is intentionally lightweight. Use it to confirm the person's identity, aggregated source labels, and current email unlock state before starting a contact unlock workflow.
 
 ## Endpoint
 `GET /external/personnel/profile`
@@ -44,7 +44,7 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
   "seniorityLevel": "vp",
   "linkedinUrl": "https://linkedin.com/in/jane-smith",
   "companyName": "Acme Retail Systems",
-  "sourceType": ["exhibitor"],
+  "sourceType": ["exhibitor", "visitors"],
   "email": null,
   "phone": null,
   "contactUnlockStatus": "locked",
@@ -62,7 +62,7 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | Public LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor. |
-| `sourceType` | Normalized source labels such as `exhibitor`, `social`, and `visitors`. |
+| `sourceType` | Non-exclusive source labels aggregated across the person's associated events. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Current contact access state for this API key owner. |
@@ -81,5 +81,7 @@ An empty `email` value does not necessarily mean Lensmor has no email data. It c
 
 ## Notes
 - This response stays intentionally lightweight.
+- Use [Personnel list](/api-reference/personnel/list-event-personnel) when you need source labels for one specific event. Profile labels can reflect multiple associated events.
+- See [Attendee source types](/concepts/attendee-source-types) for label meanings and Visitor access behavior.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The response includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.

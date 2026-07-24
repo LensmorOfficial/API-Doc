@@ -6,7 +6,7 @@ openapi: "openapi.json POST /external/events/{id}/visitors/unlock"
 
 Unlock the visitor data layer for an event that already has base event access.
 
-Use this endpoint when the caller needs visitor records in addition to the exhibitor and personnel coverage unlocked by [Unlock event](/api-reference/events/unlock-event-access).
+Use this endpoint when the caller needs registered Visitor records in addition to the exhibitor and personnel coverage unlocked by [Unlock event](/api-reference/events/unlock-event-access). Visitor records are obtained through organizer or data-provider partnerships and are available only for selected events.
 
 ## Prerequisites
 
@@ -16,7 +16,11 @@ Before executing this paid action:
 2. Call [Actions precheck](/api-reference/actions/precheck-an-external-action) with `action_type: "unlock_event_visitors"` and the selected `event_id`.
 3. Continue only when precheck returns `allowed: true`.
 
-Visitor access requires an active subscription, available visitor data for the event, and enough credits.
+Visitor access requires an active subscription, available Visitor data for the event, and enough credits.
+
+<Note>
+  The product label is **Visitor**, while personnel responses use the API source value `"visitors"`. See [Attendee source types](/concepts/attendee-source-types).
+</Note>
 
 <Warning>
   The first successful visitor unlock consumes `3000` credits. Precheck is read-only and should be used before the paid call.
