@@ -20,7 +20,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `action_type` | Yes | string | Supported values include `query_event_personnel`, `unlock_event_contacts`, `unlock_contact_emails`, `search_exhibitor_events`, and `others`. |
+| `action_type` | Yes | string | Supported customer actions include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, and `others`. |
 | `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
 | `call_source` | No | string | Source label such as `api` or `agent`. |
 | `locale` | No | string | Optional locale, such as `en-US`. |
@@ -74,8 +74,33 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 | `biz_code` | Billing/business code used by the execution path when applicable. |
 | `detail` | Action-specific metadata. Shape varies by `action_type`. |
 
+## Visitor unlock example
+
+```json
+{
+  "ok": true,
+  "action_type": "unlock_event_visitors",
+  "allowed": true,
+  "should_charge": true,
+  "credits": 3000,
+  "reason_code": "ok",
+  "biz_code": "Visitor Unlock - API",
+  "detail": {
+    "event_id": "26855",
+    "event_unlocked": true,
+    "visitor_unlocked": false,
+    "visitor_data_available": true,
+    "visitor_access_credits": 3000,
+    "available_balance": 8000
+  }
+}
+```
+
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
 - `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
+- `unlock_event_visitors` requires base event access first. It can report `3000` expected credits, `state_conflict` when the event is still locked, `no_contacts_available` when visitor data is unavailable, or `forbidden` when the account has no active subscription.
+- `unlock_event_full_access` calculates only the missing access layers: `2000` for base event access plus `3000` for visitor access. It can therefore report `0`, `2000`, `3000`, or `5000` credits.
+- For full-access precheck, `detail` includes `event_unlocked`, `visitor_unlocked`, `visitor_data_available`, `event_access_credits`, `visitor_access_credits`, and `full_access_credits`.
 - Once a list endpoint returns `semantics`, treat that response as the authoritative explanation for the actual list result.
 - Precheck decisions can change as credits, event access, or underlying data changes. Recheck before executing a paid action.

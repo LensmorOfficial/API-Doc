@@ -16,6 +16,8 @@
 | POST | /external/events/fit-score | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Profile-dependent score |
 | POST | /external/events/rank | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Rank a supplied event set |
 | POST | /external/events/:id/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Credit-consuming event unlock |
+| POST | /external/events/:id/visitors/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Credit-consuming visitor access unlock |
+| POST | /external/events/:id/full-access/unlock | `src/modules/external-api/controllers/external-events.controller.ts` | Yes | `201 Created` | Yes | Atomic base event plus visitor access unlock |
 | GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | Event-scoped exhibitor list with preview semantics |
 | POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Heuristic exhibitor search by company URL/audience |
 | POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Precision-first exhibitor lookup |
@@ -55,7 +57,7 @@
 - External rate limiting can emit `429 RATE_LIMIT_EXCEEDED` with `Retry-After`
 
 ## Verification notes
-- Included exactly 28 customer-facing routes in Mintlify and OpenAPI
+- Included exactly 30 customer-facing routes in Mintlify and OpenAPI
 - Confirmed Agent Files, Agent-only Integrations, Debug, and deprecated profile-matching route are intentionally excluded
 - Confirmed customer-facing auth docs use Business `sk_...` examples
 - Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`

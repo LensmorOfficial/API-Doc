@@ -17,7 +17,7 @@ Production integrations should handle authentication, pagination, credit-aware a
     Always pass `page` and `pageSize` for list endpoints. Do not assume all records fit in the first response.
   </Step>
   <Step title="Check credits before paid actions">
-    Use `GET /external/credits/balance` before event unlocks, email unlocks, or exhibitor event searches.
+    Use `GET /external/credits/balance` before base event, visitor, full-access, contact, or paid exhibitor company workflows.
   </Step>
   <Step title="Precheck when the next action depends on access state">
     Use `POST /external/actions/precheck` before workflows where you need to know whether an action is allowed, whether it should charge credits, or which unlock path applies.
@@ -56,13 +56,15 @@ For credit-consuming actions, use a two-step confirmation pattern:
 6. Refresh balance and result state.
 7. Reconcile final billing against the post-action balance and task or endpoint response.
 
-This pattern is especially important for [Unlock event](/api-reference/events/unlock-event-access), [Unlock contact emails](/api-reference/contacts/unlock-contact-emails), [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name), and [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name).
+This pattern is especially important for [Unlock event](/api-reference/events/unlock-event-access), [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access), [Unlock full event access](/api-reference/events/unlock-full-event-access), [Unlock contact emails](/api-reference/contacts/unlock-contact-emails), and the paid exhibitor company lookup endpoints.
 
 ## Credit-consuming actions
 
 | Action | Endpoint | Current behavior |
 | --- | --- | --- |
 | Event unlock | `POST /external/events/:id/unlock` | Charges `2000` credits when the event was not already unlocked. Repeating the same unlock is idempotent and returns `creditsUsed: 0`. |
+| Event visitor unlock | `POST /external/events/:id/visitors/unlock` | Charges `3000` credits when visitor access is still locked. Requires base event access, visitor data, and an active subscription. |
+| Full event access | `POST /external/events/:id/full-access/unlock` | Atomically charges only missing access layers: `2000` for base event access plus `3000` for visitor access. |
 | Contact email unlock | `POST /external/contacts/unlock` | Starts an async task and charges `15` credits per chargeable contact. A completed task can contain mixed item-level outcomes. |
 | Contact phone unlock | `POST /external/contacts/unlock-phone` | Starts an async task and charges `150` credits per chargeable contact. |
 | Exhibitor company search | `POST /external/exhibitors/search-by-company-name` | Charges `50` credits only when the result is non-empty. |

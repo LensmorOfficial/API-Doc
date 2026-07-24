@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.23.2",
+    "version": "0.24.0",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -56,7 +56,7 @@
           "Credits"
         ],
         "summary": "Get credits balance",
-        "description": "Return subscription, gift, and total credits for the authenticated API key owner without spending credits.",
+        "description": "Return subscription, add-on, gift, and total credits for the authenticated API key owner without spending credits.",
         "operationId": "getExternalCreditsBalance",
         "responses": {
           "200": {
@@ -67,10 +67,13 @@
                   "$ref": "#/components/schemas/CreditBalance"
                 },
                 "example": {
-                  "totalAmount": 35050,
-                  "totalBalance": 30050,
+                  "totalAmount": 45050,
+                  "totalBalance": 38050,
                   "subscriptionAmount": 35000,
                   "subscriptionBalance": 30000,
+                  "addonAmount": 10000,
+                  "addonBalance": 8000,
+                  "addonExpireAt": 1784851200000,
                   "giftAmount": 50,
                   "giftBalance": 50,
                   "resetAt": 1714521600000
@@ -587,7 +590,7 @@
           "Events"
         ],
         "summary": "Unlock event access",
-        "description": "Unlock full exhibitor and personnel access for an event; a first unlock can consume 2,000 credits and repeated unlocks are idempotent.",
+        "description": "Unlock base event access for complete exhibitor and personnel results. A first unlock can consume 2,000 credits, repeated unlocks are idempotent, and the separate visitor data layer is not included.",
         "operationId": "unlockEvent",
         "parameters": [
           {
@@ -632,6 +635,143 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/{id}/visitors/unlock": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Unlock event visitor access",
+        "description": "Unlock visitor records for an event that already has base event access. The first successful visitor unlock consumes 3,000 credits, requires an active subscription and available visitor data, and repeated unlocks are idempotent.",
+        "operationId": "unlockEventVisitors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Visitor access unlock result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventVisitorUnlockResult"
+                },
+                "example": {
+                  "success": true,
+                  "alreadyUnlocked": false,
+                  "creditsSpent": 3000,
+                  "balanceAfter": {
+                    "totalAmount": 45050,
+                    "totalBalance": 35050,
+                    "subscriptionAmount": 35000,
+                    "subscriptionBalance": 27000,
+                    "addonAmount": 10000,
+                    "addonBalance": 8000,
+                    "addonExpireAt": 1784851200000,
+                    "giftAmount": 50,
+                    "giftBalance": 50,
+                    "resetAt": 1785542400000
+                  },
+                  "event": {
+                    "id": "26855",
+                    "eventId": "26855",
+                    "name": "CES 2025"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/external/events/{id}/full-access/unlock": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Unlock full event access",
+        "description": "Atomically unlock base event access and visitor access, charging only for missing access layers: 2,000 credits for base event access and 3,000 credits for visitor access, up to 5,000 credits total.",
+        "operationId": "unlockEventFullAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Full event access unlock result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventFullAccessUnlockResult"
+                },
+                "example": {
+                  "success": true,
+                  "alreadyUnlocked": false,
+                  "eventUnlocked": true,
+                  "visitorUnlocked": true,
+                  "visitorSkipped": false,
+                  "totalCreditsUsed": 5000,
+                  "balanceAfter": {
+                    "subscriptionBalance": 25000,
+                    "permanentBalance": 50,
+                    "totalBalance": 33050,
+                    "unlimited": false
+                  },
+                  "event": {
+                    "id": "26855",
+                    "eventId": "26855",
+                    "name": "CES 2025"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -2553,6 +2693,9 @@
           "totalBalance",
           "subscriptionAmount",
           "subscriptionBalance",
+          "addonAmount",
+          "addonBalance",
+          "addonExpireAt",
           "giftAmount",
           "giftBalance",
           "resetAt"
@@ -2569,6 +2712,18 @@
           },
           "subscriptionBalance": {
             "type": "number"
+          },
+          "addonAmount": {
+            "type": "number"
+          },
+          "addonBalance": {
+            "type": "number"
+          },
+          "addonExpireAt": {
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "giftAmount": {
             "type": "number"
@@ -3238,6 +3393,131 @@
           }
         }
       },
+      "EventUnlockIdentity": {
+        "type": "object",
+        "required": [
+          "id",
+          "eventId",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "EventVisitorUnlockResult": {
+        "type": "object",
+        "required": [
+          "success",
+          "alreadyUnlocked",
+          "creditsSpent",
+          "balanceAfter",
+          "event"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "alreadyUnlocked": {
+            "type": "boolean"
+          },
+          "creditsSpent": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "balanceAfter": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CreditBalance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventUnlockIdentity"
+          }
+        }
+      },
+      "EventFullAccessUnlockResult": {
+        "type": "object",
+        "required": [
+          "success",
+          "alreadyUnlocked",
+          "eventUnlocked",
+          "visitorUnlocked",
+          "visitorSkipped",
+          "totalCreditsUsed",
+          "balanceAfter",
+          "event"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "alreadyUnlocked": {
+            "type": "boolean"
+          },
+          "eventUnlocked": {
+            "type": "boolean"
+          },
+          "visitorUnlocked": {
+            "type": "boolean"
+          },
+          "visitorSkipped": {
+            "type": "boolean"
+          },
+          "totalCreditsUsed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "balanceAfter": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "subscriptionBalance",
+                  "permanentBalance",
+                  "totalBalance",
+                  "unlimited"
+                ],
+                "properties": {
+                  "subscriptionBalance": {
+                    "type": "number"
+                  },
+                  "permanentBalance": {
+                    "type": "number"
+                  },
+                  "totalBalance": {
+                    "type": "number"
+                  },
+                  "unlimited": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventUnlockIdentity"
+          }
+        }
+      },
       "ExhibitorBase": {
         "type": "object",
         "required": [
@@ -3611,10 +3891,16 @@
             ]
           },
           "sourceType": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "array",
+            "description": "Normalized Lensmor source labels for this person. Possible values are exhibitor, social, and visitors.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "exhibitor",
+                "social",
+                "visitors"
+              ]
+            }
           },
           "email": {
             "type": [
@@ -4009,7 +4295,10 @@
             "enum": [
               "query_event_personnel",
               "unlock_event_contacts",
+              "unlock_event_visitors",
+              "unlock_event_full_access",
               "unlock_contact_emails",
+              "unlock_contact_phones",
               "search_exhibitor_events",
               "others"
             ]

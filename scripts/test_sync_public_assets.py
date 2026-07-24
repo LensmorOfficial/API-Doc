@@ -14,6 +14,38 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "sync-public-assets.py"
+EXPECTED_PUBLIC_OPERATIONS = {
+    ("GET", "/external/credits/balance"),
+    ("POST", "/external/actions/precheck"),
+    ("GET", "/external/events/list"),
+    ("GET", "/external/events/{id}"),
+    ("GET", "/external/events/brief"),
+    ("POST", "/external/events/fit-score"),
+    ("POST", "/external/events/rank"),
+    ("POST", "/external/events/{id}/unlock"),
+    ("POST", "/external/events/{id}/visitors/unlock"),
+    ("POST", "/external/events/{id}/full-access/unlock"),
+    ("GET", "/external/exhibitors/list"),
+    ("POST", "/external/exhibitors/search"),
+    ("POST", "/external/exhibitors/search-by-company-name"),
+    ("POST", "/external/exhibitors/search-events"),
+    ("GET", "/external/exhibitors/profile"),
+    ("GET", "/external/exhibitors/events"),
+    ("GET", "/external/personnel/list"),
+    ("GET", "/external/personnel/profile"),
+    ("GET", "/external/personnel/events"),
+    ("GET", "/external/personnel/events/by-linkedin"),
+    ("POST", "/external/personnel/unlock-linkedin-activity"),
+    ("POST", "/external/personnel/generate-outreach-message"),
+    ("GET", "/external/personnel/outreach"),
+    ("GET", "/external/contacts/search"),
+    ("POST", "/external/contacts/unlock"),
+    ("GET", "/external/contacts/unlock-tasks/{taskId}"),
+    ("POST", "/external/contacts/unlock-phone"),
+    ("GET", "/external/contacts/unlock-phone-tasks/{taskId}"),
+    ("POST", "/external/profile-matching/actions/apply-recommended-events/paged"),
+    ("GET", "/external/profile-matching/recommendations/exhibitors"),
+}
 
 
 def load_sync_module():
@@ -46,9 +78,18 @@ class PublicAssetSyncTests(unittest.TestCase):
                 if method.lower() in self.sync.HTTP_METHODS:
                     operations.append((method.upper(), path, operation))
 
-        self.assertEqual(len(operations), 28)
+        self.assertEqual(
+            {(method, path) for method, path, _ in operations},
+            EXPECTED_PUBLIC_OPERATIONS,
+        )
         self.assertFalse(
             any(path.startswith("/external/integrations/") for _, path, _ in operations)
+        )
+        self.assertFalse(
+            any(path.startswith("/external/agent-files/") for _, path, _ in operations)
+        )
+        self.assertFalse(
+            any(path.startswith("/external/debug/") for _, path, _ in operations)
         )
         self.assertTrue(spec["info"]["license"]["name"].strip())
         self.assertEqual(
@@ -96,7 +137,7 @@ class PublicAssetSyncTests(unittest.TestCase):
 
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
-        self.assertEqual(spec["info"]["version"], "0.23.2")
+        self.assertEqual(spec["info"]["version"], "0.24.0")
 
         company_search = spec["paths"]["/external/exhibitors/search-by-company-name"]["post"]
         self.assertIn("non-empty", company_search["description"])
@@ -170,6 +211,73 @@ class PublicAssetSyncTests(unittest.TestCase):
         ]
         self.assertIn("linkedin", outreach_message_fields)
 
+    def test_v024_access_and_balance_contracts(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        schemas = spec["components"]["schemas"]
+
+        action_types = set(
+            schemas["ActionPrecheckRequest"]["properties"]["action_type"]["enum"]
+        )
+        self.assertTrue(
+            {
+                "unlock_event_visitors",
+                "unlock_event_full_access",
+                "unlock_contact_phones",
+            }.issubset(action_types)
+        )
+
+        visitor_unlock = spec["paths"]["/external/events/{id}/visitors/unlock"]["post"]
+        full_access = spec["paths"]["/external/events/{id}/full-access/unlock"]["post"]
+        self.assertIn("3,000", visitor_unlock["description"])
+        for expected_cost in ("2,000", "3,000", "5,000"):
+            self.assertIn(expected_cost, full_access["description"])
+        self.assertTrue(
+            {"400", "401", "402", "404", "409", "429"}.issubset(
+                visitor_unlock["responses"]
+            )
+        )
+        self.assertTrue(
+            {"400", "401", "402", "404", "409", "429"}.issubset(
+                full_access["responses"]
+            )
+        )
+
+        self.assertEqual(
+            set(schemas["EventFullAccessUnlockResult"]["required"]),
+            {
+                "success",
+                "alreadyUnlocked",
+                "eventUnlocked",
+                "visitorUnlocked",
+                "visitorSkipped",
+                "totalCreditsUsed",
+                "balanceAfter",
+                "event",
+            },
+        )
+
+        credit_fields = schemas["CreditBalance"]["properties"]
+        self.assertTrue(
+            {"addonAmount", "addonBalance", "addonExpireAt"}.issubset(credit_fields)
+        )
+
+        source_type = schemas["ContactItem"]["properties"]["sourceType"]
+        self.assertEqual(source_type["type"], "array")
+        self.assertEqual(
+            source_type["items"]["enum"],
+            ["exhibitor", "social", "visitors"],
+        )
+
+        for page_name in (
+            "unlock-event-visitor-access.mdx",
+            "unlock-full-event-access.mdx",
+        ):
+            page = (
+                ROOT / "api-reference-backup" / "events" / page_name
+            ).read_text(encoding="utf-8")
+            self.assertIn("Actions precheck", page)
+            self.assertIn("idempotency", page.lower())
+
     def test_event_prose_uses_the_public_event_shape(self) -> None:
         event_pages = [
             ROOT / "api-reference-backup" / "events" / "list.mdx",
@@ -228,7 +336,7 @@ class PublicAssetSyncTests(unittest.TestCase):
         outputs = self.sync.build_outputs()
         llms_full = outputs[self.sync.LLMS_FULL].decode("utf-8")
         sources = [
-            line.removeprefix("Source: ")
+            line[len("Source: "):]
             for line in llms_full.splitlines()
             if line.startswith("Source: ")
         ]

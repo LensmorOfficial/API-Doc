@@ -1,0 +1,129 @@
+---
+title: "Unlock event visitor access"
+description: "Unlock visitor records for an event after base event access is available, with precheck, subscription, credit, and idempotency guidance."
+openapi: "openapi.json POST /external/events/{id}/visitors/unlock"
+---
+
+Unlock the visitor data layer for an event that already has base event access.
+
+Use this endpoint when the caller needs visitor records in addition to the exhibitor and personnel coverage unlocked by [Unlock event](/api-reference/events/unlock-event-access).
+
+## Prerequisites
+
+Before executing this paid action:
+
+1. Confirm base event access is already unlocked.
+2. Call [Actions precheck](/api-reference/actions/precheck-an-external-action) with `action_type: "unlock_event_visitors"` and the selected `event_id`.
+3. Continue only when precheck returns `allowed: true`.
+
+Visitor access requires an active subscription, available visitor data for the event, and enough credits.
+
+<Warning>
+  The first successful visitor unlock consumes `3000` credits. Precheck is read-only and should be used before the paid call.
+</Warning>
+
+## Endpoint
+
+`POST /external/events/:id/visitors/unlock`
+
+## Authentication
+
+See [Authentication](/authentication).
+
+## Success status code
+
+`201 Created`
+
+## Path parameters
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports the event `id` or `eventId` returned by event responses. |
+
+## Headers
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
+## Precheck example
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_visitors",
+    "call_source": "api",
+    "params": {
+      "event_id": "26855"
+    }
+  }'
+```
+
+## Request example
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/26855/visitors/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+## Response example
+
+```json
+{
+  "success": true,
+  "alreadyUnlocked": false,
+  "creditsSpent": 3000,
+  "balanceAfter": {
+    "totalAmount": 45050,
+    "totalBalance": 35050,
+    "subscriptionAmount": 35000,
+    "subscriptionBalance": 27000,
+    "addonAmount": 10000,
+    "addonBalance": 8000,
+    "addonExpireAt": 1784851200000,
+    "giftAmount": 50,
+    "giftBalance": 50,
+    "resetAt": 1785542400000
+  },
+  "event": {
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025"
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `success` | Whether the request completed successfully. |
+| `alreadyUnlocked` | `true` when visitor access was already available before this request. |
+| `creditsSpent` | Credits charged by this request. It is `3000` for a first successful unlock and `0` for an idempotent repeat. |
+| `balanceAfter` | Full credit-balance snapshot after a paid unlock, or `null` when no credits were charged. |
+| `event` | Minimal event identity for confirmation and audit logs. |
+
+## Idempotency
+
+Repeating the unlock for the same account and event does not charge again. An idempotent repeat returns `alreadyUnlocked: true`, `creditsSpent: 0`, and `balanceAfter: null`.
+
+## Error responses
+
+- `400 Bad Request` — no active subscription, base event access is still locked, or no visitor data is available.
+- `401 Unauthorized`
+- `402 Payment Required`
+- `404 Not Found`
+- `409 Conflict` — another credit operation is in progress.
+- `429 Too Many Requests`
+
+The corresponding `errorKey` can include `NO_ACTIVE_SUBSCRIPTION`, `EVENT_NOT_UNLOCKED`, `VISITOR_DATA_NOT_AVAILABLE`, or `CREDIT_OPERATION_IN_PROGRESS`.
+
+## Related endpoints
+
+- [Unlock event](/api-reference/events/unlock-event-access)
+- [Unlock full event access](/api-reference/events/unlock-full-event-access)
+- [Credits balance](/api-reference/credits/get-credits-balance)
+- [Actions precheck](/api-reference/actions/precheck-an-external-action)

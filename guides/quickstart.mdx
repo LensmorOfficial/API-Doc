@@ -10,7 +10,7 @@ The Lensmor API is designed around a typical event-intelligence workflow:
 1. Start with a company profile, buyer profile, keyword, or target market.
 2. Discover relevant trade shows and event records.
 3. Inspect exhibitors and people connected to those events.
-4. Unlock full access or contact emails only when the data is actionable.
+4. Unlock base event access, visitor access, full event access, or contact fields only when the data is actionable.
 
 ## Before you begin
 
@@ -45,6 +45,9 @@ The response includes subscription credits, gift credits, the total balance, and
 | Rank events from a company profile or audience description | `POST /external/profile-matching/actions/apply-recommended-events/paged` | Read-only |
 | Browse companies inside a selected event | `GET /external/exhibitors/list` | Read-only unless the user unlocks event access |
 | Browse people inside a selected event | `GET /external/personnel/list` | Read-only unless the user unlocks event access or emails |
+| Unlock complete exhibitor and personnel coverage | `POST /external/events/:id/unlock` | `2000` credits when base event access is still locked |
+| Unlock visitor records after base event access | `POST /external/events/:id/visitors/unlock` | `3000` credits when visitor access is still locked |
+| Unlock missing base and visitor layers together | `POST /external/events/:id/full-access/unlock` | Dynamic cost from `0` to `5000` credits |
 | Find exhibitor records from a company name | `POST /external/exhibitors/search-by-company-name` | Can consume `50` credits |
 | Find events associated with a company name | `POST /external/exhibitors/search-events` | Can consume `50` credits |
 | Unlock selected contact emails | `POST /external/contacts/unlock` | Can consume `15` credits per chargeable contact |
@@ -86,6 +89,8 @@ curl "https://platform.lensmor.com/external/exhibitors/list?event_id=139574&page
 
 When the response contains `semantics.accessMode: "preview"`, read `semantics.counts.visibleTotal` and `semantics.unlock.requiredForMoreResults` before calling an unlock endpoint. These fields tell you whether more data is available and which action unlocks it.
 
+For visitor or combined full access, call `POST /external/actions/precheck` with `unlock_event_visitors` or `unlock_event_full_access` before execution. Precheck is read-only and returns current access state, eligibility, and expected credits.
+
 ## 5. Handle errors and limits
 
 Production integrations should handle these responses explicitly:
@@ -101,7 +106,7 @@ See [Error conventions](/concepts/errors), [Credits and access](/concepts/credit
 
 <CardGroup cols={2}>
   <Card title="Find and unlock an event" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
-    Learn how preview access works and when to spend credits on full event coverage.
+    Learn how preview, base event, visitor, and atomic full access work.
   </Card>
   <Card title="Unlock contact emails" icon="mail-check" href="/guides/unlock-contact-emails">
     Start an email unlock task and poll until the result is ready.

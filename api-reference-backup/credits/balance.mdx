@@ -6,13 +6,15 @@ openapi: "openapi.json GET /external/credits/balance"
 
 Get the current credit balance for the API key owner.
 
-Use this endpoint before credit-consuming workflows such as event unlock, contact email unlock, or exhibitor event search.
+Use this endpoint before credit-consuming workflows such as event unlock, visitor unlock, contact email unlock, or exhibitor event search.
 
 ## When to use this endpoint
 
 Call `GET /external/credits/balance` before any workflow that can spend credits:
 
 - [Unlock event](/api-reference/events/unlock-event-access)
+- [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access)
+- [Unlock full event access](/api-reference/events/unlock-full-event-access)
 - [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 - [Search exhibitor events](/api-reference/exhibitors/search-events-by-exhibitor-company-name)
 
@@ -36,10 +38,13 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 ## Response example
 ```json
 {
-  "totalAmount": 35050,
-  "totalBalance": 30050,
+  "totalAmount": 45050,
+  "totalBalance": 38050,
   "subscriptionAmount": 35000,
   "subscriptionBalance": 30000,
+  "addonAmount": 10000,
+  "addonBalance": 8000,
+  "addonExpireAt": 1784851200000,
   "giftAmount": 50,
   "giftBalance": 50,
   "resetAt": 1714521600000
@@ -50,10 +55,13 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 
 | Field | Description |
 | --- | --- |
-| `totalAmount` | Total credits ever granted across active subscription and gift buckets. |
+| `totalAmount` | Total credits granted across active subscription, add-on, and gift buckets. |
 | `totalBalance` | Total currently available credits. Use this for simple "can this user spend credits?" checks. |
 | `subscriptionAmount` | Subscription credits granted for the active credit period. |
-| `subscriptionBalance` | Remaining subscription credits. These are consumed before gift credits. |
+| `subscriptionBalance` | Remaining subscription credits. |
+| `addonAmount` | Add-on credits granted in currently active add-on buckets. |
+| `addonBalance` | Remaining add-on credits. |
+| `addonExpireAt` | Latest active add-on credit expiration timestamp in milliseconds, or `null`. |
 | `giftAmount` | Gift credits granted to the user. |
 | `giftBalance` | Remaining gift credits. |
 | `resetAt` | Earliest active subscription credit expiration timestamp in milliseconds, or `null`. |
@@ -61,9 +69,9 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 ## Integration guidance
 
 - Use `totalBalance` for high-level balance checks.
-- Use bucket-specific fields when your UI needs to explain subscription vs. gift credit usage.
+- Use bucket-specific fields when your UI needs to explain subscription, add-on, and gift credit usage.
 - Refresh the balance after credit-consuming operations because `balanceAfter` may differ from a previously cached value.
-- Treat `resetAt` as nullable. Some accounts may only have gift credits or no active subscription credit expiration.
+- Treat `resetAt` and `addonExpireAt` as nullable. Some accounts may not have an active expiring bucket of that type.
 
 ## Error responses
 - `401 Unauthorized`
@@ -71,5 +79,5 @@ curl "https://platform.lensmor.com/external/credits/balance" \
 
 ## Notes
 - `resetAt` is a timestamp in milliseconds for the earliest active subscription credit expiration, or `null`.
-- Subscription credits are consumed before gift credits.
+- `addonExpireAt` is a timestamp in milliseconds for the latest active add-on credit expiration, or `null`.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

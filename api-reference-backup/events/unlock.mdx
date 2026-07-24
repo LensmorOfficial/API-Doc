@@ -1,10 +1,10 @@
 ---
 title: "Unlock event"
-description: "Unlock full Lensmor event access with credits so integrations can retrieve complete exhibitor and personnel coverage beyond preview limits."
+description: "Unlock base Lensmor event access with credits so integrations can retrieve complete exhibitor and personnel coverage beyond preview limits."
 openapi: "openapi.json POST /external/events/{id}/unlock"
 ---
 
-Unlock full access to an event's exhibitor and personnel results.
+Unlock base event access for complete exhibitor and personnel results. This endpoint does not unlock the separate visitor data layer.
 
 Use this endpoint when preview list responses indicate that more event-scoped records require an event unlock.
 
@@ -74,7 +74,7 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
 | Field | Description |
 | --- | --- |
 | `success` | Whether the unlock request completed successfully. |
-| `alreadyUnlocked` | `true` when the API key owner already had full access to the event. |
+| `alreadyUnlocked` | `true` when the API key owner already had base event access. |
 | `creditsUsed` | Number of credits charged by this request. `0` when the event was already unlocked. |
 | `balanceAfter` | Remaining balance snapshot after a paid unlock. `null` when no credits were charged, such as an already-unlocked event. |
 | `balanceAfter.subscriptionBalance` | Remaining subscription credits. |
@@ -92,6 +92,8 @@ Your integration can use this behavior to safely retry after a network failure, 
 ## Access after unlock
 
 After a successful unlock, call event-scoped exhibitor or personnel list endpoints again. The list response should move from preview semantics to full-access semantics for that event.
+
+To add visitor records, call [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access) after base access, or use [Unlock full event access](/api-reference/events/unlock-full-event-access) to unlock missing layers atomically.
 
 ## Error responses
 - `401 Unauthorized`

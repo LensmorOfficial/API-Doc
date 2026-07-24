@@ -13,9 +13,11 @@ Use `GET /external/credits/balance` to inspect the API key owner's current balan
 The balance is split into:
 
 - `subscriptionBalance` — credits from the active subscription period.
+- `addonBalance` — credits from active one-time add-on purchases.
 - `giftBalance` — non-expiring gift credits.
 - `totalBalance` — total currently available credits.
 - `resetAt` — the earliest active subscription credit expiration timestamp in milliseconds, or `null`.
+- `addonExpireAt` — the latest active add-on credit expiration timestamp in milliseconds, or `null`.
 
 ## Preview and full access
 Event-scoped exhibitor and personnel lists can return preview results before the event is unlocked.
@@ -27,12 +29,14 @@ When an event is locked, list responses may include `semantics` metadata describ
 - whether more results require unlocking the event
 - which unlock action and credit amount applies
 
-Unlocking an event grants full access to event-scoped exhibitor and personnel results for that event.
+Base event unlock grants full access to event-scoped exhibitor and personnel results. Visitor access is a separate data layer that can be unlocked after base event access or together through the full-access endpoint.
 
 ## Credit-consuming operations
 | Operation | Typical cost | Notes |
 | --- | --- | --- |
-| Event unlock | `2000` credits | Unlocks full event access when contacts are available and the event is not already unlocked. |
+| Base event unlock | `2000` credits | Unlocks full exhibitor and personnel access when contacts are available and the event is not already unlocked. |
+| Event visitor unlock | `3000` credits | Requires base event access, an active subscription, and available visitor data. Repeated unlocks are free. |
+| Full event access | `0`–`5000` credits | Atomically unlocks missing base and visitor layers: `2000` for base event access plus `3000` for visitor access. |
 | Contact email unlock | `15` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
 | Contact phone unlock | `150` credits per chargeable contact | Batch unlock creates an asynchronous task. Already unlocked contacts are not charged again. |
 | Exhibitor company search | `50` credits for a non-empty result | `POST /external/exhibitors/search-by-company-name` charges only when at least one exhibitor is returned. Empty results are free. |
@@ -66,7 +70,7 @@ Use a confirmation step for operations that can spend credits:
     Call `GET /external/credits/balance` and show the current total balance.
   </Step>
   <Step title="Show expected cost">
-    Display the known cost from this page, endpoint docs, or `semantics.unlock`.
+    Call precheck for access-dependent actions and display the returned cost, or use the known cost from this page or `semantics.unlock`.
   </Step>
   <Step title="Execute the paid action">
     Call the unlock or reverse-lookup endpoint only after the user confirms.
@@ -86,7 +90,7 @@ Supported values are:
 - `api` — default customer API usage.
 - `agent` — agent-driven usage.
 
-If omitted or unrecognized, the API records the call as `api`. This header is currently used by event unlock, contact unlock, phone unlock, exhibitor company search, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
+If omitted or unrecognized, the API records the call as `api`. This header is currently used by base event unlock, visitor unlock, full event access, contact unlock, phone unlock, exhibitor company search, exhibitor event search, LinkedIn activity unlock, and outreach message generation workflows.
 
 ## Handling `402 Payment Required`
 
@@ -106,7 +110,10 @@ Recommended behavior:
     Check available subscription and gift credits.
   </Card>
   <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
-    Unlock full event-scoped coverage.
+    Unlock base event-scoped exhibitor and personnel coverage.
+  </Card>
+  <Card title="Unlock full event access" icon="key-round" href="/api-reference/events/unlock-full-event-access">
+    Unlock missing base and visitor access layers in one atomic call.
   </Card>
   <Card title="Unlock contact emails" icon="mail-check" href="/api-reference/contacts/unlock-contact-emails">
     Start an asynchronous email unlock task.

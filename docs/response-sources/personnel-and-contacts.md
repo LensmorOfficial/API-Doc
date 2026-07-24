@@ -6,6 +6,7 @@
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-personnel.service.ts#list` and `src/modules/external-api/mappers/external-contact-response.mapper.ts`
 - Ambiguity note: Returned people use the contact-style public shape.
+- Contract note: `sourceType` is a normalized string array. Supported labels are `exhibitor`, `social`, and `visitors`.
 
 ## GET /external/personnel/profile
 - Method/path source: `src/modules/external-api/controllers/external-personnel.controller.ts`
@@ -13,6 +14,7 @@
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-personnel.service.ts#profile` and `src/modules/external-api/mappers/external-contact-response.mapper.ts`
 - Ambiguity note: The response is intentionally lightweight and does not expose email fields.
+- Contract note: `sourceType` uses the same normalized array shape as personnel list and contact search.
 
 ## GET /external/personnel/events
 - Method/path source: `src/modules/external-api/controllers/external-personnel.controller.ts`
@@ -27,3 +29,4 @@
 - Success status source: e2e in `test/e2e/external-contacts.e2e-spec.ts` asserts `200`
 - Response example source: `src/modules/external-api/services/external-contacts.service.ts`, `src/modules/personnel/personnel.service.ts#searchExternalContacts`, and `src/modules/external-api/mappers/external-contact-response.mapper.ts`
 - Ambiguity note: Email is intentionally omitted from the external response contract.
+- Contract note: `sourceType` is an array and can combine multiple labels for the same person.

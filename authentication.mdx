@@ -74,7 +74,7 @@ Lensmor does not currently provide a separate sandbox environment. All API calls
 To test your integration safely:
 
 - Use read-only endpoints (`events/list`, `events/detail`, `exhibitors/list`, `personnel/list`, `credits/balance`) freely — they do not consume credits.
-- Avoid calling credit-consuming endpoints (`events/:id/unlock`, `contacts/unlock`, `exhibitors/search-events`) until you are ready to use real data.
+- Avoid calling credit-consuming endpoints (`events/:id/unlock`, `events/:id/visitors/unlock`, `events/:id/full-access/unlock`, `contacts/unlock`, and paid exhibitor company lookups) until you are ready to use real data.
 - Check your shared SaaS/API balance with `GET /external/credits/balance` before running paid workflows.
 - API usage and Lensmor SaaS usage draw from the same credit pool for the subscribed user account.
 
