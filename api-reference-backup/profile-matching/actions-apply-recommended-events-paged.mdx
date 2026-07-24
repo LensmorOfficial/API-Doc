@@ -98,6 +98,7 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
       "priceUpper": "2395",
       "eventType": "conference_led",
       "quality": "Standard",
+      "sponsorMatchStarred": 0,
       "sourceTags": [],
       "categories": [
         {
@@ -189,7 +190,8 @@ Each event item includes the full event detail shape:
 | `verified`, `future`, `historic` | integer | Status flags (0 or 1). |
 | `historicEvent` | string \| null | Name of the recurring event series. |
 | `image` | string \| null | Event image URL. |
-| `dataSource` | string | Source label (e.g. `"Lensmor"`, `"local_import"`). |
+| `sponsorMatchStarred` | integer | Sponsor Match starred state (`0` or `1`). |
+| `dataSource` | string | Always `Lensmor` for public event records. |
 | `exhibitorCount`, `personnelCount` | integer \| null | Known counts when available. |
 | `eventTypes` | array | Event type metadata. |
 | `createTime`, `updateTime` | string | Unix timestamps in milliseconds as strings. |

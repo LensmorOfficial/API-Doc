@@ -7,7 +7,7 @@ Build event intelligence workflows with the Lensmor API. Use it to discover trad
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.23.1`
+Current documentation version: `v0.24.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -34,7 +34,7 @@ Authorization: Bearer sk_your_api_key
     Match target accounts or buyer profiles against exhibitor data and related event presence.
   </Card>
   <Card title="Unlock event-level coverage" icon="lock-keyhole-open" href="/guides/find-and-unlock-event">
-    Move from preview results to full exhibitor and personnel access for a selected event.
+    Move from preview results to base event coverage, visitor access, or both in one atomic action.
   </Card>
   <Card title="Enrich contacts" icon="mail-check" href="/guides/unlock-contact-emails">
     Start asynchronous email unlock jobs and poll task status until contact data is ready.
@@ -48,8 +48,9 @@ Authorization: Bearer sk_your_api_key
 | A keyword, geography, or date range | [Events list](/api-reference/events/list-events) | Broad event catalog search. |
 | A company website or buyer profile | [Apply profile and get recommended events](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | Returns ranked events from profile context. |
 | A known event ID | [Exhibitors list](/api-reference/exhibitors/list-event-exhibitors) or [Personnel list](/api-reference/personnel/list-event-personnel) | Shows event-scoped companies and people, with preview/full access semantics. |
-| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. |
-| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. This can consume credits. |
+| An event that needs both base and visitor access | [Unlock full event access](/api-reference/events/unlock-full-event-access) | Prechecks and atomically unlocks missing access layers for up to `5000` credits. |
+| A company name and you want companies | [Exhibitor company search](/api-reference/exhibitors/search-exhibitors-by-company-name) | Precision-first company lookup. Non-empty results cost `50` credits. |
+| A company name and you want events | [Exhibitor event search](/api-reference/exhibitors/search-events-by-exhibitor-company-name) | Finds events associated with that company. Non-empty results cost `50` credits. |
 | Personnel IDs and you need emails | [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) | Starts an async email unlock task. |
 
 ## Recommended integration path
@@ -59,7 +60,7 @@ Authorization: Bearer sk_your_api_key
     Create a user API key and send it as `Authorization: Bearer sk_your_api_key`.
   </Step>
   <Step title="Check credits before paid workflows">
-    Call `GET /external/credits/balance` before event unlocks, email unlocks, or reverse event searches.
+    Call `GET /external/credits/balance` and the relevant action precheck before event, visitor, email, or reverse-search workflows.
   </Step>
   <Step title="Discover the event or account context">
     Use Events, Exhibitors, Personnel, Contacts, or Profile Matching endpoints depending on your workflow.
@@ -80,7 +81,7 @@ If the request succeeds, continue with the [Quickstart guide](/guides/quickstart
 
 ## Available resources
 - **Credits** — inspect the API key owner's current credit balance.
-- **Events** — browse, score, rank, and inspect event details.
+- **Events** — browse, score, rank, inspect event details, and unlock base or visitor access.
 - **Exhibitors** — list exhibitors, search by company context, inspect profiles, and fetch related events.
 - **Personnel** — list people, inspect profiles, and fetch related events.
 - **Contacts** — search contacts, unlock emails, and poll unlock tasks.

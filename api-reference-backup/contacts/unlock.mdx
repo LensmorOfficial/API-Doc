@@ -19,7 +19,7 @@ This endpoint is intentionally asynchronous because email unlock can involve mul
 </Note>
 
 <Warning>
-  A `201 Created` response means the unlock task was accepted. It does not guarantee that every submitted personnel record will return an email. Always inspect item-level task results before counting a contact as enriched.
+  A `201 Created` response means the request was processed. `status: "accepted"` means a task was created; `status: "success"` means there was no chargeable work to enqueue. Neither state guarantees that every submitted personnel record will return an email.
 </Warning>
 
 ## Endpoint
@@ -64,9 +64,11 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
 
 | Field | Description |
 | --- | --- |
-| `status` | Initial task acceptance state. Usually `accepted` when the task was created. |
-| `task_id` | Identifier used to poll task status. Store this value. |
-| `job_id` | Alias for the background job identifier. It currently matches `task_id`. |
+| `status` | `accepted` when an asynchronous task was created, or `success` when there was no chargeable work to enqueue. |
+| `task_id` | Identifier used to poll task status. Present only when `status` is `accepted`. |
+| `job_id` | Alias for `task_id`. Present only when `status` is `accepted`. |
+| `skipped_personnel_ids` | Personnel IDs omitted from the unlock task, when applicable. |
+| `skipped_detail` | Optional grouped reasons for skipped IDs, including invalid, missing, unlinked, already unlocked, or currently unlocking records. |
 
 ## Polling pattern
 

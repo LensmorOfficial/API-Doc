@@ -28,7 +28,6 @@
       }
     }
   },
-  "openapi": "openapi.json",
   "navigation": {
     "tabs": [
       {
@@ -88,7 +87,9 @@
               "GET /external/events/brief",
               "POST /external/events/fit-score",
               "POST /external/events/rank",
-              "POST /external/events/{id}/unlock"
+              "POST /external/events/{id}/unlock",
+              "POST /external/events/{id}/visitors/unlock",
+              "POST /external/events/{id}/full-access/unlock"
             ]
           },
           {

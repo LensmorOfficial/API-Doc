@@ -5,6 +5,31 @@ description: "Versioned Lensmor API documentation updates, newly documented endp
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.24.0
+
+Released July 24, 2026.
+
+### Added
+
+- Added `POST /external/events/{id}/visitors/unlock` for the `3000`-credit visitor data layer after base event access is unlocked.
+- Added `POST /external/events/{id}/full-access/unlock` for atomic base event plus visitor access, with dynamic `0`–`5000` credit usage.
+- Added `unlock_event_visitors` and `unlock_event_full_access` action prechecks with access-state, visitor-availability, subscription, and expected-credit details.
+- Added `addonAmount`, `addonBalance`, and `addonExpireAt` to the credit-balance contract.
+
+### Changed
+
+- Changed personnel and contact `sourceType` from a nullable string to a normalized array containing `exhibitor`, `social`, and/or `visitors`.
+- Clarified that exhibitor company search and exhibitor event search consume `50` credits only when the result is non-empty; empty results consume no credits.
+- Documented phone unlock at `150` credits per chargeable contact.
+- Added `sponsor_match_starred` to the exhibitor event-search request and documented `sponsorMatchStarred` plus the canonical `Lensmor` event data source.
+- Added `linkedin_message_types` and typed LinkedIn InMail, connection-note, and connected-message response variants.
+
+### Fixed
+
+- Added phone, phone-unlock, event-count, and outreach status fields to the shared contact response contract.
+- Updated email and phone unlock submission responses to cover both asynchronous `accepted` and no-work `success` outcomes, including skipped personnel details.
+- Updated OpenAPI metadata to version `0.24.0`.
+
 ## v0.23.1
 
 Released July 19, 2026.

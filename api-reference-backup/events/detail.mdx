@@ -61,6 +61,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
     "priceLower": "0",
     "priceUpper": "0",
     "eventType": "In-person",
+    "sponsorMatchStarred": 0,
     "categories": [
       {
         "id": 11,
@@ -107,7 +108,9 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
-| `image`, `dataSource` | Media and source metadata. |
+| `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `image` | Event image URL when available. |
+| `dataSource` | Always `Lensmor` for public event records. |
 
 ## Count fields
 
@@ -128,6 +131,6 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
-- `dataSource` indicates the data origin (e.g. `"Lensmor"`, `"local_import"`). Do not hard-code checks against specific values.
+- `dataSource` is always `"Lensmor"` for public event records.
 - `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
 - This endpoint does not unlock event-scoped exhibitor or personnel access by itself.

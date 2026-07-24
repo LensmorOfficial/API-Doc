@@ -28,3 +28,23 @@
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-events.service.ts#getEventBrief` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
 - Ambiguity note: `topCategories` is currently an empty array in the service output.
+
+## POST /external/events/:id/unlock
+- Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`
+- Success status source: Nest default for `@Post()` with no `@HttpCode` override -> `201 Created`
+- Response example source: `src/modules/external-api/services/external-events.service.ts#unlockEvent`
+- Billing source: `CREDIT_PRICES[CreditBizType.EVENT_UNLOCK]` -> `2000`
+
+## POST /external/events/:id/visitors/unlock
+- Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`
+- Success status source: Nest default for `@Post()` with no `@HttpCode` override -> `201 Created`
+- Response example source: `src/modules/external-api/services/external-events.service.ts#unlockVisitor` and `src/modules/unlock/unlock.service.ts#unlockVisitor`
+- Billing source: `CREDIT_PRICES[CreditBizType.VISITOR_UNLOCK]` -> `3000`
+- Contract note: Base event access, active subscription, and available visitor data are required for a first unlock. Repeated unlocks return `creditsSpent: 0`.
+
+## POST /external/events/:id/full-access/unlock
+- Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`
+- Success status source: Nest default for `@Post()` with no `@HttpCode` override -> `201 Created`
+- Response example source: `src/modules/external-api/services/external-events.service.ts#unlockFullAccess` and `src/modules/unlock/unlock.service.ts#unlockFullAccess`
+- Billing source: missing base event access costs `2000`; missing visitor access costs `3000`; both missing costs `5000`
+- Contract note: The operation is atomic and reports `eventUnlocked`, `visitorUnlocked`, `visitorSkipped`, and `totalCreditsUsed`.

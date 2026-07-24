@@ -18,4 +18,6 @@ Use `GET /external/personnel/outreach` when:
 
 ## Notes
 - Returns the most recent outreach generation result for the given personnel and event combination.
+- `messages.linkedin` can contain separate `inmail`, `connection_note`, and `connected_message` objects. InMail can include `subject` and `body`; the other variants contain `body`.
+- `messages.linkedin_message` remains available as the legacy single-message field when present.
 - Re-generating outreach for the same personnel + event will overwrite previous content.

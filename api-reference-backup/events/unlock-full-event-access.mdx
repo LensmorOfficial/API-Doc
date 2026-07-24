@@ -1,0 +1,129 @@
+---
+title: "Unlock full event access"
+description: "Atomically unlock base event and visitor access, charging only for missing access layers and returning the exact access changes."
+openapi: "openapi.json POST /external/events/{id}/full-access/unlock"
+---
+
+Atomically unlock base event access and visitor access for one event.
+
+This endpoint is useful when the user wants all available event data in one confirmed action. The API charges only for access layers that are not already unlocked.
+
+## Credit matrix
+
+| State before the call | Result | Credits |
+| --- | --- | --- |
+| Event locked, visitor locked, visitor data available | Unlock both layers | `5000` |
+| Event unlocked, visitor locked, visitor data available | Unlock visitor layer | `3000` |
+| Event locked, visitor already unlocked | Unlock base event layer | `2000` |
+| Both layers already unlocked | No new unlock | `0` |
+| Event locked, visitor data unavailable | Direct execution can unlock the event and set `visitorSkipped: true` | `2000` |
+
+Base event access costs `2000` credits. Visitor access costs `3000` credits and requires an active subscription when visitor data is available.
+
+<Warning>
+  Call [Actions precheck](/api-reference/actions/precheck-an-external-action) with `action_type: "unlock_event_full_access"` before execution. Current precheck returns `no_contacts_available` when visitor data is unavailable; use [Unlock event](/api-reference/events/unlock-event-access) when only base event coverage is needed.
+</Warning>
+
+## Endpoint
+
+`POST /external/events/:id/full-access/unlock`
+
+## Authentication
+
+See [Authentication](/authentication).
+
+## Success status code
+
+`201 Created`
+
+## Path parameters
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | Yes | string | Supports the event `id` or `eventId` returned by event responses. |
+
+## Headers
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `x-call-source` | No | string | Optional usage source. Use `api` or `agent`; defaults to `api`. |
+
+## Precheck example
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_full_access",
+    "call_source": "api",
+    "params": {
+      "event_id": "26855"
+    }
+  }'
+```
+
+## Request example
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/26855/full-access/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+## Response example
+
+```json
+{
+  "success": true,
+  "alreadyUnlocked": false,
+  "eventUnlocked": true,
+  "visitorUnlocked": true,
+  "visitorSkipped": false,
+  "totalCreditsUsed": 5000,
+  "balanceAfter": {
+    "subscriptionBalance": 25000,
+    "permanentBalance": 50,
+    "totalBalance": 33050,
+    "unlimited": false
+  },
+  "event": {
+    "id": "26855",
+    "eventId": "26855",
+    "name": "CES 2025"
+  }
+}
+```
+
+## Response fields
+
+| Field | Description |
+| --- | --- |
+| `success` | Whether the atomic unlock completed successfully. |
+| `alreadyUnlocked` | `true` only when both access layers were already unlocked before this request. |
+| `eventUnlocked` | Whether this request newly unlocked base event access. |
+| `visitorUnlocked` | Whether this request newly unlocked visitor access. |
+| `visitorSkipped` | Whether visitor access was skipped because no visitor data was available. |
+| `totalCreditsUsed` | Total credits charged by this request: `0`, `2000`, `3000`, or `5000`. |
+| `balanceAfter` | Remaining balance after a paid unlock, or `null` when both layers were already unlocked. |
+| `event` | Minimal event identity for confirmation and audit logs. |
+
+## Atomicity and idempotency
+
+The base event and visitor unlocks run in one transaction. If the paid operation fails, neither access layer should be partially committed. Repeating the call charges only for any layer that is still missing.
+
+## Error responses
+
+- `400 Bad Request` — no chargeable base-event contacts or no active subscription for an available visitor layer.
+- `401 Unauthorized`
+- `402 Payment Required`
+- `404 Not Found`
+- `409 Conflict` — another credit operation is in progress.
+- `429 Too Many Requests`
+
+## Related endpoints
+
+- [Unlock event](/api-reference/events/unlock-event-access)
+- [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access)
+- [Credits balance](/api-reference/credits/get-credits-balance)
+- [Actions precheck](/api-reference/actions/precheck-an-external-action)

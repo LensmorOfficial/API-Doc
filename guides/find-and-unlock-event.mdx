@@ -1,11 +1,11 @@
 ---
 title: "Find and unlock an event"
-description: "Find a relevant trade show, inspect preview exhibitor and personnel data, unlock full event access, and continue with enriched event coverage."
+description: "Find a relevant trade show, inspect preview data, and unlock base event, visitor, or atomic full access with credit-safe prechecks."
 ---
 
-Use this guide when your integration needs to move from discovery to full event-level coverage.
+Use this guide when your integration needs to move from discovery to base event coverage, visitor access, or both.
 
-Event unlocks are intentionally explicit. Lensmor lets you preview available exhibitor and personnel data first, then spend credits only when the event is worth deeper analysis.
+Event unlocks are intentionally explicit. Lensmor lets you preview exhibitor and personnel data first, then choose the access layer the user actually needs.
 
 ## Recommended workflow
 
@@ -19,8 +19,8 @@ Event unlocks are intentionally explicit. Lensmor lets you preview available exh
   <Step title="Preview exhibitors or personnel">
     Call event-scoped list endpoints. If the event is locked, read the `semantics` object to understand preview limits.
   </Step>
-  <Step title="Unlock only when needed">
-    Call `POST /external/events/:id/unlock` when `semantics.unlock` indicates more records are available and the event is actionable.
+  <Step title="Choose and precheck the access layer">
+    Use base event unlock for exhibitor and personnel coverage, visitor unlock after base access, or full-access unlock for both layers. Precheck before each paid action.
   </Step>
 </Steps>
 
@@ -95,7 +95,7 @@ Locked events can return a response like this:
 
 Use `semantics` to decide whether to unlock. Do not infer full access from pagination alone.
 
-## 4. Unlock the event
+## 4. Unlock base event access
 
 ```bash
 curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
@@ -126,12 +126,38 @@ The response tells you whether credits were used:
 
 If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed` is `0`.
 
+## 5. Add visitor access or unlock both layers
+
+Visitor access is separate from base event access:
+
+- `POST /external/events/:id/visitors/unlock` costs `3000` credits and requires base event access, an active subscription, and visitor data.
+- `POST /external/events/:id/full-access/unlock` atomically charges only for missing layers: `2000` for base event access plus `3000` for visitor access.
+
+Precheck the intended action before execution:
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_full_access",
+    "call_source": "api",
+    "params": {
+      "event_id": "139574"
+    }
+  }'
+```
+
+Continue only when `allowed` is `true`, show the returned `credits` to the user, and refresh the balance after execution. If full-access precheck returns `no_contacts_available` because visitor data is unavailable, use base event unlock when exhibitor and personnel coverage is still needed.
+
 ## Common mistakes
 
 - Unlocking before checking preview results. Preview first to verify the event has relevant records.
 - Using only the event name as your local key. Store `id` or `eventId` so follow-up calls are deterministic.
 - Treating `402 Payment Required` as a generic failure. It usually means your integration needs to pause, notify the user, or ask them to add credits.
 - Ignoring `semantics`. It tells you whether a list is in preview mode or has full access.
+- Calling visitor unlock before base event access. Precheck returns `state_conflict` in that state.
+- Treating base event access and visitor access as the same layer. They have separate access records and credit costs.
 
 ## Related endpoints
 
@@ -140,7 +166,13 @@ If `alreadyUnlocked` is `true`, the event was already available and `creditsUsed
     Browse events with filters and pagination.
   </Card>
   <Card title="Unlock event" icon="lock-keyhole-open" href="/api-reference/events/unlock-event-access">
-    Spend credits to access full event-scoped coverage.
+    Spend credits to access full exhibitor and personnel coverage.
+  </Card>
+  <Card title="Unlock visitor access" icon="users-round" href="/api-reference/events/unlock-event-visitor-access">
+    Add visitor records after base event access.
+  </Card>
+  <Card title="Unlock full access" icon="key-round" href="/api-reference/events/unlock-full-event-access">
+    Atomically unlock missing base and visitor layers.
   </Card>
   <Card title="List event exhibitors" icon="building-2" href="/api-reference/exhibitors/list-event-exhibitors">
     Fetch exhibitors for a selected event.

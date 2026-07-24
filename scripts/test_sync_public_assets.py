@@ -14,6 +14,38 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "sync-public-assets.py"
+EXPECTED_PUBLIC_OPERATIONS = {
+    ("GET", "/external/credits/balance"),
+    ("POST", "/external/actions/precheck"),
+    ("GET", "/external/events/list"),
+    ("GET", "/external/events/{id}"),
+    ("GET", "/external/events/brief"),
+    ("POST", "/external/events/fit-score"),
+    ("POST", "/external/events/rank"),
+    ("POST", "/external/events/{id}/unlock"),
+    ("POST", "/external/events/{id}/visitors/unlock"),
+    ("POST", "/external/events/{id}/full-access/unlock"),
+    ("GET", "/external/exhibitors/list"),
+    ("POST", "/external/exhibitors/search"),
+    ("POST", "/external/exhibitors/search-by-company-name"),
+    ("POST", "/external/exhibitors/search-events"),
+    ("GET", "/external/exhibitors/profile"),
+    ("GET", "/external/exhibitors/events"),
+    ("GET", "/external/personnel/list"),
+    ("GET", "/external/personnel/profile"),
+    ("GET", "/external/personnel/events"),
+    ("GET", "/external/personnel/events/by-linkedin"),
+    ("POST", "/external/personnel/unlock-linkedin-activity"),
+    ("POST", "/external/personnel/generate-outreach-message"),
+    ("GET", "/external/personnel/outreach"),
+    ("GET", "/external/contacts/search"),
+    ("POST", "/external/contacts/unlock"),
+    ("GET", "/external/contacts/unlock-tasks/{taskId}"),
+    ("POST", "/external/contacts/unlock-phone"),
+    ("GET", "/external/contacts/unlock-phone-tasks/{taskId}"),
+    ("POST", "/external/profile-matching/actions/apply-recommended-events/paged"),
+    ("GET", "/external/profile-matching/recommendations/exhibitors"),
+}
 
 
 def load_sync_module():
@@ -46,9 +78,18 @@ class PublicAssetSyncTests(unittest.TestCase):
                 if method.lower() in self.sync.HTTP_METHODS:
                     operations.append((method.upper(), path, operation))
 
-        self.assertEqual(len(operations), 28)
+        self.assertEqual(
+            {(method, path) for method, path, _ in operations},
+            EXPECTED_PUBLIC_OPERATIONS,
+        )
         self.assertFalse(
             any(path.startswith("/external/integrations/") for _, path, _ in operations)
+        )
+        self.assertFalse(
+            any(path.startswith("/external/agent-files/") for _, path, _ in operations)
+        )
+        self.assertFalse(
+            any(path.startswith("/external/debug/") for _, path, _ in operations)
         )
         self.assertTrue(spec["info"]["license"]["name"].strip())
         self.assertEqual(
@@ -94,6 +135,195 @@ class PublicAssetSyncTests(unittest.TestCase):
         self.assertEqual(missing_request_examples, [])
         self.assertEqual(missing_response_examples, [])
 
+    def test_company_search_contract_matches_current_credit_rule(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        self.assertEqual(spec["info"]["version"], "0.24.0")
+
+        company_search = spec["paths"]["/external/exhibitors/search-by-company-name"]["post"]
+        self.assertIn("non-empty", company_search["description"])
+        self.assertIn("402", company_search["responses"])
+
+    def test_event_search_and_event_item_contracts(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        schemas = spec["components"]["schemas"]
+        request_bodies = spec["components"]["requestBodies"]
+
+        event_search = spec["paths"]["/external/exhibitors/search-events"]["post"]
+        self.assertEqual(
+            event_search["requestBody"]["$ref"],
+            "#/components/requestBodies/SearchEventsByCompanyNameBody",
+        )
+        self.assertEqual(
+            event_search["responses"]["201"]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/EventReverseSearchPage",
+        )
+        event_search_fields = request_bodies["SearchEventsByCompanyNameBody"]["content"][
+            "application/json"
+        ]["schema"]["properties"]
+        self.assertEqual(event_search_fields["sponsor_match_starred"]["enum"], [0, 1])
+
+        event_fields = schemas["EventItem"]["properties"]
+        self.assertEqual(event_fields["dataSource"]["const"], "Lensmor")
+        self.assertEqual(event_fields["sponsorMatchStarred"]["enum"], [0, 1])
+
+        event_examples = [
+            spec["paths"]["/external/events/list"]["get"]["responses"]["200"]["content"]
+            ["application/json"]["example"]["items"][0],
+            spec["paths"]["/external/events/{id}"]["get"]["responses"]["200"]["content"]
+            ["application/json"]["example"]["event"],
+            spec["paths"]["/external/events/brief"]["get"]["responses"]["200"]["content"]
+            ["application/json"]["example"]["event"],
+            spec["paths"]["/external/events/fit-score"]["post"]["responses"]["201"]
+            ["content"]["application/json"]["example"]["event"],
+        ]
+        for example in event_examples:
+            with self.subTest(event=example["eventId"]):
+                self.assertIn(example["sponsorMatchStarred"], [0, 1])
+                self.assertEqual(example["dataSource"], "Lensmor")
+
+    def test_contact_unlock_and_outreach_contracts(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        schemas = spec["components"]["schemas"]
+
+        contact_fields = schemas["ContactItem"]["properties"]
+        self.assertTrue(
+            {
+                "phone",
+                "phoneUnlockStatus",
+                "eventCount",
+                "outreachMessageStatus",
+                "outreachMessageChannels",
+            }.issubset(contact_fields)
+        )
+
+        unlock_submission = schemas["ContactUnlockSubmission"]
+        self.assertEqual(unlock_submission["properties"]["status"]["enum"], ["accepted", "success"])
+        self.assertIn("skipped_personnel_ids", unlock_submission["properties"])
+        self.assertIn("skipped_detail", unlock_submission["properties"])
+
+        outreach_request_fields = schemas["OutreachMessageRequest"]["properties"]
+        self.assertEqual(
+            outreach_request_fields["linkedin_message_types"]["items"]["enum"],
+            ["inmail", "connection_note", "connected_message"],
+        )
+        outreach_message_fields = schemas["OutreachDetail"]["properties"]["messages"][
+            "properties"
+        ]
+        self.assertIn("linkedin", outreach_message_fields)
+
+    def test_v024_access_and_balance_contracts(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        schemas = spec["components"]["schemas"]
+
+        action_types = set(
+            schemas["ActionPrecheckRequest"]["properties"]["action_type"]["enum"]
+        )
+        self.assertTrue(
+            {
+                "unlock_event_visitors",
+                "unlock_event_full_access",
+                "unlock_contact_phones",
+            }.issubset(action_types)
+        )
+
+        visitor_unlock = spec["paths"]["/external/events/{id}/visitors/unlock"]["post"]
+        full_access = spec["paths"]["/external/events/{id}/full-access/unlock"]["post"]
+        self.assertIn("3,000", visitor_unlock["description"])
+        for expected_cost in ("2,000", "3,000", "5,000"):
+            self.assertIn(expected_cost, full_access["description"])
+        self.assertTrue(
+            {"400", "401", "402", "404", "409", "429"}.issubset(
+                visitor_unlock["responses"]
+            )
+        )
+        self.assertTrue(
+            {"400", "401", "402", "404", "409", "429"}.issubset(
+                full_access["responses"]
+            )
+        )
+
+        self.assertEqual(
+            set(schemas["EventFullAccessUnlockResult"]["required"]),
+            {
+                "success",
+                "alreadyUnlocked",
+                "eventUnlocked",
+                "visitorUnlocked",
+                "visitorSkipped",
+                "totalCreditsUsed",
+                "balanceAfter",
+                "event",
+            },
+        )
+
+        credit_fields = schemas["CreditBalance"]["properties"]
+        self.assertTrue(
+            {"addonAmount", "addonBalance", "addonExpireAt"}.issubset(credit_fields)
+        )
+
+        source_type = schemas["ContactItem"]["properties"]["sourceType"]
+        self.assertEqual(source_type["type"], "array")
+        self.assertEqual(
+            source_type["items"]["enum"],
+            ["exhibitor", "social", "visitors"],
+        )
+
+        for page_name in (
+            "unlock-event-visitor-access.mdx",
+            "unlock-full-event-access.mdx",
+        ):
+            page = (
+                ROOT / "api-reference-backup" / "events" / page_name
+            ).read_text(encoding="utf-8")
+            self.assertIn("Actions precheck", page)
+            self.assertIn("idempotency", page.lower())
+
+    def test_event_prose_uses_the_public_event_shape(self) -> None:
+        event_pages = [
+            ROOT / "api-reference-backup" / "events" / "list.mdx",
+            ROOT / "api-reference-backup" / "events" / "detail.mdx",
+            ROOT / "api-reference-backup" / "exhibitors" / "events.mdx",
+            ROOT
+            / "api-reference-backup"
+            / "profile-matching"
+            / "actions-apply-recommended-events-paged.mdx",
+            ROOT / "api-reference-backup" / "personnel" / "events.mdx",
+            ROOT / "api-reference-backup" / "personnel" / "events-by-linkedin.mdx",
+        ]
+
+        for path in event_pages:
+            with self.subTest(path=path.relative_to(ROOT)):
+                page = path.read_text(encoding="utf-8")
+                self.assertIn("sponsorMatchStarred", page)
+                self.assertIn("Always `Lensmor`", page)
+                self.assertNotIn('"dataSource": "database"', page)
+                self.assertNotIn('"local_import"', page)
+
+    def test_personnel_prose_matches_endpoint_specific_shapes(self) -> None:
+        profile_page = (
+            ROOT / "api-reference-backup" / "personnel" / "profile.mdx"
+        ).read_text(encoding="utf-8")
+        linkedin_events_page = (
+            ROOT / "api-reference-backup" / "personnel" / "events-by-linkedin.mdx"
+        ).read_text(encoding="utf-8")
+
+        self.assertNotIn("outreachMessageStatus", profile_page)
+        self.assertNotIn("outreachMessageChannels", profile_page)
+        for field in ("phone", "phoneUnlockStatus", "eventCount"):
+            with self.subTest(field=field):
+                self.assertIn(field, linkedin_events_page)
+
+    def test_phone_unlock_prose_handles_accepted_and_no_work_success(self) -> None:
+        page = (
+            ROOT / "api-reference-backup" / "contacts" / "unlock-phone.mdx"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('status: "accepted"', page)
+        self.assertIn('status: "success"', page)
+        self.assertIn("there is nothing to poll", page)
+        self.assertIn("Only poll", page)
+        self.assertNotIn("A `201 Created` response means the task was accepted", page)
+
     def test_agent_integrations_are_explicitly_excluded(self) -> None:
         inventory = (
             ROOT / "docs" / "endpoint-inventory" / "external-api-endpoints.md"
@@ -106,7 +336,7 @@ class PublicAssetSyncTests(unittest.TestCase):
         outputs = self.sync.build_outputs()
         llms_full = outputs[self.sync.LLMS_FULL].decode("utf-8")
         sources = [
-            line.removeprefix("Source: ")
+            line[len("Source: "):]
             for line in llms_full.splitlines()
             if line.startswith("Source: ")
         ]

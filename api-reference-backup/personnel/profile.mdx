@@ -44,9 +44,12 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
   "seniorityLevel": "vp",
   "linkedinUrl": "https://linkedin.com/in/jane-smith",
   "companyName": "Acme Retail Systems",
-  "sourceType": "exhibitor",
+  "sourceType": ["exhibitor"],
   "email": null,
-  "contactUnlockStatus": "locked"
+  "phone": null,
+  "contactUnlockStatus": "locked",
+  "phoneUnlockStatus": null,
+  "eventCount": 5
 }
 ```
 
@@ -59,9 +62,12 @@ curl "https://platform.lensmor.com/external/personnel/profile?personnel_id=789" 
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | Public LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor. |
-| `sourceType` | Source context, such as exhibitor-derived data. |
+| `sourceType` | Normalized source labels such as `exhibitor`, `social`, and `visitors`. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Current contact access state for this API key owner. |
+| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
+| `eventCount` | Number of associated events. |
 
 ## Email access
 

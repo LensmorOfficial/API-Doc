@@ -64,15 +64,20 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane-smith",
       "companyName": "Acme Retail Systems",
-      "sourceType": "exhibitor",
+      "sourceType": ["exhibitor"],
       "email": null,
+      "phone": null,
       "contactUnlockStatus": "locked",
+      "phoneUnlockStatus": null,
       "linkedinActivity": {
         "activityLevel": "ACTIVE",
         "isActive": true,
         "latestPostAt": "1747123200000"
       },
-      "linkedinActivityStatus": "ready"
+      "linkedinActivityStatus": "ready",
+      "eventCount": 5,
+      "outreachMessageStatus": "ready",
+      "outreachMessageChannels": ["email", "linkedin_message"]
     }
   ],
   "total": 3,
@@ -116,11 +121,16 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor name. |
-| `sourceType` | Source context for the person record. |
+| `sourceType` | Normalized source labels for the person record. Values can include `exhibitor`, `social`, and `visitors`; an empty array means no supported source label is available. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
+| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
+| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
 | `linkedinActivity` | LinkedIn activity object (`activityLevel` `ACTIVE`/`WARM`/`DORMANT`/`""`, `isActive`, `latestPostAt` unix ms or `null`) when the caller has unlocked it and analysis is complete; otherwise `null`. Independent of `contactUnlockStatus`. |
 | `linkedinActivityStatus` | `ready` (data available), `processing` (unlock/analysis running), or `null` (not unlocked / no record). |
+| `eventCount` | Number of events associated with the personnel record. |
+| `outreachMessageStatus` | Current outreach generation status when a record exists. |
+| `outreachMessageChannels` | Channels associated with the latest outreach record. |
 | `semantics` | Access metadata for preview/full event coverage. |
 
 ## Access semantics
