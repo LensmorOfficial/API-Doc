@@ -29,12 +29,13 @@ Most personnel responses include `id`, name, title, company context, and `contac
   "fullName": "Jane Doe",
   "title": "VP of Partnerships",
   "companyName": "Example Retail Co",
+  "sourceType": ["exhibitor", "visitors"],
   "email": null,
   "contactUnlockStatus": "locked"
 }
 ```
 
-Only send records that are still locked. Already unlocked contacts are not charged again, but filtering them out keeps your task easier to audit.
+Preserve the full `sourceType` array when moving a selected attendee into your enrichment workflow. Only send records that are still locked. Already unlocked contacts are not charged again, but filtering them out keeps your task easier to audit.
 
 ## 2. Start the unlock task
 

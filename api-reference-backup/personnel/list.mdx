@@ -6,7 +6,7 @@ openapi: "openapi.json GET /external/personnel/list"
 
 List personnel records for a specific event.
 
-Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters.
+Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
 
 ## When to use this endpoint
 
@@ -17,7 +17,12 @@ Common use cases:
 - browse people associated with an event
 - filter by department or seniority
 - find contacts for a selected exhibitor
+- segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
+
+<Note>
+  The endpoint does not currently accept a source filter. Fetch the accessible result set and segment it client-side. See [Attendee source types](/concepts/attendee-source-types).
+</Note>
 
 ## Endpoint
 `GET /external/personnel/list`
@@ -64,7 +69,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane-smith",
       "companyName": "Acme Retail Systems",
-      "sourceType": ["exhibitor"],
+      "sourceType": ["exhibitor", "social"],
       "email": null,
       "phone": null,
       "contactUnlockStatus": "locked",
@@ -121,7 +126,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | LinkedIn profile URL when available. |
 | `companyName` | Associated company or exhibitor name. |
-| `sourceType` | Normalized source labels for the person record. Values can include `exhibitor`, `social`, and `visitors`; an empty array means no supported source label is available. |
+| `sourceType` | Event-scoped, non-exclusive source labels. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. An empty array means no supported source label is available. |
 | `email` | Email address if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state, such as `locked` or unlocked states. |
@@ -137,7 +142,7 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 
 Locked events can still return preview personnel results. Read `semantics` before deciding whether to unlock the event:
 
-- `accessMode` tells you whether the response is preview or full access.
+- `accessMode` tells you whether base event coverage is preview or full access. It does not describe the separate Visitor access layer.
 - `counts.remainingLockedCount` tells you whether more records are hidden.
 - `unlock.requiredForMoreResults` tells you whether event unlock is useful for this query.
 - `guidance.message` provides a user-facing explanation.
@@ -150,6 +155,8 @@ Locked events can still return preview personnel results. Read `semantics` befor
 
 ## Notes
 - Personnel list responses intentionally use the lightweight contact-style response shape.
+- A person can have multiple source labels. Preserve every value rather than assigning one exclusive category.
+- Visitor records are registered attendees obtained through organizer or data-provider partnerships. Visitor availability and access must be checked separately.
 - Emails are returned only when the contact is already unlocked for the caller.
 - Locked events can return preview results. Use `semantics.unlock` to decide whether to call [Unlock event](/api-reference/events/unlock-event-access).
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).

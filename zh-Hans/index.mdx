@@ -1,0 +1,88 @@
+---
+title: "Lensmor API 文档"
+description: "使用 Lensmor API 构建展会与参会人员洞察、参展商研究、注册 Visitor 访问和联系人补全工作流。"
+---
+
+使用 Lensmor API 构建展会与参会人员洞察工作流。你可以发现展会、评估展会匹配度、查看参展商和参会人员来源，在数据可用时访问注册 Visitor，并在需要行动时解锁联系方式。
+
+当前文档版本：`v0.24.1`
+
+## Base URL
+
+`https://platform.lensmor.com`
+
+本文档中的接口路径都基于这个地址。例如，`GET /external/events/list` 的完整地址是 `GET https://platform.lensmor.com/external/events/list`。
+
+## 获取 API Key
+
+在 [app.lensmor.com](https://app.lensmor.com) 创建账号并升级到付费订阅，然后进入 **Settings → API Keys** 创建用户 API Key。
+
+```http
+Authorization: Bearer sk_your_api_key
+```
+
+## 可以构建什么
+
+<CardGroup cols={2}>
+  <Card title="发现适合的展会" icon="calendar-search" href="/zh-Hans/guides/quickstart">
+    根据关键词、地区、类别、质量和 Profile Fit 搜索与排序展会。
+  </Card>
+  <Card title="理解参会人员来源" icon="users-round" href="/zh-Hans/guides/build-attendee-intelligence">
+    区分 Exhibitor、Social Signals 和注册 Visitor，同时保留一个人的多个来源标签。
+  </Card>
+  <Card title="解锁展会数据" icon="lock-keyhole-open" href="/zh-Hans/guides/find-and-unlock-event">
+    从预览数据进入基础 Event Access、Visitor Access，或一次解锁两个访问层。
+  </Card>
+  <Card title="补全联系人" icon="mail-check" href="/zh-Hans/guides/unlock-contact-emails">
+    为选中的人员发起异步邮箱解锁任务，并轮询到结果完成。
+  </Card>
+</CardGroup>
+
+## 应该从哪个接口开始
+
+| 已知信息或目标 | 建议接口 | 说明 |
+| --- | --- | --- |
+| 关键词、地区或日期范围 | [Events List（英文）](/api-reference/events/list-events) | 搜索展会目录。 |
+| 企业网站或目标客户描述 | [Apply Profile（英文）](/api-reference/profile-matching/apply-profile-and-get-recommended-events) | 基于 Profile 返回排序后的展会。 |
+| 已知 Event ID | [Exhibitors List（英文）](/api-reference/exhibitors/list-event-exhibitors) 或 [Personnel List（英文）](/api-reference/personnel/list-event-personnel) | 获取展会范围内的企业和人员；人员记录可能带有三类来源标签。 |
+| 需要基础数据和 Visitor 数据 | [Full Event Access（英文）](/api-reference/events/unlock-full-event-access) | 先 precheck，再按缺失访问层动态消耗 `0`–`5000` Credits。 |
+| 已知 Personnel ID，需要邮箱 | [Unlock Contact Emails（英文）](/api-reference/contacts/unlock-contact-emails) | 发起异步邮箱解锁任务。 |
+
+## 推荐集成流程
+
+<Steps>
+  <Step title="为每个请求鉴权">
+    创建用户 API Key，并通过 `Authorization: Bearer sk_your_api_key` 发送。
+  </Step>
+  <Step title="付费操作前检查 Credits">
+    调用 `GET /external/credits/balance`，并对展会、Visitor 或联系方式解锁执行相应 precheck。
+  </Step>
+  <Step title="发现展会或企业上下文">
+    根据工作流选择 Events、Exhibitors、Personnel、Contacts 或 Profile Matching 接口。
+  </Step>
+  <Step title="保留参会人员来源上下文">
+    将 `sourceType` 作为多值数组处理，并区分展会范围标签与跨关联展会聚合标签。
+  </Step>
+  <Step title="处理访问状态和限流">
+    读取 `semantics`，显式处理 `402 Payment Required` 和 `429 Too Many Requests`。
+  </Step>
+</Steps>
+
+## 第一个请求
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+请求成功后，继续阅读[快速开始](/zh-Hans/guides/quickstart)。如请求失败，请检查[身份验证](/zh-Hans/authentication)。
+
+## 核心概念
+
+- [参会人员来源类型](/zh-Hans/concepts/attendee-source-types)
+- [Credits 与访问权限](/zh-Hans/concepts/credits-and-access)
+- [英文 API Reference](/api-reference/events/list-events)
+
+<Note>
+  当前简体中文版本覆盖核心集成与参会人员工作流。OpenAPI 驱动的 API Reference 暂时保留英文，以确保机器契约只有一个权威版本。
+</Note>

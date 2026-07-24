@@ -29,107 +29,148 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Documentation",
-        "groups": [
+        "language": "en",
+        "default": true,
+        "tabs": [
           {
-            "group": "Introduction",
-            "pages": [
-              "index",
-              "authentication",
-              "changelog"
+            "tab": "Documentation",
+            "groups": [
+              {
+                "group": "Introduction",
+                "pages": [
+                  "index",
+                  "authentication",
+                  "changelog"
+                ]
+              },
+              {
+                "group": "Guides",
+                "pages": [
+                  "guides/quickstart",
+                  "guides/build-attendee-intelligence",
+                  "guides/build-event-recommendations",
+                  "guides/find-and-unlock-event",
+                  "guides/unlock-contact-emails",
+                  "guides/production-readiness"
+                ]
+              },
+              {
+                "group": "Concepts",
+                "pages": [
+                  "concepts/errors",
+                  "concepts/pagination",
+                  "concepts/identifiers",
+                  "concepts/attendee-source-types",
+                  "concepts/credits-and-access",
+                  "concepts/rate-limits"
+                ]
+              }
             ]
           },
           {
-            "group": "Guides",
-            "pages": [
-              "guides/quickstart",
-              "guides/build-event-recommendations",
-              "guides/find-and-unlock-event",
-              "guides/unlock-contact-emails",
-              "guides/production-readiness"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "pages": [
-              "concepts/errors",
-              "concepts/pagination",
-              "concepts/identifiers",
-              "concepts/credits-and-access",
-              "concepts/rate-limits"
+            "tab": "API Reference",
+            "openapi": "openapi.json",
+            "groups": [
+              {
+                "group": "Credits",
+                "pages": [
+                  "GET /external/credits/balance"
+                ]
+              },
+              {
+                "group": "Actions",
+                "pages": [
+                  "POST /external/actions/precheck"
+                ]
+              },
+              {
+                "group": "Events",
+                "pages": [
+                  "GET /external/events/list",
+                  "GET /external/events/{id}",
+                  "GET /external/events/brief",
+                  "POST /external/events/fit-score",
+                  "POST /external/events/rank",
+                  "POST /external/events/{id}/unlock",
+                  "POST /external/events/{id}/visitors/unlock",
+                  "POST /external/events/{id}/full-access/unlock"
+                ]
+              },
+              {
+                "group": "Exhibitors",
+                "pages": [
+                  "GET /external/exhibitors/list",
+                  "POST /external/exhibitors/search",
+                  "POST /external/exhibitors/search-by-company-name",
+                  "POST /external/exhibitors/search-events",
+                  "GET /external/exhibitors/profile",
+                  "GET /external/exhibitors/events"
+                ]
+              },
+              {
+                "group": "Personnel",
+                "pages": [
+                  "GET /external/personnel/list",
+                  "GET /external/personnel/profile",
+                  "GET /external/personnel/events",
+                  "GET /external/personnel/events/by-linkedin",
+                  "POST /external/personnel/unlock-linkedin-activity",
+                  "POST /external/personnel/generate-outreach-message",
+                  "GET /external/personnel/outreach"
+                ]
+              },
+              {
+                "group": "Contacts",
+                "pages": [
+                  "GET /external/contacts/search",
+                  "POST /external/contacts/unlock",
+                  "GET /external/contacts/unlock-tasks/{taskId}",
+                  "POST /external/contacts/unlock-phone",
+                  "GET /external/contacts/unlock-phone-tasks/{taskId}"
+                ]
+              },
+              {
+                "group": "Profile Matching",
+                "pages": [
+                  "POST /external/profile-matching/actions/apply-recommended-events/paged",
+                  "GET /external/profile-matching/recommendations/exhibitors"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
-        "openapi": "openapi.json",
-        "groups": [
+        "language": "zh-Hans",
+        "tabs": [
           {
-            "group": "Credits",
-            "pages": [
-              "GET /external/credits/balance"
-            ]
-          },
-          {
-            "group": "Actions",
-            "pages": [
-              "POST /external/actions/precheck"
-            ]
-          },
-          {
-            "group": "Events",
-            "pages": [
-              "GET /external/events/list",
-              "GET /external/events/{id}",
-              "GET /external/events/brief",
-              "POST /external/events/fit-score",
-              "POST /external/events/rank",
-              "POST /external/events/{id}/unlock",
-              "POST /external/events/{id}/visitors/unlock",
-              "POST /external/events/{id}/full-access/unlock"
-            ]
-          },
-          {
-            "group": "Exhibitors",
-            "pages": [
-              "GET /external/exhibitors/list",
-              "POST /external/exhibitors/search",
-              "POST /external/exhibitors/search-by-company-name",
-              "POST /external/exhibitors/search-events",
-              "GET /external/exhibitors/profile",
-              "GET /external/exhibitors/events"
-            ]
-          },
-          {
-            "group": "Personnel",
-            "pages": [
-              "GET /external/personnel/list",
-              "GET /external/personnel/profile",
-              "GET /external/personnel/events",
-              "GET /external/personnel/events/by-linkedin",
-              "POST /external/personnel/unlock-linkedin-activity",
-              "POST /external/personnel/generate-outreach-message",
-              "GET /external/personnel/outreach"
-            ]
-          },
-          {
-            "group": "Contacts",
-            "pages": [
-              "GET /external/contacts/search",
-              "POST /external/contacts/unlock",
-              "GET /external/contacts/unlock-tasks/{taskId}",
-              "POST /external/contacts/unlock-phone",
-              "GET /external/contacts/unlock-phone-tasks/{taskId}"
-            ]
-          },
-          {
-            "group": "Profile Matching",
-            "pages": [
-              "POST /external/profile-matching/actions/apply-recommended-events/paged",
-              "GET /external/profile-matching/recommendations/exhibitors"
+            "tab": "文档",
+            "groups": [
+              {
+                "group": "开始使用",
+                "pages": [
+                  "zh-Hans/index",
+                  "zh-Hans/authentication",
+                  "zh-Hans/guides/quickstart"
+                ]
+              },
+              {
+                "group": "参会人员数据",
+                "pages": [
+                  "zh-Hans/concepts/attendee-source-types",
+                  "zh-Hans/guides/build-attendee-intelligence",
+                  "zh-Hans/guides/find-and-unlock-event"
+                ]
+              },
+              {
+                "group": "访问与数据补全",
+                "pages": [
+                  "zh-Hans/concepts/credits-and-access",
+                  "zh-Hans/guides/unlock-contact-emails"
+                ]
+              }
             ]
           }
         ]
@@ -273,14 +314,14 @@
       "permanent": true
     }
   ],
-  "description": "Lensmor API documentation for event intelligence, trade show discovery, exhibitor research, profile matching, credits, and contact email unlock workflows.",
+  "description": "Lensmor API documentation for event discovery, attendee intelligence, exhibitor research, registered visitor access, profile matching, and contact enrichment.",
   "seo": {
     "indexing": "navigable",
     "metatags": {
       "og:site_name": "Lensmor API Docs",
       "og:type": "website",
       "twitter:card": "summary_large_image",
-      "keywords": "Lensmor API, event intelligence API, trade show API, exhibitor API, B2B prospecting API, event recommendation API"
+      "keywords": "Lensmor API, event intelligence API, attendee data API, registered visitor data, trade show API, exhibitor API, B2B prospecting API, event recommendation API"
     }
   },
   "search": {

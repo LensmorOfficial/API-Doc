@@ -6,7 +6,7 @@ openapi: "openapi.json GET /external/contacts/search"
 
 Search contacts by company name.
 
-Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering.
+Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering and attendee source context aggregated across associated events.
 
 ## When to use this endpoint
 
@@ -62,7 +62,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
       "seniorityLevel": "vp",
       "linkedinUrl": "https://linkedin.com/in/jane",
       "companyName": "Acme",
-      "sourceType": ["exhibitor"],
+      "sourceType": ["social", "visitors"],
       "email": null,
       "phone": null,
       "contactUnlockStatus": "locked",
@@ -90,7 +90,7 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 | `department`, `seniorityLevel` | Normalized role metadata when available. |
 | `linkedinUrl` | LinkedIn profile URL when available. |
 | `companyName` | Matched company name. |
-| `sourceType` | Normalized source labels for the contact record. Values can include `exhibitor`, `social`, and `visitors`. |
+| `sourceType` | Non-exclusive source labels aggregated across associated events. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. |
 | `email` | Email if already unlocked for the caller; otherwise `null`. |
 | `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
 | `contactUnlockStatus` | Contact access state for this API key owner. |
@@ -112,5 +112,6 @@ No matching contacts can return an empty paginated response. Use this as a valid
 
 ## Notes
 - Emails are returned only when the contact is already unlocked for the caller.
+- Use [Personnel list](/api-reference/personnel/list-event-personnel) when you need source labels for one specific event. See [Attendee source types](/concepts/attendee-source-types) for the full mapping.
 - Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
 - Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.

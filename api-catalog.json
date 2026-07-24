@@ -2,7 +2,7 @@
   "apis": [
     {
       "name": "Lensmor API",
-      "description": "Lensmor Event Intelligence API.",
+      "description": "Lensmor Event and Attendee Intelligence API.",
       "baseUrl": "https://platform.lensmor.com",
       "openapi": "https://api.lensmor.com/openapi.json"
     }

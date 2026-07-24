@@ -1,0 +1,124 @@
+---
+title: "查找并解锁展会"
+description: "发现目标展会、检查 Preview 数据，并通过 credit-safe precheck 解锁基础 Event Access、Visitor Access 或 Full Access。"
+---
+
+当集成需要从展会发现进入完整数据访问时，请使用本指南。
+
+Lensmor 允许先查看 Exhibitor 和 Personnel 预览，再选择实际需要的访问层。Visitor 是通过主办方或数据合作伙伴获得的注册参会访客，只有部分展会提供。
+
+## 推荐流程
+
+<Steps>
+  <Step title="寻找候选展会">
+    搜索展会目录、对展会排序，或使用 Profile Matching 生成候选清单。
+  </Step>
+  <Step title="确认展会">
+    获取 Event Detail，核对名称、日期、场地、地区和来源 URL。
+  </Step>
+  <Step title="查看 Exhibitor 或 Personnel">
+    调用展会范围列表接口；展会未解锁时，读取 `semantics` 理解预览限制。
+  </Step>
+  <Step title="选择并检查访问层">
+    基础 Event Access 用于扩大 Exhibitor/Personnel 覆盖；Visitor Access 用于注册访客；Full Access 用于同时补齐两个访问层。付费操作前必须 precheck。
+  </Step>
+</Steps>
+
+## 1. 搜索展会
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?keyword=retail&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## 2. 获取展会详情
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+解锁前请确认 `name`、`dateStart`、`dateEnd`、`venue`、`country` 和 `url`。
+
+## 3. 查看展会范围人员
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+示例响应中的人员可以带有来源标签：
+
+```json
+{
+  "items": [
+    {
+      "id": "789",
+      "fullName": "Jane Doe",
+      "title": "VP of Partnerships",
+      "companyName": "Example Retail Co",
+      "sourceType": ["exhibitor", "social"],
+      "email": null,
+      "contactUnlockStatus": "locked"
+    }
+  ],
+  "semantics": {
+    "accessMode": "preview",
+    "previewLimit": 50,
+    "unlock": {
+      "requiredForMoreResults": true,
+      "actionType": "unlock_event_personnel",
+      "credits": 2000
+    }
+  }
+}
+```
+
+`semantics.accessMode` 只描述基础 Event Access。即使它为 `"full"`，也不能据此判断 Visitor Access 已解锁。
+
+## 4. 解锁基础 Event Access
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+第一次成功解锁通常消耗 `2000` Credits；重复解锁不重复收费。以接口响应和商业协议为最终计费依据。
+
+## 5. 增加 Visitor Access 或解锁 Full Access
+
+- `POST /external/events/:id/visitors/unlock`：在基础 Event Access 已存在、账号有有效订阅且展会有 Visitor 数据时，第一次成功解锁消耗 `3000` Credits。
+- `POST /external/events/:id/full-access/unlock`：一次性补齐缺失访问层，动态消耗 `0`、`2000`、`3000` 或 `5000` Credits。
+
+执行前调用 precheck：
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_full_access",
+    "call_source": "api",
+    "params": {
+      "event_id": "139574"
+    }
+  }'
+```
+
+只有 `allowed` 为 `true` 时才继续，并向用户展示返回的 `credits`。通过 `detail.visitor_data_available` 判断 Visitor 数据是否可用。如果 Full Access precheck 因没有 Visitor 数据返回 `no_contacts_available`，但仍需要 Exhibitor/Personnel 覆盖，可以改用基础 Event Access。
+
+## 常见错误
+
+- 未检查 Preview 内容就直接解锁。
+- 把 `semantics.accessMode: "full"` 当作 Visitor Access 已解锁。
+- 把 Social Signals 当作主办方正式注册证明；当前只有 Visitor 标签代表注册参会访客。
+- Visitor 解锁前没有先获得基础 Event Access。
+- 对付费操作自动重试，导致用户难以核对最终状态。
+
+## 相关文档
+
+- [参会人员来源类型](/zh-Hans/concepts/attendee-source-types)
+- [Credits 与访问权限](/zh-Hans/concepts/credits-and-access)
+- [Visitor Unlock（英文）](/api-reference/events/unlock-event-visitor-access)
+- [Full Event Access（英文）](/api-reference/events/unlock-full-event-access)

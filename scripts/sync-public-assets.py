@@ -49,9 +49,17 @@ def iter_pages(node: Any) -> Iterable[str]:
 
 
 def navigation_pages(config: dict[str, Any]) -> list[str]:
+    navigation = config.get("navigation", {})
+    languages = navigation.get("languages", [])
+    if languages:
+        navigation = next(
+            (language for language in languages if language.get("default")),
+            languages[0],
+        )
+
     indexed_groups: list[tuple[int, dict[str, Any]]] = []
     index = 0
-    for tab in config.get("navigation", {}).get("tabs", []):
+    for tab in navigation.get("tabs", []):
         for group in tab.get("groups", []):
             indexed_groups.append((index, group))
             index += 1
@@ -231,7 +239,7 @@ def render_api_catalog() -> str:
         "apis": [
             {
                 "name": "Lensmor API",
-                "description": "Lensmor Event Intelligence API.",
+                "description": "Lensmor Event and Attendee Intelligence API.",
                 "baseUrl": API_BASE_URL,
                 "openapi": f"{DOCS_BASE_URL}/openapi.json",
             }
@@ -243,7 +251,7 @@ def render_api_catalog() -> str:
 def render_llms_index() -> str:
     return f"""# Lensmor API Documentation
 
-> Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
+> Lensmor Event Intelligence API documentation for event discovery, attendee source intelligence, registered visitor access, exhibitor research, contact enrichment, credits, and profile matching.
 
 ## Primary Resources
 

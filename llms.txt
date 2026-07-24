@@ -1,6 +1,6 @@
 # Lensmor API Documentation
 
-> Lensmor Event Intelligence API documentation for event discovery, exhibitor research, personnel lookup, credits, and profile matching.
+> Lensmor Event Intelligence API documentation for event discovery, attendee source intelligence, registered visitor access, exhibitor research, contact enrichment, credits, and profile matching.
 
 ## Primary Resources
 

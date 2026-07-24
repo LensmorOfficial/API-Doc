@@ -137,7 +137,7 @@ class PublicAssetSyncTests(unittest.TestCase):
 
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
-        self.assertEqual(spec["info"]["version"], "0.24.0")
+        self.assertEqual(spec["info"]["version"], "0.24.1")
 
         company_search = spec["paths"]["/external/exhibitors/search-by-company-name"]["post"]
         self.assertIn("non-empty", company_search["description"])
@@ -267,6 +267,20 @@ class PublicAssetSyncTests(unittest.TestCase):
             source_type["items"]["enum"],
             ["exhibitor", "social", "visitors"],
         )
+        self.assertIn("not mutually exclusive", source_type["description"])
+
+        source_examples = [
+            spec["paths"]["/external/personnel/list"]["get"]["responses"]["200"]
+            ["content"]["application/json"]["example"]["items"][0]["sourceType"],
+            spec["paths"]["/external/personnel/profile"]["get"]["responses"]["200"]
+            ["content"]["application/json"]["example"]["sourceType"],
+            spec["paths"]["/external/contacts/search"]["get"]["responses"]["200"]
+            ["content"]["application/json"]["example"]["items"][0]["sourceType"],
+        ]
+        for example in source_examples:
+            with self.subTest(example=example):
+                self.assertTrue(example)
+                self.assertTrue(set(example).issubset({"exhibitor", "social", "visitors"}))
 
         for page_name in (
             "unlock-event-visitor-access.mdx",
@@ -351,6 +365,28 @@ class PublicAssetSyncTests(unittest.TestCase):
         )
         self.assertEqual(len(sources), len(set(sources)))
 
+    def test_multilingual_navigation_has_unique_existing_pages(self) -> None:
+        config = json.loads(self.sync.DOCS_JSON.read_text(encoding="utf-8"))
+        languages = config["navigation"]["languages"]
+
+        self.assertEqual(languages[0]["language"], "en")
+        self.assertTrue(languages[0]["default"])
+        self.assertEqual(languages[1]["language"], "zh-Hans")
+
+        all_pages: list[str] = []
+        for language in languages:
+            for tab in language.get("tabs", []):
+                for group in tab.get("groups", []):
+                    for page in group.get("pages", []):
+                        if self.sync.OPERATION_PAGE_RE.match(page):
+                            continue
+                        all_pages.extend(self.sync.iter_pages(page))
+
+        self.assertEqual(len(all_pages), len(set(all_pages)))
+        for page in all_pages:
+            with self.subTest(page=page):
+                self.assertTrue((ROOT / f"{page}.mdx").exists())
+
     def test_legacy_api_routes_have_permanent_redirects(self) -> None:
         missing = self.sync.missing_legacy_redirects()
         self.assertEqual(missing, [])
@@ -373,6 +409,7 @@ class PublicAssetSyncTests(unittest.TestCase):
             ROOT / "index.mdx",
             *sorted((ROOT / "guides").rglob("*.mdx")),
             *sorted((ROOT / "concepts").rglob("*.mdx")),
+            *sorted((ROOT / "zh-Hans").rglob("*.mdx")),
             *sorted((ROOT / "api-reference-backup").rglob("*.mdx")),
         ]
         invalid: list[str] = []

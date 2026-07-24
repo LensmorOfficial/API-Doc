@@ -1,0 +1,71 @@
+---
+title: "参会人员来源类型"
+description: "了解 Lensmor 产品中的 Exhibitor、Social Signals 和 Visitor 如何映射到 API sourceType，以及多来源、作用域和访问规则。"
+---
+
+Lensmor 在产品中将与展会相关的人员统一归入 **Attendees（参会人员）**。API 返回的 `sourceType` 数组用于说明一个人与展会或 Lensmor 展会数据网络之间的来源关系。
+
+## 产品标签与 API 值
+
+| 产品标签 | API 值 | 含义 |
+| --- | --- | --- |
+| **Exhibitor** | `exhibitor` | 与该展会参展企业相关的参会人员。 |
+| **Social Signals** | `social` | 通过 LinkedIn 相关信号识别出的、与该展会相关的人员。该标签不代表主办方正式注册记录。 |
+| **Visitor** | `visitors` | Lensmor 通过主办方或数据合作伙伴获得的注册参会访客。只有部分展会提供 Visitor 数据。 |
+
+<Note>
+  产品界面使用单数 **Visitor**，当前 API 值为复数 `"visitors"`。
+</Note>
+
+## 一个人可以拥有多个标签
+
+`sourceType` 是数组，三个来源标签不是互斥分类。例如，一个参展企业员工也可能在 LinkedIn 上公开表达过参会意向：
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+集成时应保留所有返回值，不要强制把一个人归入唯一分类。空数组表示当前没有可用的受支持来源标签。
+
+## 不同接口的来源作用域
+
+- `GET /external/personnel/list` 返回指定展会范围内的来源标签。
+- `GET /external/personnel/profile` 可能聚合该人员在多个关联展会中的来源标签。
+- `GET /external/contacts/search` 以企业为查询范围，也可能返回跨关联展会聚合后的来源标签。
+
+如果界面需要表达“这个人是本场展会的 Visitor”，应以展会范围的 Personnel List 为准，而不是使用聚合后的 Profile 或 Contact Search 结果。
+
+## Visitor 访问规则
+
+Visitor 与基础 Event Access 是两个独立访问层：
+
+- 基础 Event Access 扩展展会范围内的 Exhibitor 和 Personnel 数据覆盖。
+- Visitor Access 为具备数据的展会增加注册参会访客记录。
+- 执行付费解锁前，请通过 `POST /external/actions/precheck` 检查 `unlock_event_visitors` 或 `unlock_event_full_access`。
+- 当 `visitor_data_available` 为 `false` 时，表示该展会当前没有可用的 Visitor 数据，这是正常的展会级状态。
+
+Personnel List 返回的 `semantics.accessMode` 只描述基础 Event Access，不能单独证明 Visitor Access 已解锁。
+
+## 来源筛选
+
+`GET /external/personnel/list` 当前没有 `sourceType` 服务端筛选参数。请先获取当前可访问的数据，再在客户端分类：
+
+```js
+const visitors = items.filter((person) =>
+  person.sourceType?.includes("visitors")
+);
+```
+
+由于标签可能重叠，同一个人可以同时出现在多个分类中。
+
+## 相关文档
+
+- [构建参会人员洞察](/zh-Hans/guides/build-attendee-intelligence)
+- [查找并解锁展会](/zh-Hans/guides/find-and-unlock-event)
+- [Credits 与访问权限](/zh-Hans/concepts/credits-and-access)
+- [Personnel List（英文）](/api-reference/personnel/list-event-personnel)

@@ -1,0 +1,121 @@
+---
+title: "Build attendee intelligence"
+description: "Build event audience workflows with Exhibitor, Social Signals, and Visitor source labels, then unlock only the data and contact fields you need."
+---
+
+Use this guide to build field-marketing, account-based event planning, and sales-engagement workflows around the people connected to an event.
+
+Lensmor Attendees include three source labels:
+
+- **Exhibitor** (`exhibitor`) — people associated with exhibiting companies.
+- **Social Signals** (`social`) — people identified from LinkedIn signals connected to the event.
+- **Visitor** (`visitors`) — registered attendees obtained through organizer or data-provider partnerships.
+
+A person can have multiple labels. See [Attendee source types](/concepts/attendee-source-types) for the complete mapping and scope rules.
+
+## Recommended workflow
+
+<Steps>
+  <Step title="Discover and verify the event">
+    Search the event catalog, rank events, or apply profile matching. Fetch event detail before using its `eventId` in attendee requests.
+  </Step>
+  <Step title="Inspect accessible attendees">
+    Call `GET /external/personnel/list` and read both each person's `sourceType` array and the response-level `semantics` object.
+  </Step>
+  <Step title="Check Visitor availability">
+    Use the Visitor or full-access action precheck. Visitor data is available only for selected events.
+  </Step>
+  <Step title="Unlock the required access layer">
+    Unlock base event access for broader exhibitor/personnel coverage, Visitor access for registered attendee records, or full access for both missing layers.
+  </Step>
+  <Step title="Prioritize and enrich selected people">
+    Segment accessible records client-side, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
+  </Step>
+</Steps>
+
+## 1. List people for an event
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Each item can include a multi-value `sourceType`:
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "title": "VP of Partnerships",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"],
+  "contactUnlockStatus": "locked"
+}
+```
+
+Use the event-scoped list when you need source meaning for one selected event. Personnel profile and contact search can aggregate labels across multiple associated events.
+
+## 2. Segment the accessible audience
+
+The personnel endpoint does not currently provide a server-side source filter. Preserve overlapping labels and segment the returned items in your application:
+
+```js
+const bySource = {
+  exhibitor: items.filter((person) => person.sourceType?.includes("exhibitor")),
+  social: items.filter((person) => person.sourceType?.includes("social")),
+  visitors: items.filter((person) => person.sourceType?.includes("visitors")),
+};
+```
+
+Do not add the three segment counts together to calculate unique people because the same person can appear in multiple segments.
+
+## 3. Check Visitor availability and access
+
+Visitor data is a separate layer. Precheck before showing an unlock confirmation:
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_visitors",
+    "call_source": "api",
+    "params": {
+      "event_id": "139574"
+    }
+  }'
+```
+
+Inspect `allowed`, `credits`, `reason`, and `detail.visitor_data_available`. If base event access is still locked, use the full-access precheck or unlock base event access first.
+
+<Warning>
+  `semantics.accessMode: "full"` on the personnel list refers to base event access. Always use Visitor precheck state when your workflow specifically requires registered Visitor records.
+</Warning>
+
+## 4. Enrich only selected people
+
+After prioritizing attendees, collect their personnel IDs and call the contact email or phone unlock workflow. Both workflows can consume credits and run asynchronously, so show the user the selected scope, check balance, and poll the returned task ID.
+
+## Example use cases
+
+### Field marketing
+
+Compare Exhibitor, Social Signals, and Visitor records to understand the accessible event audience, then prioritize registered Visitors or relevant exhibiting-company contacts for campaign planning.
+
+### Account-based event planning
+
+Combine `GET /external/exhibitors/list` with event personnel. Identify target accounts exhibiting at the event, then inspect the source labels and roles of people connected to those companies.
+
+### Sales engagement
+
+Use source labels, title, department, and seniority to shortlist relevant attendees. Unlock contact fields only after the user confirms the final outreach list.
+
+### CRM enrichment
+
+Store the person ID, event ID, full `sourceType` array, and unlock state in your own integration. Preserve the event context so aggregated profile labels are not mistaken for event-specific registration.
+
+## Current limitations
+
+- Event list and event detail do not currently expose a public `hasVisitors` field. Use Visitor action precheck for a known event.
+- Personnel list does not currently accept a source filter.
+- Visitor coverage varies by event and must not be inferred from event category, size, or location.

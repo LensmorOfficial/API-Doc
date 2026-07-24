@@ -1,0 +1,97 @@
+---
+title: "快速开始"
+description: "完成第一个 Lensmor API 请求，搜索展会、查看参展商和参会人员来源，并安全处理访问解锁。"
+---
+
+本指南介绍多数 Lensmor 集成都会使用的基础流程：
+
+1. 从企业 Profile、目标客户描述、关键词或市场范围开始。
+2. 发现相关展会。
+3. 查看参展商和参会人员，包括 Exhibitor、Social Signals 与 Visitor 来源标签。
+4. 只在数据可行动时解锁基础 Event Access、Visitor Access、Full Access 或联系人字段。
+
+## 开始前准备
+
+你需要有效的用户 API Key 和能够发送 HTTPS 请求的环境。
+
+```bash
+export LENSMOR_API_KEY="sk_your_api_key"
+```
+
+## 1. 检查 Credits 余额
+
+```bash
+curl "https://platform.lensmor.com/external/credits/balance" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+该响应包含订阅 Credits、Add-On Credits、Gift Credits、总余额和可用的重置时间。API 与 Lensmor SaaS 共用同一 Credits 余额。
+
+## 2. 搜索展会
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=United%20States&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+使用响应中的 `eventId` 调用后续展会范围接口。
+
+## 3. 获取展会详情
+
+```bash
+curl "https://platform.lensmor.com/external/events/139574" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+在查看人员或进行解锁前，先确认展会名称、日期、场地、地区和来源 URL。
+
+## 4. 查看 Exhibitors 或 Personnel
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Personnel 记录可能包含多值 `sourceType`：
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"]
+}
+```
+
+映射关系为：
+
+- Exhibitor → `exhibitor`
+- Social Signals → `social`
+- Visitor → `visitors`
+
+一个人可以拥有多个标签。完整说明见[参会人员来源类型](/zh-Hans/concepts/attendee-source-types)。
+
+当响应包含 `semantics.accessMode: "preview"` 时，应读取 `semantics.counts.visibleTotal` 和 `semantics.unlock.requiredForMoreResults`。这些字段描述基础 Event Access。
+
+Visitor 是独立的注册参会访客数据层。执行 Visitor 或 Full Access 解锁前，调用 `POST /external/actions/precheck`，分别使用 `unlock_event_visitors` 或 `unlock_event_full_access`，并检查 Visitor 数据是否可用以及预计消耗的 Credits。
+
+## 5. 处理错误和限流
+
+- `401 Unauthorized`：API Key 缺失或无效。
+- `402 Payment Required`：余额或访问状态不足以完成付费操作。
+- `404 Not Found`：目标展会、企业、人员或任务不存在。
+- `429 Too Many Requests`：应退避后重试。
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="构建参会人员洞察" icon="users-round" href="/zh-Hans/guides/build-attendee-intelligence">
+    使用三类来源标签构建 Field Marketing、ABM 和销售触达工作流。
+  </Card>
+  <Card title="查找并解锁展会" icon="lock-keyhole-open" href="/zh-Hans/guides/find-and-unlock-event">
+    理解 Preview、基础 Event Access、Visitor Access 和 Full Access。
+  </Card>
+  <Card title="解锁联系人邮箱" icon="mail-check" href="/zh-Hans/guides/unlock-contact-emails">
+    发起异步邮箱解锁任务并轮询结果。
+  </Card>
+</CardGroup>

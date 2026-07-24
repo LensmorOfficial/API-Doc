@@ -1,0 +1,121 @@
+---
+title: "构建参会人员洞察"
+description: "使用 Exhibitor、Social Signals 和 Visitor 来源标签构建活动营销、ABM 和销售触达工作流。"
+---
+
+本指南介绍如何围绕展会参会人员构建 Field Marketing、Account-Based Event Planning 和 Sales Engagement 工作流。
+
+Lensmor Attendees 包含三种来源标签：
+
+- **Exhibitor**（`exhibitor`）— 与参展企业相关的参会人员。
+- **Social Signals**（`social`）— 通过 LinkedIn 相关信号识别出的展会相关人员。
+- **Visitor**（`visitors`）— 通过主办方或数据合作伙伴获得的注册参会访客。
+
+一个人可以同时拥有多个标签。完整规则请参阅[参会人员来源类型](/zh-Hans/concepts/attendee-source-types)。
+
+## 推荐流程
+
+<Steps>
+  <Step title="发现并确认展会">
+    搜索展会目录、进行展会排序或使用 Profile Matching。调用人员接口前，先获取并确认目标展会的 `eventId`。
+  </Step>
+  <Step title="查看当前可访问的参会人员">
+    调用 `GET /external/personnel/list`，同时读取人员的 `sourceType` 数组和响应级 `semantics` 对象。
+  </Step>
+  <Step title="检查 Visitor 数据是否可用">
+    调用 Visitor 或 Full Access 的 action precheck。只有部分展会提供 Visitor 数据。
+  </Step>
+  <Step title="解锁所需访问层">
+    基础 Event Access 用于扩大 Exhibitor/Personnel 覆盖；Visitor Access 用于注册访客；Full Access 可一次解锁两个缺失的访问层。
+  </Step>
+  <Step title="筛选并补全选中的人员">
+    在客户端按来源分类，筛选与业务目标相关的人员，只对最终选中的 Personnel ID 解锁邮箱或电话。
+  </Step>
+</Steps>
+
+## 1. 获取展会人员
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+每个人员记录都可能包含多个 `sourceType`：
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Smith",
+  "title": "VP of Partnerships",
+  "companyName": "Acme Retail Systems",
+  "sourceType": ["exhibitor", "social"],
+  "contactUnlockStatus": "locked"
+}
+```
+
+需要判断某个来源与当前展会的关系时，应使用 Personnel List。Personnel Profile 和 Contact Search 可能聚合该人员在多个关联展会中的来源标签。
+
+## 2. 在客户端分类
+
+Personnel List 当前没有来源筛选参数。请保留重叠标签，并在应用中分类：
+
+```js
+const bySource = {
+  exhibitor: items.filter((person) => person.sourceType?.includes("exhibitor")),
+  social: items.filter((person) => person.sourceType?.includes("social")),
+  visitors: items.filter((person) => person.sourceType?.includes("visitors")),
+};
+```
+
+不要把三个分类数量直接相加作为唯一人员总数，因为同一个人可能属于多个分类。
+
+## 3. 检查 Visitor 可用性和访问状态
+
+Visitor 是独立的数据访问层。向用户展示解锁确认前，应先执行 precheck：
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "unlock_event_visitors",
+    "call_source": "api",
+    "params": {
+      "event_id": "139574"
+    }
+  }'
+```
+
+读取 `allowed`、`credits`、`reason` 和 `detail.visitor_data_available`。如果基础 Event Access 仍未解锁，应改用 Full Access precheck，或先解锁基础 Event Access。
+
+<Warning>
+  Personnel List 中的 `semantics.accessMode: "full"` 只表示基础 Event Access。需要注册 Visitor 数据时，必须另外检查 Visitor precheck 状态。
+</Warning>
+
+## 4. 只补全最终选中的人员
+
+完成参会人员优先级判断后，收集目标人员的 ID，调用邮箱或电话解锁工作流。这些操作可能消耗 Credits，并可能异步执行，因此应先展示选中范围和预计成本，再保存任务 ID 并轮询结果。
+
+## 常见 Use Cases
+
+### Field Marketing
+
+比较 Exhibitor、Social Signals 和 Visitor 数据，理解当前可访问的展会受众，并优先选择注册 Visitor 或重点参展企业人员。
+
+### Account-Based Event Planning
+
+结合 `GET /external/exhibitors/list` 与展会 Personnel List，识别正在参展的目标客户，并分析相关人员的来源、职位和部门。
+
+### Sales Engagement
+
+根据来源标签、职位、部门和职级筛选参会人员，只对用户最终确认的触达名单解锁联系方式。
+
+### CRM 数据补全
+
+在客户自己的集成中保存 Person ID、Event ID、完整 `sourceType` 数组和解锁状态。保留展会上下文，避免把聚合来源误解成当前展会的注册状态。
+
+## 当前限制
+
+- Event List 和 Event Detail 暂未公开 `hasVisitors` 字段，已知展会应通过 Visitor action precheck 判断。
+- Personnel List 暂不支持来源筛选参数。
+- Visitor 覆盖因展会而异，不能通过展会类别、规模或地点推断。

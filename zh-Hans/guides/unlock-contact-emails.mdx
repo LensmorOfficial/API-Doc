@@ -1,0 +1,102 @@
+---
+title: "解锁联系人邮箱"
+description: "通过 Lensmor 异步任务解锁联系人邮箱，轮询任务状态、处理 Credits，并将已确认结果同步到自己的系统。"
+---
+
+当集成已经识别出值得补全的参会人员，并需要邮箱用于销售触达或 CRM 数据补全时，请使用本工作流。
+
+邮箱解锁是异步操作：创建请求会校验批次并启动任务，集成随后轮询任务接口直到完成。
+
+## 何时使用
+
+常见输入来自：
+
+- [Personnel List（英文）](/api-reference/personnel/list-event-personnel)
+- [Personnel Profile（英文）](/api-reference/personnel/get-personnel-profile)
+- [Contact Search（英文）](/api-reference/contacts/search-contacts)
+
+<Warning>
+  不要把邮箱解锁当作盲目批量导出。只提交用户选中或评分流程确认值得补全的人员。
+</Warning>
+
+## 1. 收集 Personnel ID
+
+```json
+{
+  "id": "789",
+  "fullName": "Jane Doe",
+  "title": "VP of Partnerships",
+  "companyName": "Example Retail Co",
+  "sourceType": ["exhibitor", "visitors"],
+  "email": null,
+  "contactUnlockStatus": "locked"
+}
+```
+
+将人员带入补全流程时，应保留完整 `sourceType` 数组和 Event ID。只提交仍处于锁定状态的人员。
+
+## 2. 创建解锁任务
+
+```bash
+curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-call-source: api" \
+  -d '{
+    "event_id": "139574",
+    "personnel_ids": ["789", "790"]
+  }'
+```
+
+每次最多接受 `100` 个 Personnel ID。
+
+```json
+{
+  "status": "accepted",
+  "task_id": "321",
+  "job_id": "321"
+}
+```
+
+保存 `task_id`，后续轮询需要使用该值。
+
+## 3. 轮询任务
+
+```bash
+curl "https://platform.lensmor.com/external/contacts/unlock-tasks/321" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+使用退避策略轮询，不要进行紧密循环。
+
+## 4. 处理结果
+
+- 任务仍在进行：继续按退避策略轮询。
+- 任务完成：检查每一项结果。只有状态已解锁且确实返回邮箱时，才计为交付成功。
+- 任务失败：展示错误，让用户决定是否重试。
+- `404 Not Found`：任务 ID 无效或当前 API Key 无权查看。
+
+一个任务可能同时包含成功、失败、不符合条件和未解析的联系人，应分别展示。
+
+## Credits
+
+邮箱解锁当前对每个可计费联系人消耗 `15` Credits：
+
+- 已解锁联系人不会重复计费。
+- 超过 `100` 个 Personnel ID 的批次会被拒绝。
+- 余额不足返回 `402 Payment Required`。
+- 接口响应和商业协议是最终计费依据。
+
+## 推荐集成行为
+
+- 创建任务前展示锁定联系人数量。
+- 大批次前调用 `GET /external/credits/balance`。
+- 保存任务 ID，让轮询可以在中断后恢复。
+- 对 `429 Too Many Requests` 使用退避。
+- 任务完成后按需重新获取余额和 Personnel/Contact 状态。
+
+## 相关文档
+
+- [参会人员来源类型](/zh-Hans/concepts/attendee-source-types)
+- [Credits 与访问权限](/zh-Hans/concepts/credits-and-access)
+- [Contact Unlock Task（英文）](/api-reference/contacts/get-contact-unlock-task)
