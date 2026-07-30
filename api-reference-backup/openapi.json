@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.24.1",
+    "version": "0.24.2",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -160,7 +160,7 @@
           "Events"
         ],
         "summary": "List events",
-        "description": "Search and filter the event catalog by keyword, geography, date, type, and quality with pagination.",
+        "description": "Search and filter the event catalog by keyword, geography, date, type, and quality with pagination. Event items include hasVisitors when registered Visitor data is available; the public event list does not currently expose a has_visitors query filter.",
         "operationId": "listEvents",
         "parameters": [
           {
@@ -254,6 +254,7 @@
                       "region": "Nevada",
                       "country": "United States",
                       "exhibitorCount": 3259,
+                      "hasVisitors": true,
                       "sponsorMatchStarred": 0,
                       "image": "https://example.com/ces-image.png",
                       "dataSource": "Lensmor"
@@ -283,7 +284,7 @@
           "Events"
         ],
         "summary": "Get event detail",
-        "description": "Return the detailed public event record for one Lensmor event identifier.",
+        "description": "Return the detailed public event record for one Lensmor event identifier, including hasVisitors when registered Visitor data is available.",
         "operationId": "getEventDetail",
         "parameters": [
           {
@@ -320,6 +321,7 @@
                     "region": "Nevada",
                     "country": "United States",
                     "exhibitorCount": 3259,
+                    "hasVisitors": true,
                     "sponsorMatchStarred": 0,
                     "dataSource": "Lensmor"
                   }
@@ -1228,7 +1230,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
-        "description": "Return paginated people for an event with event-scoped attendee source labels and preview or full base-event access semantics. The sourceType array can contain exhibitor, social, and visitors; labels are not mutually exclusive. The endpoint does not currently accept a source filter. Visitor is a separate access layer, so semantics.accessMode does not by itself confirm Visitor access.",
+        "description": "Return paginated people for an event with event-scoped attendee source labels and preview or full base-event access semantics. The sourceType array can contain exhibitor, social, and visitors; labels are not mutually exclusive. Use the sourceType query parameter to filter by one supported attendee source. Visitor is a separate access layer, so semantics.accessMode does not by itself confirm Visitor access.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -1276,6 +1278,20 @@
             "schema": {
               "type": "string",
               "maxLength": 200
+            }
+          },
+          {
+            "name": "sourceType",
+            "in": "query",
+            "description": "Filter personnel by one event-scoped attendee source label. Supported values are exhibitor, social, and visitors.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "exhibitor",
+                "social",
+                "visitors"
+              ],
+              "maxLength": 50
             }
           }
         ],
@@ -2832,6 +2848,10 @@
               "integer",
               "null"
             ]
+          },
+          "hasVisitors": {
+            "type": "boolean",
+            "description": "True when the event currently has registered Visitor data available. This is an availability signal, not proof that the caller has unlocked Visitor access."
           },
           "sponsorMatchStarred": {
             "type": "integer",

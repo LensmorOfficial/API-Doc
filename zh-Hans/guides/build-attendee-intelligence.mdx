@@ -29,7 +29,7 @@ Lensmor Attendees 包含三种来源标签：
     基础 Event Access 用于扩大 Exhibitor/Personnel 覆盖；Visitor Access 用于注册访客；Full Access 可一次解锁两个缺失的访问层。
   </Step>
   <Step title="筛选并补全选中的人员">
-    在客户端按来源分类，筛选与业务目标相关的人员，只对最终选中的 Personnel ID 解锁邮箱或电话。
+    按来源筛选或分类当前可访问的人员，只对最终选中的 Personnel ID 解锁邮箱或电话。
   </Step>
 </Steps>
 
@@ -55,9 +55,18 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=
 
 需要判断某个来源与当前展会的关系时，应使用 Personnel List。Personnel Profile 和 Contact Search 可能聚合该人员在多个关联展会中的来源标签。
 
-## 2. 在客户端分类
+## 2. 按来源筛选或分类
 
-Personnel List 当前没有来源筛选参数。请保留重叠标签，并在应用中分类：
+当你只需要某个展会范围来源分类时，可以在 Personnel List 上使用 `sourceType` 参数：
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+支持的值为 `exhibitor`、`social` 和 `visitors`。由于标签可能重叠，命中筛选的人员仍可能在响应中包含其他 `sourceType` 值。
+
+如果一次获取全部可访问人员，请保留重叠标签，并在应用中分类：
 
 ```js
 const bySource = {
@@ -116,6 +125,6 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## 当前限制
 
-- Event List 和 Event Detail 暂未公开 `hasVisitors` 字段，已知展会应通过 Visitor action precheck 判断。
-- Personnel List 暂不支持来源筛选参数。
+- Event List 和 Event Detail 已公开 `hasVisitors` 字段，用于表示 Visitor 数据是否可用。
+- Event List 暂不公开 `has_visitors` 查询筛选参数。
 - Visitor 覆盖因展会而异，不能通过展会类别、规模或地点推断。

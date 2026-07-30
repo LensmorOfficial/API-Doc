@@ -53,7 +53,16 @@ Personnel List 返回的 `semantics.accessMode` 只描述基础 Event Access，�
 
 ## 来源筛选
 
-`GET /external/personnel/list` 当前没有 `sourceType` 服务端筛选参数。请先获取当前可访问的数据，再在客户端分类：
+`GET /external/personnel/list` 支持使用单个 `sourceType` 查询参数，让 API 返回匹配某个展会范围来源标签的人员：
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+支持的值为 `exhibitor`、`social` 和 `visitors`。
+
+也可以不传 `sourceType`，先获取当前可访问的展会范围数据，再在客户端分类：
 
 ```js
 const visitors = items.filter((person) =>
@@ -61,7 +70,7 @@ const visitors = items.filter((person) =>
 );
 ```
 
-由于标签可能重叠，同一个人可以同时出现在多个分类中。
+由于标签可能重叠，一个人即使命中某个来源筛选，响应中的 `sourceType` 仍可能包含其他来源值。
 
 ## 相关文档
 

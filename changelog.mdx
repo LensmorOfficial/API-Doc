@@ -5,6 +5,21 @@ description: "Versioned Lensmor API documentation updates, newly documented endp
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.24.2
+
+Released July 30, 2026.
+
+### Added
+
+- Documented the `sourceType` query parameter on `GET /external/personnel/list` for filtering event personnel by `exhibitor`, `social`, or `visitors`.
+- Documented the `hasVisitors` response field on public event list and detail records.
+
+### Clarified
+
+- Clarified that `hasVisitors` is a Visitor-data availability signal and does not prove the caller has unlocked Visitor access.
+- Clarified that the public event list documentation does not expose a `has_visitors` query filter yet.
+- Updated OpenAPI metadata to version `0.24.2`.
+
 ## v0.24.1
 
 Released July 24, 2026.

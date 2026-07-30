@@ -29,7 +29,7 @@ A person can have multiple labels. See [Attendee source types](/concepts/attende
     Unlock base event access for broader exhibitor/personnel coverage, Visitor access for registered attendee records, or full access for both missing layers.
   </Step>
   <Step title="Prioritize and enrich selected people">
-    Segment accessible records client-side, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
+    Filter or segment accessible records by source, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
   </Step>
 </Steps>
 
@@ -55,9 +55,18 @@ Each item can include a multi-value `sourceType`:
 
 Use the event-scoped list when you need source meaning for one selected event. Personnel profile and contact search can aggregate labels across multiple associated events.
 
-## 2. Segment the accessible audience
+## 2. Filter or segment the accessible audience
 
-The personnel endpoint does not currently provide a server-side source filter. Preserve overlapping labels and segment the returned items in your application:
+Use `sourceType` when you want the API to return one event-scoped source segment:
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Supported values are `exhibitor`, `social`, and `visitors`. Preserve overlapping labels because a matching person can still include additional `sourceType` values.
+
+When you fetch all accessible records, segment the returned items in your application:
 
 ```js
 const bySource = {
@@ -116,6 +125,6 @@ Store the person ID, event ID, full `sourceType` array, and unlock state in your
 
 ## Current limitations
 
-- Event list and event detail do not currently expose a public `hasVisitors` field. Use Visitor action precheck for a known event.
-- Personnel list does not currently accept a source filter.
+- Event list and event detail expose `hasVisitors` as a Visitor-data availability signal.
+- Event list does not currently expose a public `has_visitors` query filter.
 - Visitor coverage varies by event and must not be inferred from event category, size, or location.

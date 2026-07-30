@@ -87,6 +87,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
     "image": "https://example.com/ces-image.png",
     "dataSource": "Lensmor",
     "exhibitorCount": 3259,
+    "hasVisitors": true,
     "personnelCount": null,
     "eventTypes": []
   }
@@ -105,6 +106,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
 | `attendeeCount`, `exhibitorCount`, `personnelCount` | Known summary scale and coverage fields when available. These fields can be `null` or differ from current event-scoped list totals. |
+| `hasVisitors` | `true` when the event currently has registered Visitor data available. This is separate from the caller's Visitor access state. |
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
@@ -132,5 +134,6 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
 - `dataSource` is always `"Lensmor"` for public event records.
+- `hasVisitors` indicates Visitor data availability only. Use the Visitor or Full Access action precheck to confirm unlock eligibility, expected credits, and current access state.
 - `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
 - This endpoint does not unlock event-scoped exhibitor or personnel access by itself.
