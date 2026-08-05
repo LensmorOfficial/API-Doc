@@ -6,7 +6,7 @@
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-personnel.service.ts#list` and `src/modules/external-api/mappers/external-contact-response.mapper.ts`
 - Ambiguity note: Returned people use the contact-style public shape.
-- Contract note: `sourceType` is a normalized string array. Supported labels are `exhibitor`, `social`, and `visitors`.
+- Contract note: `sourceType` is a normalized string array. Supported labels are `exhibitor`, `social`, and `visitors`. The list query also accepts a single `sourceType` filter, sourced from `ExternalPersonnelListQueryDto.sourceType` and passed into `QueryLeadDto.sourceTypes`.
 
 ## GET /external/personnel/profile
 - Method/path source: `src/modules/external-api/controllers/external-personnel.controller.ts`

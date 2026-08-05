@@ -53,7 +53,16 @@ The `semantics.accessMode` field on the personnel list describes base event prev
 
 ## Filtering
 
-`GET /external/personnel/list` does not currently accept a `sourceType` filter. Fetch the accessible event-scoped result set, then segment it client-side:
+`GET /external/personnel/list` accepts a single `sourceType` query parameter when you want the API to return people matching one event-scoped source label:
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Supported values are `exhibitor`, `social`, and `visitors`.
+
+You can also fetch the accessible event-scoped result set without `sourceType`, then segment it client-side:
 
 ```js
 const visitors = items.filter((person) =>
@@ -61,7 +70,7 @@ const visitors = items.filter((person) =>
 );
 ```
 
-Because labels can overlap, a person may appear in more than one client-side segment.
+Because labels can overlap, a person may match a source filter and still include additional `sourceType` values in the response.
 
 ## Related workflows
 

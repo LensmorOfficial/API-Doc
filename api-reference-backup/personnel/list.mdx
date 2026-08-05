@@ -6,7 +6,7 @@ openapi: "openapi.json GET /external/personnel/list"
 
 List personnel records for a specific event.
 
-Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
+Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, source-type, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
 
 ## When to use this endpoint
 
@@ -16,12 +16,13 @@ Common use cases:
 
 - browse people associated with an event
 - filter by department or seniority
+- filter by one event-scoped `sourceType` label
 - find contacts for a selected exhibitor
 - segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 <Note>
-  The endpoint does not currently accept a source filter. Fetch the accessible result set and segment it client-side. See [Attendee source types](/concepts/attendee-source-types).
+  `sourceType` filtering is event-scoped. Use `exhibitor`, `social`, or `visitors`; labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
 </Note>
 
 ## Endpoint
@@ -41,6 +42,7 @@ See [Authentication](/authentication)
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
 | `search_query` | No | string | Name or job-title search. |
+| `sourceType` | No | string | Source label filter. Supported values: `exhibitor`, `social`, `visitors`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `50`; maximum `50`. |
 
@@ -54,6 +56,13 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=
 
 ```bash
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&department=marketing&level=vp&search_query=partnership&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by attendee source
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 

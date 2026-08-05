@@ -5,7 +5,14 @@
 - DTO/query source: `src/modules/external-api/dto/events/external-event-list-query.dto.ts`
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-events.service.ts#listEvents` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
+- Contract note: Public event items include `hasVisitors` from `ExternalEventResponseMapper.toEventItem`. The customer-facing docs expose this as a response field only; `has_visitors` is not documented as a public event-list filter yet.
 - Ambiguity note: The public example uses only fields directly emitted by `ExternalEventResponseMapper.toEventItem` plus the shared pagination envelope.
+
+## GET /external/events/:id
+- Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`
+- Success status source: Nest default for `@Get()` -> `200 OK`
+- Response example source: `src/modules/external-api/services/external-events.service.ts#getEventDetail` and `src/modules/external-api/mappers/external-event-response.mapper.ts#toEventDetail`
+- Contract note: Event detail includes `hasVisitors` from `ExternalEventResponseMapper.toEventDetail`; client types consume this as `ApiEvent.hasVisitors`.
 
 ## POST /external/events/fit-score
 - Method/path source: `src/modules/external-api/controllers/external-events.controller.ts`

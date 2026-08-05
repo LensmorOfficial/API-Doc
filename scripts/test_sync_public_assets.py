@@ -137,7 +137,7 @@ class PublicAssetSyncTests(unittest.TestCase):
 
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
-        self.assertEqual(spec["info"]["version"], "0.24.1")
+        self.assertEqual(spec["info"]["version"], "0.24.2")
 
         company_search = spec["paths"]["/external/exhibitors/search-by-company-name"]["post"]
         self.assertIn("non-empty", company_search["description"])
@@ -165,6 +165,25 @@ class PublicAssetSyncTests(unittest.TestCase):
         event_fields = schemas["EventItem"]["properties"]
         self.assertEqual(event_fields["dataSource"]["const"], "Lensmor")
         self.assertEqual(event_fields["sponsorMatchStarred"]["enum"], [0, 1])
+        self.assertEqual(event_fields["hasVisitors"]["type"], "boolean")
+        self.assertIn("availability signal", event_fields["hasVisitors"]["description"])
+
+        event_list = spec["paths"]["/external/events/list"]["get"]
+        event_list_parameter_names = [
+            parameter.get("name")
+            for parameter in event_list["parameters"]
+            if "$ref" not in parameter
+        ]
+        self.assertNotIn("has_visitors", event_list_parameter_names)
+        self.assertTrue(
+            event_list["responses"]["200"]["content"]["application/json"]["example"]["items"][0][
+                "hasVisitors"
+            ]
+        )
+        self.assertTrue(
+            spec["paths"]["/external/events/{id}"]["get"]["responses"]["200"]["content"]
+            ["application/json"]["example"]["event"]["hasVisitors"]
+        )
 
         event_examples = [
             spec["paths"]["/external/events/list"]["get"]["responses"]["200"]["content"]
@@ -268,6 +287,18 @@ class PublicAssetSyncTests(unittest.TestCase):
             ["exhibitor", "social", "visitors"],
         )
         self.assertIn("not mutually exclusive", source_type["description"])
+
+        personnel_list = spec["paths"]["/external/personnel/list"]["get"]
+        self.assertNotIn("does not currently accept a source filter", personnel_list["description"])
+        source_type_parameter = next(
+            parameter
+            for parameter in personnel_list["parameters"]
+            if parameter.get("name") == "sourceType"
+        )
+        self.assertEqual(
+            source_type_parameter["schema"]["enum"],
+            ["exhibitor", "social", "visitors"],
+        )
 
         source_examples = [
             spec["paths"]["/external/personnel/list"]["get"]["responses"]["200"]

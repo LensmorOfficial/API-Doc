@@ -11,7 +11,7 @@ Build event and attendee intelligence workflows with the Lensmor API. Use it to 
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.24.1`
+Current documentation version: `v0.24.2`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -208,6 +208,21 @@ To test your integration safely:
 Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.24.2
+
+Released July 30, 2026.
+
+### Added
+
+- Documented the `sourceType` query parameter on `GET /external/personnel/list` for filtering event personnel by `exhibitor`, `social`, or `visitors`.
+- Documented the `hasVisitors` response field on public event list and detail records.
+
+### Clarified
+
+- Clarified that `hasVisitors` is a Visitor-data availability signal and does not prove the caller has unlocked Visitor access.
+- Clarified that the public event list documentation does not expose a `has_visitors` query filter yet.
+- Updated OpenAPI metadata to version `0.24.2`.
 
 ## v0.24.1
 
@@ -494,7 +509,7 @@ A person can have multiple labels. See [Attendee source types](/concepts/attende
     Unlock base event access for broader exhibitor/personnel coverage, Visitor access for registered attendee records, or full access for both missing layers.
   </Step>
   <Step title="Prioritize and enrich selected people">
-    Segment accessible records client-side, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
+    Filter or segment accessible records by source, score the people relevant to your workflow, and unlock email or phone fields only for selected personnel IDs.
   </Step>
 </Steps>
 
@@ -520,9 +535,18 @@ Each item can include a multi-value `sourceType`:
 
 Use the event-scoped list when you need source meaning for one selected event. Personnel profile and contact search can aggregate labels across multiple associated events.
 
-## 2. Segment the accessible audience
+## 2. Filter or segment the accessible audience
 
-The personnel endpoint does not currently provide a server-side source filter. Preserve overlapping labels and segment the returned items in your application:
+Use `sourceType` when you want the API to return one event-scoped source segment:
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Supported values are `exhibitor`, `social`, and `visitors`. Preserve overlapping labels because a matching person can still include additional `sourceType` values.
+
+When you fetch all accessible records, segment the returned items in your application:
 
 ```js
 const bySource = {
@@ -581,8 +605,8 @@ Store the person ID, event ID, full `sourceType` array, and unlock state in your
 
 ## Current limitations
 
-- Event list and event detail do not currently expose a public `hasVisitors` field. Use Visitor action precheck for a known event.
-- Personnel list does not currently accept a source filter.
+- Event list and event detail expose `hasVisitors` as a Visitor-data availability signal.
+- Event list does not currently expose a public `has_visitors` query filter.
 - Visitor coverage varies by event and must not be inferred from event category, size, or location.
 
 ---
@@ -1378,6 +1402,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
       "region": "Nevada",
       "country": "United States",
       "exhibitorCount": 3259,
+      "hasVisitors": true,
       "sponsorMatchStarred": 0,
       "image": "https://example.com/ces-image.png",
       "dataSource": "Lensmor"
@@ -1405,6 +1430,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
+| `hasVisitors` | `true` when the event currently has registered Visitor data available. This does not mean the caller has unlocked Visitor access. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
 | `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
@@ -1418,6 +1444,7 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
 - `id` and `eventId` currently return the same value. Use `eventId` when passing to event-scoped endpoints.
+- `hasVisitors` is returned as an availability signal, but this endpoint does not expose a public `has_visitors` filter yet. For a known event, use the Visitor or Full Access action precheck before an unlock workflow.
 - `event_type` and `quality` filters must match actual values in the database (e.g. `In-person`, `conference_led` for event type; `Verified`, `Standard` for quality). Invalid values return an empty result set rather than an error.
 - Filter values are applied to the event catalog, but summary list items may still omit or return `null` for some classification fields. Fetch event detail when you need the full classification shape.
 
@@ -1510,6 +1537,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
     "image": "https://example.com/ces-image.png",
     "dataSource": "Lensmor",
     "exhibitorCount": 3259,
+    "hasVisitors": true,
     "personnelCount": null,
     "eventTypes": []
   }
@@ -1528,6 +1556,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
 | `dateStart`, `dateEnd` | Event date range. |
 | `venue`, `city`, `region`, `country`, `latitude`, `longitude` | Location metadata. Coordinates are string values (e.g. `"36.1313238"`) or `null`. |
 | `attendeeCount`, `exhibitorCount`, `personnelCount` | Known summary scale and coverage fields when available. These fields can be `null` or differ from current event-scoped list totals. |
+| `hasVisitors` | `true` when the event currently has registered Visitor data available. This is separate from the caller's Visitor access state. |
 | `priceLower`, `priceUpper` | Price range as string values (e.g. `"1295"`) or `null`. |
 | `eventType`, `eventTypes`, `categories`, `topics`, `topicsCount` | Classification metadata. `categories` is an array of objects with `id`, `code`, `name`, `description`, `confidence` fields. |
 | `verified`, `future`, `historic`, `historicEvent` | Status flags and historical relationship metadata. |
@@ -1555,6 +1584,7 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
 - `dataSource` is always `"Lensmor"` for public event records.
+- `hasVisitors` indicates Visitor data availability only. Use the Visitor or Full Access action precheck to confirm unlock eligibility, expected credits, and current access state.
 - `categories` is an array of objects. Each object contains `id` (integer), `code` (string), `name` (string), `description` (string or null), and `confidence` (string).
 - This endpoint does not unlock event-scoped exhibitor or personnel access by itself.
 
@@ -3009,7 +3039,7 @@ Source: /api-reference/personnel/list-event-personnel
 
 List personnel records for a specific event.
 
-Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
+Use this endpoint when you want a paginated people directory for one event, with optional exhibitor, department, level, source-type, and search filters. Each item can include event-scoped Exhibitor, Social Signals, and Visitor source labels.
 
 ## When to use this endpoint
 
@@ -3019,12 +3049,13 @@ Common use cases:
 
 - browse people associated with an event
 - filter by department or seniority
+- filter by one event-scoped `sourceType` label
 - find contacts for a selected exhibitor
 - segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 <Note>
-  The endpoint does not currently accept a source filter. Fetch the accessible result set and segment it client-side. See [Attendee source types](/concepts/attendee-source-types).
+  `sourceType` filtering is event-scoped. Use `exhibitor`, `social`, or `visitors`; labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
 </Note>
 
 ## Endpoint
@@ -3044,6 +3075,7 @@ See [Authentication](/authentication)
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
 | `search_query` | No | string | Name or job-title search. |
+| `sourceType` | No | string | Source label filter. Supported values: `exhibitor`, `social`, `visitors`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `50`; maximum `50`. |
 
@@ -3057,6 +3089,13 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&page=
 
 ```bash
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&department=marketing&level=vp&search_query=partnership&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Filter by attendee source
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -4710,7 +4749,16 @@ The `semantics.accessMode` field on the personnel list describes base event prev
 
 ## Filtering
 
-`GET /external/personnel/list` does not currently accept a `sourceType` filter. Fetch the accessible event-scoped result set, then segment it client-side:
+`GET /external/personnel/list` accepts a single `sourceType` query parameter when you want the API to return people matching one event-scoped source label:
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Supported values are `exhibitor`, `social`, and `visitors`.
+
+You can also fetch the accessible event-scoped result set without `sourceType`, then segment it client-side:
 
 ```js
 const visitors = items.filter((person) =>
@@ -4718,7 +4766,7 @@ const visitors = items.filter((person) =>
 );
 ```
 
-Because labels can overlap, a person may appear in more than one client-side segment.
+Because labels can overlap, a person may match a source filter and still include additional `sourceType` values in the response.
 
 ## Related workflows
 
