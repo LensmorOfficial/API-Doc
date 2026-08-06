@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.24.2",
+    "version": "0.24.3",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
