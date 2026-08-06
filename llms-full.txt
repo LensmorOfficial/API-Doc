@@ -11,7 +11,7 @@ Build event and attendee intelligence workflows with the Lensmor API. Use it to 
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.24.2`
+Current documentation version: `v0.24.3`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -208,6 +208,16 @@ To test your integration safely:
 Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.24.3
+
+Released August 6, 2026.
+
+### Changed
+
+- Refreshed the current documentation version after the July attendee-source and visitor-availability documentation update.
+- Regenerated machine-readable documentation resources so `openapi.json` and `llms-full.txt` report the current documentation version.
+- Updated OpenAPI metadata to version `0.24.3`.
 
 ## v0.24.2
 
