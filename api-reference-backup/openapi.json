@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.24.3",
+    "version": "0.25.0",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -1546,6 +1546,144 @@
         }
       }
     },
+    "/external/personnel/events/by-name": {
+      "get": {
+        "tags": [
+          "Personnel"
+        ],
+        "summary": "Search personnel related events by name",
+        "description": "Return a paginated, deduplicated event list for up to 50 personnel records whose full name exactly matches the supplied name. This endpoint requires an active paid user. A non-empty result consumes 50 credits; an empty result consumes 0 credits. At most 10 requests can run concurrently for one user.",
+        "operationId": "searchPersonnelEventsByName",
+        "parameters": [
+          {
+            "name": "person_name",
+            "in": "query",
+            "required": true,
+            "description": "Exact personnel full name. Matching is case-insensitive and ignores leading and trailing whitespace.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "example": "Jane Smith"
+          },
+          {
+            "name": "date_start_from",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive lower bound for the event start date. Defaults to the current date when omitted.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-08-10"
+          },
+          {
+            "name": "date_start_to",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive upper bound for the event start date. Omit for no upper bound.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-12-31"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "$ref": "#/components/parameters/CallSource"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated events, or a business-error envelope when the per-user concurrency limit is exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/EventPage"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ConcurrencyLimitBusinessError"
+                    }
+                  ]
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "items": [
+                        {
+                          "id": "501",
+                          "eventId": "139574",
+                          "name": "Retail Technology Expo 2026",
+                          "nickname": null,
+                          "description": "Retail technology event",
+                          "url": "https://example.com/events/retail-technology-expo-2026",
+                          "dateStart": "2026-10-01",
+                          "dateEnd": "2026-10-03",
+                          "venue": "Las Vegas Convention Center",
+                          "city": "Las Vegas",
+                          "region": "NV",
+                          "country": "United States",
+                          "exhibitorCount": 950,
+                          "hasVisitors": true,
+                          "sponsorMatchStarred": 0,
+                          "image": null,
+                          "dataSource": "Lensmor"
+                        }
+                      ],
+                      "total": 1,
+                      "page": 1,
+                      "pageSize": 20,
+                      "totalPages": 1,
+                      "hasMore": false
+                    }
+                  },
+                  "concurrencyLimitExceeded": {
+                    "value": {
+                      "code": 429,
+                      "message": "Too many concurrent requests for this endpoint",
+                      "errorKey": "USER_CONCURRENCY_LIMIT_EXCEEDED",
+                      "data": null,
+                      "details": null,
+                      "traceId": "trace-123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "description": "Active paid subscription required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
     "/external/personnel/unlock-linkedin-activity": {
       "post": {
         "tags": [
@@ -2713,6 +2851,40 @@
             "type": "string"
           }
         }
+      },
+      "ConcurrencyLimitBusinessError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "errorKey",
+          "data",
+          "details",
+          "traceId"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "const": 429
+          },
+          "message": {
+            "type": "string"
+          },
+          "errorKey": {
+            "type": "string",
+            "const": "USER_CONCURRENCY_LIMIT_EXCEEDED"
+          },
+          "data": {
+            "type": "null"
+          },
+          "details": {
+            "type": "null"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       },
       "CreditBalance": {
         "type": "object",
@@ -4332,6 +4504,7 @@
               "unlock_contact_emails",
               "unlock_contact_phones",
               "search_exhibitor_events",
+              "search_personnel_events_by_name",
               "others"
             ]
           },
