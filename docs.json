@@ -116,6 +116,7 @@
                   "GET /external/personnel/profile",
                   "GET /external/personnel/events",
                   "GET /external/personnel/events/by-linkedin",
+                  "GET /external/personnel/events/by-name",
                   "POST /external/personnel/unlock-linkedin-activity",
                   "POST /external/personnel/generate-outreach-message",
                   "GET /external/personnel/outreach"
@@ -281,6 +282,11 @@
     {
       "source": "/api-reference/personnel/events-by-linkedin",
       "destination": "/api-reference/personnel/list-personnel-related-events-by-linkedin-url",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/personnel/events-by-name",
+      "destination": "/api-reference/personnel/search-personnel-related-events-by-name",
       "permanent": true
     },
     {

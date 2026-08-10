@@ -11,7 +11,7 @@ Build event and attendee intelligence workflows with the Lensmor API. Use it to 
 
 Use this documentation to authenticate, make your first request, and integrate Lensmor event, exhibitor, personnel, contact, and recommendation resources into your own workflows.
 
-Current documentation version: `v0.24.3`
+Current documentation version: `v0.25.0`
 
 ## Base URL
 `https://platform.lensmor.com`
@@ -208,6 +208,20 @@ To test your integration safely:
 Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
+
+## v0.25.0
+
+Released August 10, 2026.
+
+### Added
+
+- Documented `GET /external/personnel/events/by-name` for reverse-looking up events from an exact personnel full name.
+- Documented `person_name`, optional event-start date bounds, event pagination, the fixed `50`-person candidate window, active-paid-user access, credit behavior, and the per-user concurrency limit of `10`.
+- Added `search_personnel_events_by_name` to the Actions precheck contract.
+
+### Changed
+
+- Updated OpenAPI metadata to version `0.25.0` and regenerated the machine-readable documentation resources.
 
 ## v0.24.3
 
@@ -1244,7 +1258,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `action_type` | Yes | string | Supported customer actions include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, and `others`. |
+| `action_type` | Yes | string | Supported customer actions include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, `search_personnel_events_by_name`, and `others`. |
 | `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
 | `call_source` | No | string | Source label such as `api` or `agent`. |
 | `locale` | No | string | Optional locale, such as `en-US`. |
@@ -1323,6 +1337,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
 - `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
+- `search_personnel_events_by_name` is useful before calling [Personnel events by name](/api-reference/personnel/search-personnel-related-events-by-name). Put `person_name` and optional `date_start_from` and `date_start_to` values in `params`. A valid-name precheck quotes `50` credits; execution charges only when the lookup returns events.
 - `unlock_event_visitors` requires base event access first. It can report `3000` expected credits, `state_conflict` when the event is still locked, `no_contacts_available` when visitor data is unavailable, or `forbidden` when the account has no active subscription.
 - `unlock_event_full_access` calculates only the missing access layers: `2000` for base event access plus `3000` for visitor access. It can therefore report `0`, `2000`, `3000`, or `5000` credits.
 - For full-access precheck, `detail` includes `event_unlocked`, `visitor_unlocked`, `visitor_data_available`, `event_access_credits`, `visitor_access_credits`, and `full_access_credits`.
@@ -3528,6 +3543,123 @@ Recommended production behavior:
 - The returned `personnel` object uses the same contact-style response shape as personnel profile responses.
 - Emails are returned only when the contact is already unlocked for the caller.
 - The `personnel` object includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
+
+---
+
+## Personnel events by name
+
+Source: /api-reference/personnel/search-personnel-related-events-by-name
+
+Find events associated with a person when you know their full name but do not have a Lensmor `personnel_id` or LinkedIn URL.
+
+This endpoint returns the combined, deduplicated events for exact-name personnel matches. The response is a paginated event list; it does not include a separate `personnel` object.
+
+## Endpoint
+
+`GET /external/personnel/events/by-name`
+
+## Authentication and access
+
+See [Authentication](/authentication). The API-key owner must have an active paid subscription.
+
+## Success status code
+
+`200 OK`
+
+## Query parameters
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `person_name` | Yes | string | Exact full name, length `1` to `200`. Matching is case-insensitive and leading/trailing whitespace is ignored. Partial and fuzzy matching are not used. |
+| `date_start_from` | No | date | Inclusive lower bound on event start date. Defaults to the current date, so the default result contains upcoming events. |
+| `date_start_to` | No | date | Inclusive upper bound on event start date. Omit for no upper bound. |
+| `page` | No | integer | Defaults to `1`. |
+| `pageSize` | No | integer | Defaults to `20`; maximum `100`. This paginates events, not personnel candidates. |
+| `x-call-source` | No | header | Usage source, `api` or `agent`; defaults to `api`. |
+
+## Request example
+
+```bash
+curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&date_start_from=2026-08-10&date_start_to=2026-12-31&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY" \
+  -H "x-call-source: api"
+```
+
+## Response example
+
+```json
+{
+  "items": [
+    {
+      "id": "501",
+      "eventId": "139574",
+      "name": "Retail Technology Expo 2026",
+      "nickname": null,
+      "description": "Retail technology event",
+      "url": "https://example.com/events/retail-technology-expo-2026",
+      "dateStart": "2026-10-01",
+      "dateEnd": "2026-10-03",
+      "venue": "Las Vegas Convention Center",
+      "city": "Las Vegas",
+      "region": "NV",
+      "country": "United States",
+      "exhibitorCount": 950,
+      "hasVisitors": true,
+      "sponsorMatchStarred": 0,
+      "image": null,
+      "dataSource": "Lensmor"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 1,
+  "hasMore": false
+}
+```
+
+## Matching and result behavior
+
+- The server considers up to `50` personnel records with the exact full name. This candidate window is fixed and independent of event `pageSize`.
+- Events from those exact-name records are combined and deduplicated, then ordered by `dateStart` ascending.
+- Both date bounds apply inclusively to `dateStart`. Set an earlier `date_start_from` to include historical events.
+- No personnel match or no qualifying event returns `200 OK` with `items: []`, `total: 0`, `totalPages: 0`, and `hasMore: false`.
+
+## Credits and precheck
+
+A non-empty event result consumes `50` credits. An empty result consumes `0` credits. If the result is non-empty but the balance is insufficient, the API returns `402 Payment Required` instead of the event page.
+
+Call [Actions precheck](/api-reference/actions/precheck-an-external-action) first with `action_type: "search_personnel_events_by_name"`. Put `person_name` and any date bounds in `params`. Precheck quotes `50` credits for a valid name because it does not execute the lookup; the execution endpoint charges only for a non-empty result.
+
+## Concurrency limit
+
+Each user can run up to `10` calls to this endpoint concurrently. When that limit is exceeded, the current Business API contract returns HTTP `200` with a business-error body:
+
+```json
+{
+  "code": 429,
+  "message": "Too many concurrent requests for this endpoint",
+  "errorKey": "USER_CONCURRENCY_LIMIT_EXCEEDED",
+  "data": null,
+  "details": null,
+  "traceId": "trace-123"
+}
+```
+
+Treat this body as an error and retry after one or more in-flight requests finish. This differs from the ordinary HTTP `429 Too Many Requests` rate-limit response.
+
+## Error responses
+
+- `400 Bad Request` for a missing, blank, overlong, or invalid query value
+- `401 Unauthorized`
+- `402 Payment Required` for insufficient credits on a non-empty lookup
+- `403 Forbidden` when the API-key owner has no active paid subscription
+- `429 Too Many Requests` for ordinary rate limiting
+
+## Notes
+
+- For the most precise identity lookup, use [Personnel related events](/api-reference/personnel/list-personnel-related-events) when you already have a `personnel_id`, or [Personnel events by LinkedIn](/api-reference/personnel/list-personnel-related-events-by-linkedin-url) when you have a LinkedIn URL.
+- Event items use the standard public event shape. `dataSource` is Always `Lensmor`; `sponsorMatchStarred` is `0` or `1`; `hasVisitors` signals Visitor-data availability and does not prove access is unlocked.
 
 ---
 

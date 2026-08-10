@@ -5,6 +5,20 @@ description: "Versioned Lensmor API documentation updates, newly documented endp
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.25.0
+
+Released August 10, 2026.
+
+### Added
+
+- Documented `GET /external/personnel/events/by-name` for reverse-looking up events from an exact personnel full name.
+- Documented `person_name`, optional event-start date bounds, event pagination, the fixed `50`-person candidate window, active-paid-user access, credit behavior, and the per-user concurrency limit of `10`.
+- Added `search_personnel_events_by_name` to the Actions precheck contract.
+
+### Changed
+
+- Updated OpenAPI metadata to version `0.25.0` and regenerated the machine-readable documentation resources.
+
 ## v0.24.3
 
 Released August 6, 2026.

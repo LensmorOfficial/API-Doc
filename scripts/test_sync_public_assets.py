@@ -35,6 +35,7 @@ EXPECTED_PUBLIC_OPERATIONS = {
     ("GET", "/external/personnel/profile"),
     ("GET", "/external/personnel/events"),
     ("GET", "/external/personnel/events/by-linkedin"),
+    ("GET", "/external/personnel/events/by-name"),
     ("POST", "/external/personnel/unlock-linkedin-activity"),
     ("POST", "/external/personnel/generate-outreach-message"),
     ("GET", "/external/personnel/outreach"),
@@ -137,7 +138,26 @@ class PublicAssetSyncTests(unittest.TestCase):
 
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
-        self.assertEqual(spec["info"]["version"], "0.24.3")
+        self.assertEqual(spec["info"]["version"], "0.25.0")
+
+        by_name = spec["paths"]["/external/personnel/events/by-name"]["get"]
+        self.assertIn("up to 50 personnel records", by_name["description"])
+        self.assertIn("10 requests", by_name["description"])
+        self.assertEqual(
+            by_name["responses"]["200"]["content"]["application/json"]["schema"]["oneOf"][0]["$ref"],
+            "#/components/schemas/EventPage",
+        )
+        self.assertEqual(
+            by_name["responses"]["200"]["content"]["application/json"]["examples"]
+            ["concurrencyLimitExceeded"]["value"]["errorKey"],
+            "USER_CONCURRENCY_LIMIT_EXCEEDED",
+        )
+        self.assertTrue({"400", "401", "402", "403", "429"}.issubset(by_name["responses"]))
+        self.assertIn(
+            "search_personnel_events_by_name",
+            spec["components"]["schemas"]["ActionPrecheckRequest"]["properties"]
+            ["action_type"]["enum"],
+        )
 
         company_search = spec["paths"]["/external/exhibitors/search-by-company-name"]["post"]
         self.assertIn("non-empty", company_search["description"])
@@ -334,6 +354,7 @@ class PublicAssetSyncTests(unittest.TestCase):
             / "actions-apply-recommended-events-paged.mdx",
             ROOT / "api-reference-backup" / "personnel" / "events.mdx",
             ROOT / "api-reference-backup" / "personnel" / "events-by-linkedin.mdx",
+            ROOT / "api-reference-backup" / "personnel" / "events-by-name.mdx",
         ]
 
         for path in event_pages:
