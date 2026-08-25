@@ -160,7 +160,7 @@
           "Events"
         ],
         "summary": "List events",
-        "description": "Search and filter the event catalog by keyword, geography, date, type, and quality with pagination. Event items include hasVisitors when registered Visitor data is available; the public event list does not currently expose a has_visitors query filter.",
+        "description": "Search and filter Lensmor events by keyword, geography, date, type, and quality, with pagination and Visitor availability when registered data exists.",
         "operationId": "listEvents",
         "parameters": [
           {
@@ -347,7 +347,7 @@
           "Events"
         ],
         "summary": "Get event brief",
-        "description": "Return a lightweight event record with coverage counts, top categories, and data freshness.",
+        "description": "Retrieve a lightweight Lensmor event record with coverage counts, top categories, dates, location context, and data freshness for quick previews.",
         "operationId": "getEventBrief",
         "parameters": [
           {
@@ -439,7 +439,7 @@
           "Events"
         ],
         "summary": "Score one event",
-        "description": "Calculate a profile-dependent fit score and rationale for one event without unlocking it.",
+        "description": "Calculate a profile-dependent fit score and rationale for one Lensmor event without unlocking it, for fast evaluation of a known event.",
         "operationId": "scoreEventFit",
         "requestBody": {
           "$ref": "#/components/requestBodies/EventIdBody"
@@ -501,7 +501,7 @@
           "Events"
         ],
         "summary": "Rank events",
-        "description": "Rank a supplied set of event identifiers against the authenticated user's profile.",
+        "description": "Rank a supplied set of Lensmor event IDs against the authenticated user's company profile, returning ordered matches and recommendation context.",
         "operationId": "rankEvents",
         "requestBody": {
           "required": true,
@@ -592,7 +592,7 @@
           "Events"
         ],
         "summary": "Unlock event access",
-        "description": "Unlock base event access for complete exhibitor and personnel results. A first unlock can consume 2,000 credits, repeated unlocks are idempotent, and the separate visitor data layer is not included.",
+        "description": "Unlock full exhibitor and personnel coverage for an event with 2,000 Credits. Repeated unlocks are idempotent; Visitor data remains separate.",
         "operationId": "unlockEvent",
         "parameters": [
           {
@@ -650,7 +650,7 @@
           "Events"
         ],
         "summary": "Unlock event visitor access",
-        "description": "Unlock visitor records for an event that already has base event access. The first successful visitor unlock consumes 3,000 credits, requires an active subscription and available visitor data, and repeated unlocks are idempotent.",
+        "description": "Unlock Visitor records for an event with base access using 3,000 Credits. Requires an active subscription and available Visitor data; calls are idempotent.",
         "operationId": "unlockEventVisitors",
         "parameters": [
           {
@@ -720,7 +720,7 @@
           "Events"
         ],
         "summary": "Unlock full event access",
-        "description": "Atomically unlock base event access and visitor access, charging only for missing access layers: 2,000 credits for base event access and 3,000 credits for visitor access, up to 5,000 credits total.",
+        "description": "Unlock missing base and Visitor access atomically: 2,000 Credits for base, 3,000 for Visitor, up to 5,000 total. Repeated calls are idempotent.",
         "operationId": "unlockEventFullAccess",
         "parameters": [
           {
@@ -930,7 +930,7 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company context",
-        "description": "Search exhibitor records using a company website URL or target-audience context.",
+        "description": "Search Lensmor exhibitor records using a company website or target-audience context, returning matched companies and event relationships.",
         "operationId": "searchExhibitors",
         "requestBody": {
           "$ref": "#/components/requestBodies/ExhibitorSearchBody"
@@ -1114,7 +1114,7 @@
           "Exhibitors"
         ],
         "summary": "Get exhibitor profile",
-        "description": "Return the public company profile for one exhibitor identifier.",
+        "description": "Retrieve one public Lensmor exhibitor profile with company description, industry, size, country, website, LinkedIn, and related event context.",
         "operationId": "getExhibitorProfile",
         "parameters": [
           {
@@ -1170,7 +1170,7 @@
           "Exhibitors"
         ],
         "summary": "List exhibitor related events",
-        "description": "Return paginated events associated with one exhibitor identifier.",
+        "description": "List paginated Lensmor events associated with one exhibitor ID, including event metadata, dates, locations, and pagination context.",
         "operationId": "listExhibitorEvents",
         "parameters": [
           {
@@ -1230,7 +1230,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
-        "description": "Return paginated people for an event with event-scoped attendee source labels and preview or full base-event access semantics. The sourceType array can contain exhibitor, social, and visitors; labels are not mutually exclusive. Use the sourceType query parameter to filter by one supported attendee source. Visitor is a separate access layer, so semantics.accessMode does not by itself confirm Visitor access.",
+        "description": "List paginated event personnel with attendee source labels and preview or full base-access semantics. Visitor access remains a separate entitlement.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -1354,7 +1354,7 @@
           "Personnel"
         ],
         "summary": "Get personnel profile",
-        "description": "Return the public professional profile for one personnel identifier. The sourceType array can aggregate non-exclusive attendee source labels across the person's associated events.",
+        "description": "Retrieve one public Lensmor personnel profile with professional details and aggregated attendee source labels from associated events.",
         "operationId": "getPersonnelProfile",
         "parameters": [
           {
@@ -1410,7 +1410,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events",
-        "description": "Return paginated events associated with one personnel identifier.",
+        "description": "List paginated Lensmor events associated with one personnel ID, including event metadata, dates, locations, and pagination context.",
         "operationId": "listPersonnelEvents",
         "parameters": [
           {
@@ -1466,7 +1466,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events by LinkedIn URL",
-        "description": "Resolve a public LinkedIn profile URL to a personnel record and its related events.",
+        "description": "Resolve a public LinkedIn profile URL to a Lensmor personnel record and return paginated related events with company and event context.",
         "operationId": "listPersonnelEventsByLinkedin",
         "parameters": [
           {
@@ -1552,7 +1552,7 @@
           "Personnel"
         ],
         "summary": "Search personnel related events by name",
-        "description": "Return a paginated, deduplicated event list for up to 50 personnel records whose full name exactly matches the supplied name. This endpoint requires an active paid user. A non-empty result consumes 50 credits; an empty result consumes 0 credits. At most 10 requests can run concurrently for one user.",
+        "description": "Find events for an exact name across up to 50 personnel records. Paid users can run 10 requests concurrently; non-empty results cost 50 Credits.",
         "operationId": "searchPersonnelEventsByName",
         "parameters": [
           {
@@ -1756,7 +1756,7 @@
           "Contacts"
         ],
         "summary": "Search contacts",
-        "description": "Search public contact records by required company name and optional role or person-name filters. Returned sourceType arrays can aggregate non-exclusive attendee source labels across associated events.",
+        "description": "Search public Lensmor contact records by company name, with optional role and person-name filters, plus aggregated event attendee source labels.",
         "operationId": "searchContacts",
         "parameters": [
           {
@@ -1847,7 +1847,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact emails",
-        "description": "Start an asynchronous email unlock task that can consume 15 credits per chargeable contact.",
+        "description": "Start an asynchronous email unlock task for selected contacts, consuming 15 Credits per chargeable result and returning item-level task status.",
         "operationId": "unlockContactEmails",
         "parameters": [
           {
@@ -1933,7 +1933,7 @@
           "Contacts"
         ],
         "summary": "Get contact unlock task",
-        "description": "Poll an email unlock task and inspect terminal job status plus item-level email results.",
+        "description": "Poll an asynchronous email unlock task, review terminal status, and inspect item-level results, including unlocked addresses and failed records.",
         "operationId": "getContactUnlockTask",
         "parameters": [
           {
@@ -2045,7 +2045,7 @@
           "Profile Matching"
         ],
         "summary": "Get recommended exhibitors for event",
-        "description": "Return paginated exhibitors recommended for the authenticated user's profile within one event.",
+        "description": "List paginated exhibitors recommended for the authenticated user's company profile within one event, including available match signals and ranks.",
         "operationId": "getRecommendedExhibitors",
         "parameters": [
           {
@@ -2156,7 +2156,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact phone numbers",
-        "description": "Start an asynchronous phone unlock task that consumes 150 credits per chargeable contact.",
+        "description": "Start an asynchronous phone unlock task for selected contacts, consuming 150 Credits per chargeable result and returning item-level task status.",
         "operationId": "unlockContactPhones",
         "parameters": [
           {
@@ -2222,7 +2222,7 @@
           "Contacts"
         ],
         "summary": "Get phone unlock task",
-        "description": "Poll a phone unlock task and inspect terminal job status plus item-level phone results.",
+        "description": "Poll an asynchronous phone unlock task, review terminal status, and inspect item-level results, including unlocked numbers and failed records.",
         "operationId": "getPhoneUnlockTask",
         "parameters": [
           {
@@ -2274,7 +2274,7 @@
           "Personnel"
         ],
         "summary": "Generate outreach messages",
-        "description": "Start asynchronous AI outreach generation for one or more personnel records and selected channels.",
+        "description": "Start asynchronous AI outreach generation for one or more event personnel records and selected channels, then retrieve the result separately.",
         "operationId": "generateOutreachMessage",
         "parameters": [
           {
@@ -2349,7 +2349,7 @@
           "Personnel"
         ],
         "summary": "Get outreach message detail",
-        "description": "Return the most recent generated outreach content for one personnel and event combination.",
+        "description": "Retrieve the latest generated outreach content for one personnel and event combination, including available channel-specific message bodies.",
         "operationId": "getOutreachDetail",
         "parameters": [
           {
