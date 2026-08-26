@@ -1,10 +1,10 @@
 ---
 title: "Generate outreach messages"
-description: "Generate AI-powered personalized outreach messages for one or more personnel in a Lensmor event context."
+description: "Generate AI-powered personalized outreach messages for one or more personnel, with optional Lensmor event context."
 openapi: "openapi.json POST /external/personnel/generate-outreach-message"
 ---
 
-Generate AI-powered personalized outreach messages for one or more personnel in an event context.
+Generate AI-powered personalized outreach messages for one or more personnel, optionally using event context.
 
 Use this endpoint when your integration needs AI-generated cold outreach content tailored to each contact's role, company, and event participation.
 
@@ -22,20 +22,24 @@ This endpoint is asynchronous. Each personnel item may create a background task.
   Channels must be one or more of: `email`, `linkedin_message`. When requesting LinkedIn output, use `linkedin_message_types` to choose `inmail`, `connection_note`, and/or `connected_message`.
 </Note>
 
+<Warning>
+  When `event_id` is supplied, this endpoint currently requires the numeric internal event `id` field, not public `eventId`. The service converts it directly to `BigInt` and does not run the usual event identifier resolver.
+</Warning>
+
 ## Request body
 
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | Maximum `50` personnel IDs. |
-| `event_id` | Yes | string | Supports external `eventId` or internal event ID. |
-| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. |
+| `personnel_ids` | Yes | string[] | Maximum `2000` personnel IDs. Runtime validation permits an empty array, but useful generation requires at least one ID. |
+| `event_id` | No | string | Optional numeric internal event `id`. Do not pass public `eventId`. When omitted, generation does not validate event membership or use event context. |
+| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. Runtime validation permits an empty array, but it creates no useful output. |
 | `linkedin_message_types` | No | string[] | LinkedIn variants: `inmail`, `connection_note`, `connected_message`. |
 | `outreach_purpose` | No | string | Purpose or offer context for personalization. |
 
 ```json
 {
   "personnel_ids": ["789"],
-  "event_id": "139574",
+  "event_id": "501",
   "channels": ["email", "linkedin_message"],
   "linkedin_message_types": ["inmail", "connection_note"],
   "outreach_purpose": "Invite the contact to a product demo"
@@ -44,11 +48,45 @@ This endpoint is asynchronous. Each personnel item may create a background task.
 
 ## Credit behavior
 
-Outreach message generation consumes credits per personnel record processed.
+Outreach message generation does not deduct credits in the current service implementation. Created batch task-center records use `creditsCost: 0`.
 
-- Maximum 50 personnel IDs per request.
-- Insufficient balance returns `402 Payment Required`.
+- Maximum `2000` personnel IDs per request.
+- Requests above the limit return `422 Unprocessable Entity`.
+
+## Response example
+
+```json
+{
+  "items": [
+    {
+      "personnel_id": "789",
+      "success": true,
+      "taskId": null,
+      "error": null
+    }
+  ],
+  "taskCenterId": "321"
+}
+```
+
+## Response handling
+
+- Process each `items` entry independently; one failed person does not invalidate successful submissions.
+- `taskCenterId` is the decimal numeric batch identifier when new work was reserved. New items normally have `taskId: null` until child dispatch; an existing in-progress item can return a decimal numeric child-task ID.
+- When `event_id` is provided, store the internal event `id` with `personnel_id`. Do not require an item `taskId` before polling the outreach detail endpoint.
+- Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the most recent generated content.
+- Generating a draft does not send an email or LinkedIn message.
+
+## Error responses
+
+| Status | Meaning | Recommended handling |
+| --- | --- | --- |
+| `400 Bad Request` | Invalid channels, LinkedIn variants, or identifiers. | Fix the request before retrying. |
+| `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
+| `409 Conflict` | Another outreach batch is being prepared for the same user and event context. | Retry after the active batch preparation finishes. |
+| `422 Unprocessable Entity` | More than `2000` personnel IDs were submitted. | Split the request into smaller selected batches. |
+| `429 Too Many Requests` | Rate limit exceeded. | Honor `Retry-After` and retry with backoff. |
 
 ## Notes
-- Poll [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) with `personnel_id` and `event_id` to retrieve generated messages.
+- [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) requires `personnel_id` and `event_id`. Provide the internal event `id` during generation when the draft must be retrieved through that endpoint; the lookup endpoint itself can later resolve either `id` or `eventId`.
 - Messages are generated using AI based on the contact's profile, company context, and event participation data.

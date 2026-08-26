@@ -48,7 +48,7 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
   }'
 ```
 
-每次最多接受 `100` 个 Personnel ID。
+每次最多接受 `2000` 个 Personnel ID。`event_id` 可省略；省略时服务不会校验人员是否属于某个展会。
 
 ```json
 {
@@ -83,7 +83,7 @@ curl "https://platform.lensmor.com/external/contacts/unlock-tasks/321" \
 邮箱解锁当前对每个可计费联系人消耗 `15` Credits：
 
 - 已解锁联系人不会重复计费。
-- 超过 `100` 个 Personnel ID 的批次会被拒绝。
+- 超过 `2000` 个 Personnel ID 的批次会返回 `422 Unprocessable Entity`。
 - 余额不足返回 `402 Payment Required`。
 - 接口响应和商业协议是最终计费依据。
 

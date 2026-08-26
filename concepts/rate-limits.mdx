@@ -3,7 +3,7 @@ title: "Rate limits"
 description: "Understand Lensmor API rate limits, response headers, 429 handling, exponential backoff, and safe retry strategies for production clients."
 ---
 
-Lensmor applies rate limits to API requests to protect availability for all customers.
+Lensmor applies rate limits to API requests to protect availability for all customers. In the current `master` defaults, the window is `60` seconds, with `120` requests per API key and `600` requests per IP. Deployment configuration can override these values, so response headers remain authoritative.
 
 ## Default behavior
 Rate limits are evaluated by IP address and API key. When a request is allowed, the response includes rate-limit headers for the active API-key bucket when available.
@@ -41,3 +41,4 @@ Wait at least `Retry-After` seconds before retrying.
 - Back off when `X-RateLimit-Remaining` is low.
 - Retry `429` responses only after `Retry-After`.
 - Include the `traceId` when contacting support about rate-limit behavior.
+- In Clay or another scheduler, start at no more than `120` requests per `60000` ms for one API key and lower the rate when several tables or workers share that key.

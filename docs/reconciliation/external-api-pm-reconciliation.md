@@ -6,10 +6,10 @@
 | Auth token prefix | Active auth example is `Authorization: Bearer sk_your_api_key` | PM revision should use the same active wording | Needs PM sync | Current customer-facing contract wording must use Business `sk_...` keys |
 | Shared error body | External errors use `{ code, message, errorKey, traceId }` with real HTTP status codes | Same shared error body and status semantics are documented in Chinese | Aligned | `/external/*` final error body remains the external contract |
 | Shared pagination contract | Common envelope fields are `page`, `pageSize`, `total`, `totalPages`, and `hasMore` | Same semantics are summarized in Chinese | Aligned | Route-specific request naming and item fields remain endpoint-specific |
-| Customer-facing endpoint inventory | 30 published endpoints across credits, actions, events, exhibitors, personnel, contacts, and profile matching | PM revision needs to mirror this latest customer-facing set | Needs PM sync | Agent-only, integration bridge, debug, and deprecated routes are intentionally excluded |
+| Customer-facing endpoint inventory | 31 published endpoints across credits, actions, events, exhibitors, personnel, contacts, and profile matching | PM revision needs to mirror this latest customer-facing set | Needs PM sync | Agent-only, integration bridge, debug, and deprecated routes are intentionally excluded |
 | Events endpoints | 8 endpoint pages include list, detail, brief, fit-score, rank, base event unlock, visitor unlock, and atomic full-access unlock | PM revision needs the same layered event unlock/access semantics | Needs PM sync | Visitor access costs `3000`; full access charges only missing layers up to `5000` |
 | Exhibitors endpoints | 6 endpoint pages define list, search, search-by-company-name, search-events, profile, and related-events behavior | PM revision needs the new company-name lookup page | Needs PM sync | `search-events` is documented as credit-consuming |
-| Personnel endpoints | 7 endpoint pages define list, profile, related-events, LinkedIn URL related-events, LinkedIn activity unlock, outreach generation, and outreach detail behavior | PM revision needs the latest LinkedIn activity and outreach contract | Needs PM sync | Lightweight public personnel/contact shape includes unlock status, activity status, and outreach status when available |
+| Personnel endpoints | 8 endpoint pages define list, profile, related-events, name and LinkedIn reverse lookups, LinkedIn activity unlock, outreach generation, and outreach detail behavior | PM revision needs the latest name lookup, LinkedIn activity, and outreach contract | Needs PM sync | Lightweight public personnel/contact shape includes unlock status, activity status, and outreach status when available |
 | Contacts endpoints | Search, email unlock, email unlock polling, phone unlock, and phone unlock polling are now documented | PM revision needs contact email and phone unlock polling | Needs PM sync | Email and phone are returned only after the matching unlock workflow succeeds |
 | Credits endpoint | `GET /external/credits/balance` is now documented | PM revision needs credit balance semantics | Needs PM sync | This supports customer preflight checks |
 | Actions endpoint | `POST /external/actions/precheck` is now documented | PM revision needs precheck semantics | Needs PM sync | Public action types now include visitor and full-access unlock prechecks |
@@ -25,6 +25,6 @@
 
 ## Review notes
 
-- API-Doc now carries endpoint-level success status codes, request sections, response examples, error responses, and notes for the 30 customer-facing endpoints.
+- API-Doc now carries endpoint-level success status codes, request sections, response examples, error responses, and notes for the 31 customer-facing endpoints.
 - This artifact now tracks the API-Doc-first state; PM revision should be synced after this documentation update.
 - Future discrepancies should be treated as contract mismatches only when method/path, status code, request fields, response structure, or caller-visible note semantics diverge.

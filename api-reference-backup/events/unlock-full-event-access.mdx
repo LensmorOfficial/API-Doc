@@ -88,7 +88,7 @@ curl -X POST "https://platform.lensmor.com/external/events/26855/full-access/unl
     "unlimited": false
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -114,7 +114,8 @@ The base event and visitor unlocks run in one transaction. If the paid operation
 
 ## Error responses
 
-- `400 Bad Request` — no chargeable base-event contacts or no active subscription for an available visitor layer.
+- `200 OK` business error — free users receive body `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`; treat the action as failed.
+- `400 Bad Request` — no chargeable base-event contacts or another request input is invalid.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`

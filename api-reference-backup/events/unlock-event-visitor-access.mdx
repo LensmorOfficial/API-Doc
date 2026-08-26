@@ -93,7 +93,7 @@ curl -X POST "https://platform.lensmor.com/external/events/26855/visitors/unlock
     "resetAt": 1785542400000
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -116,7 +116,8 @@ Repeating the unlock for the same account and event does not charge again. An id
 
 ## Error responses
 
-- `400 Bad Request` — no active subscription, base event access is still locked, or no visitor data is available.
+- `200 OK` business error — free users receive body `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`; treat the action as failed.
+- `400 Bad Request` — base event access is still locked, no visitor data is available, or another request input is invalid.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`

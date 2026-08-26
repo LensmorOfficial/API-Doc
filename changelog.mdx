@@ -5,6 +5,23 @@ description: "Versioned Lensmor API documentation updates, newly documented endp
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.26.0
+
+Released August 26, 2026.
+
+### Fixed
+
+- Reconciled all `31` published customer-facing routes against Event Business `origin/master` commit `ce54e3e6e18c756ce154f1ba8800bfc89d7ac193`.
+- Corrected phone, LinkedIn activity, and outreach task identifiers to decimal numeric strings and documented nullable child-task IDs.
+- Added the inherited profile-matching request fields and a concrete recommended-event response schema with recommendation evidence.
+- Documented HTTP `200` subscription and concurrency business-error envelopes, missing validation/conflict responses, and the default rate-limit configuration.
+- Corrected multi-value personnel `sourceType` filtering, response-source notes, and examples where internal `id` and public `eventId` can differ.
+- Documented that outreach generation currently requires internal event `id` when `event_id` is supplied.
+
+### Changed
+
+- Updated OpenAPI metadata to version `0.26.0` and regenerated the machine-readable documentation resources.
+
 ## v0.25.0
 
 Released August 10, 2026.

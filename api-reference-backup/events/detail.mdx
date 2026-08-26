@@ -43,7 +43,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
 ```json
 {
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025",
     "nickname": "Consumer Electronics Show 2025",
@@ -130,7 +130,7 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - `429 Too Many Requests`
 
 ## Notes
-- For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
+- For event identifiers, see [Identifiers](/concepts/identifiers). `id` and `eventId` are separate values and can differ.
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
 - `dataSource` is always `"Lensmor"` for public event records.

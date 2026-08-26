@@ -40,6 +40,8 @@ See [Authentication](/authentication)
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
 | `event_type` | No | string[] | Event type filter. Comma-separated input is supported. Known values include `In-person`, `conference_led`, `expo_led`, `hybrid`. |
 | `quality` | No | string[] | Quality label filter. Comma-separated input is supported. Known values include `Verified`, `Standard`. |
+| `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events; `0` returns non-starred events. |
+| `has_visitors` | No | integer | `1` returns events with registered Visitor data; `0` returns events without it. |
 
 ## Request example
 ```bash
@@ -63,12 +65,21 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
+### Filter by Sponsor Match or Visitor availability
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?sponsor_match_starred=1&has_visitors=1&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Both filters accept only `0` or `1`.
+
 ## Response example
 ```json
 {
   "items": [
     {
-      "id": "26855",
+      "id": "8458",
       "eventId": "26855",
       "name": "CES 2025",
       "nickname": "Consumer Electronics Show 2025",
@@ -100,8 +111,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 | Field | Description |
 | --- | --- |
 | `items` | Event records for the requested page. |
-| `id` | Internal Lensmor event identifier (string). Currently identical to `eventId`. |
-| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. Currently identical to `id`. |
+| `id` | Internal Lensmor event row identifier returned as a string. |
+| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. It can differ from `id`. |
 | `name` | Canonical event name. |
 | `nickname` | Optional short name or common alias. |
 | `description` | Short event description when available. |
@@ -122,7 +133,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
-- `id` and `eventId` currently return the same value. Use `eventId` when passing to event-scoped endpoints.
-- `hasVisitors` is returned as an availability signal, but this endpoint does not expose a public `has_visitors` filter yet. For a known event, use the Visitor or Full Access action precheck before an unlock workflow.
+- `id` and `eventId` are separate values and can differ. Use `eventId` when passing to event-scoped endpoints.
+- `hasVisitors` is returned as an availability signal and can be filtered with `has_visitors`. It still does not mean Visitor access is unlocked; use the Visitor or Full Access action precheck before an unlock workflow.
+- `sponsorMatchStarred` can be filtered with `sponsor_match_starred`.
 - `event_type` and `quality` filters must match actual values in the database (e.g. `In-person`, `conference_led` for event type; `Verified`, `Standard` for quality). Invalid values return an empty result set rather than an error.
 - Filter values are applied to the event catalog, but summary list items may still omit or return `null` for some classification fields. Fetch event detail when you need the full classification shape.

@@ -5,7 +5,7 @@
 - DTO/query source: `src/modules/external-api/dto/events/external-event-list-query.dto.ts`
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-events.service.ts#listEvents` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
-- Contract note: Public event items include `hasVisitors` from `ExternalEventResponseMapper.toEventItem`. The customer-facing docs expose this as a response field only; `has_visitors` is not documented as a public event-list filter yet.
+- Contract note: Public event items include `hasVisitors` and `sponsorMatchStarred` from `ExternalEventResponseMapper.toEventItem`. `ExternalEventListQueryDto` exposes the corresponding `has_visitors` and `sponsor_match_starred` filters as integer `0`/`1` query parameters.
 - Ambiguity note: The public example uses only fields directly emitted by `ExternalEventResponseMapper.toEventItem` plus the shared pagination envelope.
 
 ## GET /external/events/:id

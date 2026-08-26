@@ -1,23 +1,36 @@
 ---
 title: "Contacts search"
-description: "Search Lensmor contact records by filters such as company, event, role, and profile context before deciding whether to unlock emails."
+description: "Search for people at a company by company name, job role, or person name, then use the returned personnel IDs in profile and contact-unlock workflows."
 openapi: "openapi.json GET /external/contacts/search"
 ---
 
-Search contacts by company name.
+Search Lensmor contact records within a required company scope. Start with `company_name`, then add `role`, `person_name`, or both to narrow the people returned.
 
-Use this endpoint when you want a lightweight contact result set keyed off a company query, with optional role filtering and attendee source context aggregated across associated events.
+This is a read-only discovery endpoint. It helps you find candidate people and collect personnel IDs, but it does not unlock email addresses or phone numbers.
 
-## When to use this endpoint
+## Use this endpoint to
 
-Use `GET /external/contacts/search` when your integration starts from a company name and needs people records without first selecting a specific event.
+- find potential buyers or decision-makers at a target account;
+- narrow a company's people by job role or known person name;
+- check whether Lensmor has candidate contacts before spending credits;
+- collect personnel IDs for profile, email-unlock, phone-unlock, or outreach workflows.
 
-Typical use cases:
+<Note>
+  This is a company-scoped contact search, not a database-wide people search. Every request requires `company_name`. The endpoint does not currently accept geography, industry, seniority, department, or attendee-source filters.
+</Note>
 
-- search for buyer contacts at a target account
-- filter by role or person name before unlock
-- verify whether Lensmor has candidate people for a company
-- collect personnel IDs for a later email unlock task
+## How the filters work
+
+`company_name` always defines the company scope. The optional fields narrow the people inside that scope.
+
+| Goal | Parameters to use |
+| --- | --- |
+| Browse candidate people at a company | `company_name` |
+| Find people in a particular role | `company_name` + `role` |
+| Find a known person at a company | `company_name` + `person_name` |
+| Find a known person in a particular role | `company_name` + `role` + `person_name` |
+
+The public contract treats `company_name`, `role`, and `person_name` as search terms. It does not expose an exact-match mode or a relevance score, so clients should not depend on either behavior.
 
 ## Endpoint
 `GET /external/contacts/search`
@@ -29,25 +42,47 @@ See [Authentication](/authentication)
 `200 OK`
 
 ## Query parameters
-| Name | Required | Type | Notes |
-| --- | --- | --- | --- |
-| `company_name` | Yes | string | Company name query, length `1` to `200`. |
-| `role` | No | string | Optional role filter. Blank values are normalized away. |
-| `person_name` | No | string | Optional person-name filter. Blank values are normalized away. |
-| `page` | No | integer | Defaults to `1`. |
-| `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
-## Request example
+| Name | Required | Type | Default | Description | Example |
+| --- | --- | --- | --- | --- | --- |
+| `company_name` | Yes | string | — | Company-name query that scopes the search. Length: `1`–`200` characters. | `Acme` |
+| `role` | No | string | — | Job-role or title query used to narrow people at the company. Blank values are ignored. Maximum length: `200`. | `VP Marketing` |
+| `person_name` | No | string | — | Person-name query used to narrow people at the company. Blank values are ignored. Maximum length: `200`. | `Jane` |
+| `page` | No | integer | `1` | One-based page number. | `1` |
+| `pageSize` | No | integer | `20` | Maximum records requested per page. Range: `1`–`100`. | `20` |
+
+## Request examples
+
+### Browse contacts at a company
+
 ```bash
-curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&role=VP%20Marketing&page=1&pageSize=20" \
-  -H "Authorization: Bearer $LENSMOR_API_KEY"
+curl --get "https://platform.lensmor.com/external/contacts/search" \
+  --data-urlencode "company_name=Acme" \
+  --data-urlencode "page=1" \
+  --data-urlencode "pageSize=20" \
+  --header "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+### Search by role
+
+```bash
+curl --get "https://platform.lensmor.com/external/contacts/search" \
+  --data-urlencode "company_name=Acme" \
+  --data-urlencode "role=VP Marketing" \
+  --data-urlencode "page=1" \
+  --data-urlencode "pageSize=20" \
+  --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
 ### Search by person name
 
 ```bash
-curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&person_name=Jane&page=1&pageSize=20" \
-  -H "Authorization: Bearer $LENSMOR_API_KEY"
+curl --get "https://platform.lensmor.com/external/contacts/search" \
+  --data-urlencode "company_name=Acme" \
+  --data-urlencode "person_name=Jane" \
+  --data-urlencode "page=1" \
+  --data-urlencode "pageSize=20" \
+  --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
 ## Response example
@@ -82,36 +117,104 @@ curl "https://platform.lensmor.com/external/contacts/search?company_name=Acme&pe
 
 ## Response fields
 
-| Field | Description |
-| --- | --- |
-| `items` | Matching contact-style personnel records. |
-| `id` | Personnel identifier used for profile fetches and email unlocks. |
-| `fullName`, `title` | Person display fields. |
-| `department`, `seniorityLevel` | Normalized role metadata when available. |
-| `linkedinUrl` | LinkedIn profile URL when available. |
-| `companyName` | Matched company name. |
-| `sourceType` | Non-exclusive source labels aggregated across associated events. Product mapping: Exhibitor = `exhibitor`, Social Signals = `social`, Visitor = `visitors`. |
-| `email` | Email if already unlocked for the caller; otherwise `null`. |
-| `phone` | Phone number if already unlocked for the caller; otherwise `null`. |
-| `contactUnlockStatus` | Contact access state for this API key owner. |
-| `phoneUnlockStatus` | `ready`, `processing`, `failed`, or `null`. |
-| `eventCount` | Number of associated events when available. |
-| `linkedinActivity` | Always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data. |
-| `linkedinActivityStatus` | Always `null` on this endpoint. |
-| `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
+### Contact record
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Personnel identifier used in profile, unlock, event, and outreach workflows. |
+| `fullName` | string or `null` | Person's display name when available. |
+| `title` | string or `null` | Current job title when available. |
+| `department` | string or `null` | Normalized department label when available. |
+| `seniorityLevel` | string or `null` | Normalized seniority label when available. |
+| `linkedinUrl` | string or `null` | LinkedIn profile URL when available. |
+| `companyName` | string or `null` | Company associated with the person. |
+| `sourceType` | string[] | Non-exclusive attendee-source labels aggregated across the person's associated events. |
+| `email` | string or `null` | Email when already accessible to the caller; otherwise `null`. This endpoint does not unlock it. |
+| `phone` | string or `null` | Phone when already accessible to the caller; otherwise `null`. This endpoint does not unlock it. |
+| `contactUnlockStatus` | string | Current email/contact access state for the authenticated API key owner. |
+| `phoneUnlockStatus` | string or `null` | `ready`, `processing`, `failed`, or `null` when no phone-unlock state is available. |
+| `linkedinActivity` | object or `null` | Always `null` on contact search. Use [Personnel list](/api-reference/personnel/list-event-personnel) for populated activity data. |
+| `linkedinActivityStatus` | string or `null` | Always `null` on contact search. |
+| `eventCount` | integer or `null` | Number of associated Lensmor events when available. |
+
+### Pagination
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `items` | object[] | Contact records returned on the current page. |
+| `total` | integer | Total matching contacts across all pages. |
+| `page` | integer | One-based page number returned. |
+| `pageSize` | integer | Requested maximum records per page. |
+| `totalPages` | integer | Total pages for the current search. |
+| `hasMore` | boolean | Whether another page is available. |
+
+## Understand attendee-source labels
+
+`sourceType` is an array because one person can have more than one source label.
+
+| API value | Product label | Meaning |
+| --- | --- | --- |
+| `exhibitor` | Exhibitor | The person is associated with an exhibiting company. |
+| `social` | Social Signals | Lensmor identified event-related social activity; this does not prove official registration. |
+| `visitors` | Visitor | Registered-attendee data obtained through organizer or data-provider partnerships. |
+
+Contact search can aggregate these labels across multiple associated events. When you need labels for one specific event, use [Personnel list](/api-reference/personnel/list-event-personnel) with `event_id`.
 
 ## No results
 
-No matching contacts can return an empty paginated response. Use this as a valid state rather than treating it as an integration error.
+No matching contacts is a valid search result. The API returns `200 OK` with an empty page rather than an error:
 
-## Error responses
-- `400 Bad Request`
-- `401 Unauthorized`
-- `404 Not Found`
-- `429 Too Many Requests`
+```json
+{
+  "items": [],
+  "total": 0,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 0,
+  "hasMore": false
+}
+```
 
-## Notes
-- Emails are returned only when the contact is already unlocked for the caller.
-- Use [Personnel list](/api-reference/personnel/list-event-personnel) when you need source labels for one specific event. See [Attendee source types](/concepts/attendee-source-types) for the full mapping.
-- Contact-style list responses follow the shared [Pagination conventions](/concepts/pagination).
-- Each item includes `linkedinActivity` and `linkedinActivityStatus` for shape consistency, but they are always `null` on this endpoint. Only [Personnel list](/api-reference/personnel/list-event-personnel) populates LinkedIn activity data.
+Do not retry the same request as an error. Let the user broaden the company, role, or person-name query instead.
+
+## Errors
+
+| Status | Meaning | Recommended handling |
+| --- | --- | --- |
+| `400 Bad Request` | A required parameter is missing or a value fails validation. | Fix the request before retrying. |
+| `401 Unauthorized` | The API key is missing, malformed, revoked, or invalid. | Reconnect or rotate the key. |
+| `429 Too Many Requests` | The active rate limit was exceeded. | Wait for `Retry-After`, then retry with backoff. |
+
+Errors use the shared response shape:
+
+```json
+{
+  "code": 401,
+  "message": "Invalid API key",
+  "errorKey": "INVALID_API_KEY",
+  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+}
+```
+
+See [Error conventions](/concepts/errors) and [Rate limits](/concepts/rate-limits) for shared handling rules.
+
+## Continue the workflow
+
+<Steps>
+  <Step title="Search and select contacts">
+    Use this endpoint to collect the `id` values for people you want to act on.
+  </Step>
+  <Step title="Inspect a person when needed">
+    Call [Personnel profile](/api-reference/personnel/get-personnel-profile) for a selected personnel ID.
+  </Step>
+  <Step title="Unlock contact data">
+    Submit selected IDs to [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) or [Unlock contact phone numbers](/api-reference/contacts/unlock-contact-phone-numbers).
+  </Step>
+  <Step title="Poll the task">
+    Store the returned task ID and poll the matching task endpoint until it reaches a terminal state.
+  </Step>
+</Steps>
+
+<Tip>
+  Contact search is read-only. Check [Credits and access](/concepts/credits-and-access) before starting an email or phone unlock that can consume credits.
+</Tip>

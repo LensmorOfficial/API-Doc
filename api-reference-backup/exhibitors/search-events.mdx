@@ -112,6 +112,10 @@ This endpoint consumes `50` credits after the company-name matcher finds at leas
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
+## Concurrency limit
+
+Only one call to this endpoint can run concurrently for the same user. When the slot is occupied, the service returns HTTP `200` with `code: 429` and `errorKey: "USER_CONCURRENCY_LIMIT_EXCEEDED"`. Inspect the response body even though the normal successful search uses `201 Created`, and retry only after the in-flight call finishes.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`

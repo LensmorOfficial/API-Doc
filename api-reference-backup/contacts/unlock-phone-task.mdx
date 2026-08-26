@@ -12,6 +12,60 @@ Use this endpoint after `POST /external/contacts/unlock-phone` returns `task_id`
 
 Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job completes or fails. Stop polling when `taskStatus` is `completed` or `failed`, and handle item-level failures independently.
 
+## Path parameters
+
+| Name | Required | Type | Description | Example |
+| --- | --- | --- | --- | --- |
+| `taskId` | Yes | string | Decimal numeric phone-unlock task ID returned as `task_id` by the submission endpoint. | `321` |
+
+## Request example
+
+```bash
+curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/321" \
+  --header "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+
+```json
+{
+  "taskId": "321",
+  "taskStatus": "completed",
+  "items": [
+    {
+      "personnelId": "789",
+      "status": "unlocked",
+      "phone": "+1 415 555 0100"
+    }
+  ]
+}
+```
+
+## Task states
+
+| Value | Meaning | Client action |
+| --- | --- | --- |
+| `pending` | The task is queued. | Continue polling with backoff. |
+| `processing` | Phone enrichment is running. | Continue polling without creating another task. |
+| `completed` | The task reached a terminal success state. | Store successful phones and process item failures separately. |
+| `failed` | The task reached a terminal failure state. | Stop polling and surface the error. |
+
+## Polling guidance
+
+- Persist `taskId` so polling can resume after a worker or page restart.
+- Use bounded exponential backoff and honor `429 Retry-After`.
+- Stop polling at `completed` or `failed`.
+- Do not create a replacement task merely because individual items failed.
+
+## Error responses
+
+| Status | Meaning | Recommended handling |
+| --- | --- | --- |
+| `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
+| `404 Not Found` | The task ID does not exist or is not visible to the caller. | Re-check the stored task ID; do not poll indefinitely. |
+| `429 Too Many Requests` | Polling exceeded the active rate limit. | Wait for `Retry-After` before polling again. |
+
 ## Notes
 - Phone number is present only when the individual item has been unlocked successfully.
 - Failed items can include `errorCode`.
+- `taskId` is a decimal numeric string because the service converts it to `BigInt`; prefixed values such as `phone_321` are invalid.
