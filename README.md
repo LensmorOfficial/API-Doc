@@ -83,7 +83,7 @@ pnpm dlx mintlify dev
 
 ## Changelog
 
-See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.25.0`.
+See `changelog.mdx` for versioned documentation updates. The current documentation version is `v0.26.0`.
 
 ---
 

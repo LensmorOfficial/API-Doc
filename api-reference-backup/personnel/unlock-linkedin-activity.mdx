@@ -4,7 +4,7 @@ description: "Unlock or start analysis for LinkedIn activity signals for selecte
 openapi: "openapi.json POST /external/personnel/unlock-linkedin-activity"
 ---
 
-Unlock LinkedIn activity visibility for one or more personnel records in an event.
+Unlock LinkedIn activity visibility for one or more personnel records, optionally in an event context.
 
 Use this endpoint when your integration already has personnel IDs and wants to expose LinkedIn activity metadata such as `linkedinActivity` and `linkedinActivityStatus`.
 
@@ -20,8 +20,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | One to 50 personnel IDs. |
-| `event_id` | Yes | string | Event identifier. Supports `eventId` or `id` returned by event responses. |
+| `personnel_ids` | Yes | string[] | One to `2000` personnel IDs. |
+| `event_id` | No | string | Optional event identifier. When omitted, event membership validation is skipped. |
 
 ## Request example
 ```bash
@@ -42,7 +42,7 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
       "personnel_id": "789",
       "success": true,
       "alreadyUnlocked": false,
-      "taskId": "901",
+      "taskId": null,
       "error": null
     },
     {
@@ -63,13 +63,14 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 | `personnel_id` | The personnel ID from the request. |
 | `success` | Whether this personnel item was accepted or already available. |
 | `alreadyUnlocked` | `true` when the caller already has an active or completed LinkedIn activity unlock for this personnel record. |
-| `taskId` | Analysis task ID when a new LinkedIn activity analysis task is created. `null` when data already exists, the item is already unlocked, or the item failed validation. |
+| `taskId` | Decimal numeric child-task ID for existing in-progress work. A newly accepted item commonly returns `null` while child-task dispatch is queued; it is also `null` when data already exists or the item failed. |
 | `error` | Item-level failure message. `null` on success. |
 
 ## Notes
 - This endpoint is idempotent for personnel records with active or completed LinkedIn activity unlocks.
 - If LinkedIn activity data already exists, the API can mark the record as unlocked without creating a new task.
-- If activity data does not exist, the API creates an asynchronous LinkedIn activity analysis task and returns `taskId`.
+- If activity data does not exist, the API reserves asynchronous work. The initial accepted item can return `taskId: null`; observe completion through refreshed personnel data rather than requiring an immediate child-task ID.
+- When `event_id` is omitted, the service processes valid personnel IDs without checking their membership in a specific event.
 - This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email unlock workflows.
 - Poll [Personnel list](/api-reference/personnel/list-event-personnel) or [Personnel profile](/api-reference/personnel/get-personnel-profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
 
@@ -77,4 +78,5 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `422 Unprocessable Entity`
 - `429 Too Many Requests`

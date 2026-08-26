@@ -5,7 +5,7 @@
 - DTO/query source: `src/modules/external-api/dto/exhibitors/external-exhibitor-list-query.dto.ts`
 - Success status source: Nest default for `@Get()` -> `200 OK`
 - Response example source: `src/modules/external-api/services/external-exhibitors.service.ts#list` and `src/modules/external-api/mappers/external-exhibitor-response.mapper.ts`
-- Ambiguity note: `matched_event_ids` is set from the requested `event_id`.
+- Contract note: `matched_event_ids` contains the canonical resolved public `event.eventId`, even when the request used the internal event `id`.
 
 ## POST /external/exhibitors/search
 - Method/path source: `src/modules/external-api/controllers/external-exhibitors.controller.ts`
@@ -18,7 +18,7 @@
 - Method/path source: `src/modules/external-api/controllers/external-exhibitors.controller.ts`
 - DTO/body source: `src/modules/external-api/dto/exhibitors/external-exhibitor-search-events.dto.ts`
 - Success status source: e2e in `test/e2e/external-exhibitors.e2e-spec.ts` asserts `201`
-- Matching-policy source: `src/modules/external-api/services/external-resource-resolver.service.ts#searchExhibitorsByCompanyNameStrict`
+- Matching-policy source: `src/modules/external-api/services/external-resource-resolver.service.ts#searchEventsByStrictCompanyNamePaged`
 - Response example source: `src/modules/external-api/services/external-exhibitors.service.ts#searchEvents` and `src/modules/external-api/mappers/external-event-response.mapper.ts`
 - Ambiguity note: `matchedExhibitors` is the admitted-and-capped exhibitor subset that participates in each returned event, and no-match results are empty pagination rather than `404`.
 

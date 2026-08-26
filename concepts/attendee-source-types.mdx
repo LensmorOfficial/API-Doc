@@ -53,7 +53,7 @@ The `semantics.accessMode` field on the personnel list describes base event prev
 
 ## Filtering
 
-`GET /external/personnel/list` accepts a single `sourceType` query parameter when you want the API to return people matching one event-scoped source label:
+`GET /external/personnel/list` accepts one or more `sourceType` values when you want the API to return people matching event-scoped source labels. Send a comma-separated value or repeat the query parameter:
 
 ```bash
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
@@ -61,6 +61,8 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourc
 ```
 
 Supported values are `exhibitor`, `social`, and `visitors`.
+
+For example, `sourceType=social,visitors` matches either supported source. The response still returns the complete non-exclusive `sourceType` array for each matched person.
 
 You can also fetch the accessible event-scoped result set without `sourceType`, then segment it client-side:
 

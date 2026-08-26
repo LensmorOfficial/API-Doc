@@ -16,13 +16,13 @@ Common use cases:
 
 - browse people associated with an event
 - filter by department or seniority
-- filter by one event-scoped `sourceType` label
+- filter by one or more event-scoped `sourceType` labels
 - find contacts for a selected exhibitor
 - segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 <Note>
-  `sourceType` filtering is event-scoped. Use `exhibitor`, `social`, or `visitors`; labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
+  `sourceType` filtering is event-scoped. Use one or more of `exhibitor`, `social`, or `visitors`, either comma-separated or as repeated query parameters. Labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
 </Note>
 
 ## Endpoint
@@ -42,7 +42,7 @@ See [Authentication](/authentication)
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
 | `search_query` | No | string | Name or job-title search. |
-| `sourceType` | No | string | Source label filter. Supported values: `exhibitor`, `social`, `visitors`. |
+| `sourceType` | No | string | One or more source labels. Supported values: `exhibitor`, `social`, `visitors`; send comma-separated values or repeat the parameter. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `50`; maximum `50`. |
 
@@ -65,6 +65,8 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
+
+To match either Social Signals or Visitor records in one request, use `sourceType=social,visitors`. Repeated `sourceType` query parameters are normalized the same way.
 
 ## Response example
 ```json

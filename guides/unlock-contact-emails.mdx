@@ -50,7 +50,7 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
   }'
 ```
 
-The API accepts up to `100` personnel IDs per request.
+The API accepts up to `2000` personnel IDs per request. `event_id` is optional; omitting it skips event membership validation.
 
 ```json
 {
@@ -89,7 +89,7 @@ Completed tasks can contain mixed item outcomes. Show failed, ineligible, or unr
 Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
-- Batches larger than `100` personnel IDs are rejected.
+- Batches larger than `2000` personnel IDs return `422 Unprocessable Entity`.
 - Insufficient balance returns `402 Payment Required`.
 - The response and your commercial agreement are the source of truth for billing.
 

@@ -34,8 +34,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `100` per request. |
-| `event_id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
+| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `2000` per request. |
+| `event_id` | No | string | Optional event `id` or `eventId`. When omitted, event membership validation is skipped. |
 
 ## Headers
 | Name | Required | Type | Notes |
@@ -93,7 +93,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
 - Failed or ineligible items may not produce an email. Treat the task result and refreshed balance as the source of truth for actual delivery and billing.
-- The API rejects batches larger than `100` personnel IDs.
+- The API rejects batches larger than `2000` personnel IDs with `422 Unprocessable Entity`.
 - Insufficient balance returns `402 Payment Required`.
 - Retry behavior should be tied to the task state, not only the create response.
 
@@ -103,6 +103,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 - `402 Payment Required`
 - `404 Not Found`
 - `409 Conflict`
+- `422 Unprocessable Entity`
 - `429 Too Many Requests`
 
 ## Notes

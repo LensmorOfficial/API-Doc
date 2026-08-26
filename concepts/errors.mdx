@@ -3,7 +3,7 @@ title: "Error conventions"
 description: "Understand Lensmor API error responses, status codes, trace fields, retry behavior, and client handling patterns for production integrations."
 ---
 
-Lensmor API errors use real HTTP status codes.
+Lensmor API exceptions normally use real HTTP status codes. A small number of business guards return `HTTP 200` with an error `code` in the body; clients must inspect both the HTTP status and `code`.
 
 ## Error body
 ```json
@@ -15,6 +15,12 @@ Lensmor API errors use real HTTP status codes.
 }
 ```
 
+`details` is optional. Business and validation errors can include structured context such as requested count, runtime limit, missing identifiers, or access state.
+
+The company-to-event reverse search and personnel events-by-name routes use an `HTTP 200` concurrency business error. It returns `code: 429`, `errorKey: "USER_CONCURRENCY_LIMIT_EXCEEDED"`, `data: null`, and `details: null` when the per-user concurrency limit is reached.
+
+Visitor unlock, full-access unlock, and personnel events-by-name can also return `HTTP 200` with `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"` when an active paid subscription is required. Treat these as failed business actions even though the transport status is successful.
+
 ## Common status codes
 | Status | Meaning | Recommended client behavior |
 | --- | --- | --- |
@@ -23,6 +29,7 @@ Lensmor API errors use real HTTP status codes.
 | `402 Payment Required` | Insufficient credits or access for a credit-consuming operation. | Stop automatic retries and surface the credit requirement. |
 | `404 Not Found` | Requested resource does not exist or is not visible to the caller. | Re-check stored identifiers; do not retry indefinitely. |
 | `409 Conflict` | Business conflict, profile state conflict, or task/workflow state conflict. | Refresh state before retrying. |
+| `422 Unprocessable Entity` | A selected personnel batch exceeds the runtime limit of `2000`. | Split the selected IDs into smaller batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
 
 ## Trace fields
@@ -43,9 +50,11 @@ Do not include API keys or unlocked email addresses in support logs.
 
 - Retry network failures and `429` responses with backoff.
 - Do not automatically retry `400` or `401` without changing the request.
+- Do not retry `422` with the same selected batch; reduce it to at most `2000` personnel IDs.
 - Treat `402` as a product state, not a transient failure.
 - For asynchronous contact unlocks, retry polling the task endpoint rather than creating duplicate unlock tasks.
 
 ## Notes
-- Error bodies do not include raw debugging fields.
+- Error bodies do not include raw debugging fields, but can include the optional structured `details` field.
+- Inspect body `code` even when the HTTP status is `200` on endpoints that document a business-error success envelope.
 - Individual endpoint pages may list the subset of statuses most relevant to that route.

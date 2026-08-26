@@ -42,6 +42,7 @@ Production integrations should handle authentication, pagination, credit-aware a
 | `402 Payment Required` | The operation needs credits or access that is not currently available. | Pause the workflow, show credit context, and let the user decide. |
 | `404 Not Found` | The requested event, exhibitor, person, or task was not found. | Re-check stored identifiers and avoid retry loops. |
 | `409 Conflict` | The request conflicts with current profile, task, or workflow state. | Refresh current state before retrying. |
+| `422 Unprocessable Entity` | A selected personnel batch exceeds the runtime limit of `2000`. | Split the selection into smaller batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
 
 ## Credit-safe UI pattern

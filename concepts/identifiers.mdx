@@ -14,10 +14,14 @@ In event-scoped requests, `event_id` accepts either:
 - `id` — the Lensmor event identifier returned as a string in event responses.
 
 <Note>
-  In the current API version, `id` and `eventId` return the same value for all events. You can safely use either one when calling event-scoped endpoints. If they diverge in a future version, `eventId` is the preferred stable reference for external systems.
+  `id` is the Lensmor database row identifier and `eventId` is the public event identifier. They are returned separately and can differ. Event-scoped resolvers accept either value where the endpoint documents `event_id` support.
 </Note>
 
 Prefer `eventId` when storing or exchanging event identifiers with external systems.
+
+<Warning>
+  `POST /external/personnel/generate-outreach-message` is a current code-level exception: when `event_id` is supplied, it must be the numeric internal event `id`. That endpoint converts the value directly to `BigInt` and does not resolve public `eventId`. The related `GET /external/personnel/outreach` lookup does accept either event identifier.
+</Warning>
 
 ## Entity identifiers
 Use the identifier returned by the matching resource endpoint:
@@ -27,9 +31,10 @@ Use the identifier returned by the matching resource endpoint:
 | `event_id` | `event.eventId` or `event.id` | Prefer `eventId`. |
 | `exhibitor_id` | `exhibitor.id` | Numeric string. |
 | `personnel_id` | `personnel.id` or contact `id` | Numeric string. |
-| `taskId` | `task_id` from contact unlock response | Used for unlock task polling. |
+| `taskId` | `task_id` from contact unlock response | Decimal numeric string used for unlock task polling. |
 
 ## Naming conventions
 - Request parameters use the casing shown on each endpoint page.
 - Event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`. Use the field names shown on each endpoint page.
+- Contact, phone, LinkedIn activity, and outreach task identifiers are decimal numeric strings. Do not add prefixes such as `task_` or `phone_`.
 - Array parameters are route-specific. Some body fields accept arrays directly; some query filters use repeated query parameters. Follow the endpoint page for each route.

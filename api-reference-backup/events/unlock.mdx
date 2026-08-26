@@ -62,7 +62,7 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
     "unlimited": false
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -96,9 +96,11 @@ After a successful unlock, call event-scoped exhibitor or personnel list endpoin
 To add visitor records, call [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access) after base access, or use [Unlock full event access](/api-reference/events/unlock-full-event-access) to unlock missing layers atomically.
 
 ## Error responses
+- `400 Bad Request` — invalid input or no chargeable event contacts are available.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`
+- `409 Conflict` — another credit operation is in progress.
 - `429 Too Many Requests`
 
 ## Notes

@@ -63,7 +63,7 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=U
 
 The event list is paginated. Use the `eventId` field from responses when calling other endpoints:
 
-- `id` and `eventId` currently return the same value for all events.
+- `id` and `eventId` are separate identifiers and can differ; prefer `eventId` for external storage and calls.
 - Use `eventId` when passing to endpoints that accept `event_id`.
 - Many event-scoped endpoints accept either value.
 
