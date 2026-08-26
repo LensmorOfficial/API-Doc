@@ -16,6 +16,58 @@ Use `GET /external/personnel/outreach` when:
 - Retrieving previously generated messages for display or export
 - Checking whether outreach content already exists before triggering a new generation
 
+## Query parameters
+
+| Name | Required | Type | Description | Example |
+| --- | --- | --- | --- | --- |
+| `personnel_id` | Yes | string | Personnel ID used in the generation request. | `789` |
+| `event_id` | Yes | string | Event ID used in the generation request. | `139574` |
+
+## Request example
+
+```bash
+curl --get "https://platform.lensmor.com/external/personnel/outreach" \
+  --data-urlencode "personnel_id=789" \
+  --data-urlencode "event_id=139574" \
+  --header "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+## Response example
+
+```json
+{
+  "found": true,
+  "channels": ["email", "linkedin_message"],
+  "messages": {
+    "email": "Hi Jane, I would like to compare notes before Retail Technology Expo.",
+    "linkedin": {
+      "inmail": {
+        "subject": "Retail Technology Expo",
+        "body": "Hi Jane, I would like to compare notes before the event."
+      },
+      "connection_note": {
+        "body": "Hi Jane, would be glad to connect before the event."
+      }
+    }
+  },
+  "outreach_purpose": "Book a product demo",
+  "tone": "professional",
+  "status": "ready"
+}
+```
+
+## No content yet
+
+`found: false` is a valid lookup result when no message has been generated or the latest generation is not ready. Do not treat it as sent outreach or invent fallback copy.
+
+## Error responses
+
+| Status | Meaning | Recommended handling |
+| --- | --- | --- |
+| `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
+| `404 Not Found` | Personnel/event context is unavailable. | Re-check both identifiers. |
+| `429 Too Many Requests` | Polling exceeded the active rate limit. | Wait for `Retry-After` before retrying. |
+
 ## Notes
 - Returns the most recent outreach generation result for the given personnel and event combination.
 - `messages.linkedin` can contain separate `inmail`, `connection_note`, and `connected_message` objects. InMail can include `subject` and `body`; the other variants contain `body`.

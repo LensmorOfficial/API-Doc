@@ -136,6 +136,78 @@ class PublicAssetSyncTests(unittest.TestCase):
         self.assertEqual(missing_request_examples, [])
         self.assertEqual(missing_response_examples, [])
 
+    def test_all_api_reference_pages_have_in_depth_field_documentation(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+
+        def iter_schema_properties(schema: object):
+            if isinstance(schema, list):
+                for item in schema:
+                    yield from iter_schema_properties(item)
+                return
+            if not isinstance(schema, dict):
+                return
+            for name, child in schema.get("properties", {}).items():
+                yield name, child
+                yield from iter_schema_properties(child)
+            for keyword in ("items", "allOf", "oneOf", "anyOf"):
+                if keyword in schema:
+                    yield from iter_schema_properties(schema[keyword])
+
+        unbalanced_operation_descriptions: list[str] = []
+        undocumented_parameters: list[str] = []
+        undocumented_request_fields: list[str] = []
+
+        for path, path_item in spec["paths"].items():
+            for method, operation in path_item.items():
+                if method.lower() not in self.sync.HTTP_METHODS:
+                    continue
+                label = f"{method.upper()} {path}"
+                description_length = len(operation.get("description", "").strip())
+                if not 600 <= description_length <= 750:
+                    unbalanced_operation_descriptions.append(
+                        f"{label}: {description_length} characters"
+                    )
+
+                for parameter in operation.get("parameters", []):
+                    if "$ref" in parameter:
+                        parameter = spec["components"]["parameters"][
+                            parameter["$ref"].rsplit("/", 1)[-1]
+                        ]
+                    if not parameter.get("description", "").strip() or "example" not in parameter:
+                        undocumented_parameters.append(f"{label}: {parameter.get('name')}")
+
+                request_body = operation.get("requestBody")
+                if not request_body:
+                    continue
+                if "$ref" in request_body:
+                    request_body = spec["components"]["requestBodies"][
+                        request_body["$ref"].rsplit("/", 1)[-1]
+                    ]
+                schema = request_body["content"]["application/json"]["schema"]
+                if "$ref" in schema:
+                    schema = spec["components"]["schemas"][schema["$ref"].rsplit("/", 1)[-1]]
+                for name, field in iter_schema_properties(schema):
+                    if not field.get("description", "").strip():
+                        undocumented_request_fields.append(f"{label}: {name}")
+
+        undocumented_schema_fields: list[str] = []
+        for schema_name, schema in spec["components"]["schemas"].items():
+            for field_name, field in iter_schema_properties(schema):
+                if not field.get("description", "").strip():
+                    undocumented_schema_fields.append(f"{schema_name}.{field_name}")
+
+        shared_errors_without_examples = [
+            name
+            for name, response in spec["components"]["responses"].items()
+            if "example" not in response.get("content", {}).get("application/json", {})
+        ]
+
+        self.assertEqual(unbalanced_operation_descriptions, [])
+        self.assertEqual(undocumented_parameters, [])
+        self.assertEqual(undocumented_request_fields, [])
+        self.assertEqual(undocumented_schema_fields, [])
+        self.assertEqual(shared_errors_without_examples, [])
+
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
         self.assertEqual(spec["info"]["version"], "0.25.0")

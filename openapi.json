@@ -56,7 +56,7 @@
           "Credits"
         ],
         "summary": "Get credits balance",
-        "description": "Return subscription, add-on, gift, and total credits for the authenticated API key owner without spending credits.",
+        "description": "Return the current credit position for the authenticated API key owner without spending credits.\n\nUse this endpoint before and after any workflow that can consume credits, including event access, Visitor access, contact enrichment, and charged company searches. The response separates subscription, add-on, and gift balances so a client can show both the usable total and the buckets that contribute to it.\n\nThis is a read-only account check. A successful response does not reserve credits or guarantee that a later paid action will still have sufficient balance, so refresh the balance immediately before user-confirmed spending and again after the action completes.",
         "operationId": "getExternalCreditsBalance",
         "responses": {
           "200": {
@@ -96,7 +96,7 @@
           "Actions"
         ],
         "summary": "Precheck an external action",
-        "description": "Evaluate access and expected credit behavior for a supported action without executing or charging it.",
+        "description": "Evaluate whether a supported external action can run and what it is expected to cost, without executing the action or charging credits.\n\nUse precheck immediately before event-access, Visitor-access, contact-unlock, and other action-specific workflows. Inspect `allowed`, `should_charge`, `credits`, and `reason_code` to decide whether to continue, ask the user for confirmation, or explain why the action is unavailable.\n\nPrecheck is advisory and read-only: it does not reserve credits, create a task, or lock the target state. Send the same action type and identifiers to the execution endpoint promptly, and still handle state or balance changes returned by that endpoint.",
         "operationId": "precheckExternalAction",
         "requestBody": {
           "required": true,
@@ -160,7 +160,7 @@
           "Events"
         ],
         "summary": "List events",
-        "description": "Search and filter the event catalog by keyword, geography, date, type, and quality with pagination. Event items include hasVisitors when registered Visitor data is available; the public event list does not currently expose a has_visitors query filter.",
+        "description": "Browse the Lensmor event catalog with keyword, geography, date, event-type, and quality filters.\n\nUse this endpoint for broad discovery, search pages, and the first step of an event workflow. Returned `id` and `eventId` values can be passed to event detail, exhibitor, personnel, scoring, ranking, recommendation, and access-unlock endpoints.\n\nFilters narrow the catalog and pagination is one-based. `hasVisitors` is an availability signal showing whether registered Visitor data exists for an event; it does not mean the caller has unlocked that data. The public list does not currently expose a `has_visitors` query filter. No matches return `200 OK` with an empty `items` array.",
         "operationId": "listEvents",
         "parameters": [
           {
@@ -175,7 +175,9 @@
             "schema": {
               "type": "string",
               "maxLength": 200
-            }
+            },
+            "description": "Search event names and related event text by keyword.",
+            "example": "CES"
           },
           {
             "name": "country",
@@ -183,7 +185,9 @@
             "schema": {
               "type": "string",
               "maxLength": 100
-            }
+            },
+            "description": "Filter events by country name.",
+            "example": "United States"
           },
           {
             "name": "city",
@@ -191,7 +195,9 @@
             "schema": {
               "type": "string",
               "maxLength": 100
-            }
+            },
+            "description": "Filter events by city name.",
+            "example": "Las Vegas"
           },
           {
             "name": "date_start_from",
@@ -199,7 +205,9 @@
             "schema": {
               "type": "string",
               "format": "date"
-            }
+            },
+            "description": "Inclusive lower bound for the event start date in `YYYY-MM-DD` format.",
+            "example": "2025-01-01"
           },
           {
             "name": "date_start_to",
@@ -207,7 +215,9 @@
             "schema": {
               "type": "string",
               "format": "date"
-            }
+            },
+            "description": "Inclusive upper bound for the event start date in `YYYY-MM-DD` format.",
+            "example": "2025-12-31"
           },
           {
             "name": "event_type",
@@ -217,7 +227,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by one or more event-type labels. Comma-separated input is supported.",
+            "example": [
+              "In-person"
+            ]
           },
           {
             "name": "quality",
@@ -227,7 +241,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by one or more quality labels. Comma-separated input is supported.",
+            "example": [
+              "Verified"
+            ]
           }
         ],
         "responses": {
@@ -284,7 +302,7 @@
           "Events"
         ],
         "summary": "Get event detail",
-        "description": "Return the detailed public event record for one Lensmor event identifier, including hasVisitors when registered Visitor data is available.",
+        "description": "Retrieve the canonical detailed record for one Lensmor event after discovery or selection.\n\nUse this endpoint when a product needs venue, dates, description, geography, categories, topics, pricing, coordinates, coverage counts, or other event-level metadata that is not necessary in a lightweight list or brief view. The path accepts the event `id` or `eventId` returned by public event responses.\n\nThis read-only call does not unlock event, exhibitor, personnel, or Visitor access. Treat `hasVisitors` as an availability signal only, then inspect event-scoped list semantics or run an action precheck before a paid unlock.",
         "operationId": "getEventDetail",
         "parameters": [
           {
@@ -347,7 +365,7 @@
           "Events"
         ],
         "summary": "Get event brief",
-        "description": "Return a lightweight event record with coverage counts, top categories, and data freshness.",
+        "description": "Fetch a lightweight summary for one event, including core identity, coverage counts, top categories, and data freshness.\n\nUse this endpoint for compact cards, quick previews, background refreshes, or any UI that does not need the full event-detail shape. Pass the `event_id` returned by discovery or recommendation endpoints, and treat unavailable optional values according to their documented nullability.\n\nThe brief is read-only and is not an access-unlock response. Use event detail when you need the complete profile. Use event-scoped exhibitor or personnel lists to inspect available records and preview/full-access semantics before spending credits.",
         "operationId": "getEventBrief",
         "parameters": [
           {
@@ -439,7 +457,7 @@
           "Events"
         ],
         "summary": "Score one event",
-        "description": "Calculate a profile-dependent fit score and rationale for one event without unlocking it.",
+        "description": "Calculate how well one known event matches the authenticated caller's current profile context without unlocking the event.\n\nUse this endpoint when a user has already selected an event and needs a focused fit assessment. The response combines the event record, a numeric score, a recommendation label, and explanatory breakdown data. For a supplied shortlist of several events, use event ranking instead; for discovery from company or audience inputs, use profile-matching recommendations.\n\nScores are profile-dependent and can change when profile data or event data changes. Store the event identifier as the stable reference and treat the score and rationale as a point-in-time recommendation.",
         "operationId": "scoreEventFit",
         "requestBody": {
           "$ref": "#/components/requestBodies/EventIdBody"
@@ -501,7 +519,7 @@
           "Events"
         ],
         "summary": "Rank events",
-        "description": "Rank a supplied set of event identifiers against the authenticated user's profile.",
+        "description": "Rank a caller-supplied shortlist of event identifiers against the authenticated user's current profile.\n\nUse this endpoint after another workflow has produced candidate events—for example event search, CRM input, exhibitor/personnel history, or a user-curated shortlist. The response orders the candidates and returns match scores and reasons where available.\n\nThis endpoint ranks only the identifiers supplied; it is not a database-wide discovery call and it does not unlock event data. Invalid or unavailable identifiers can prevent a complete ranking, so retain the original shortlist and handle missing candidates explicitly.",
         "operationId": "rankEvents",
         "requestBody": {
           "required": true,
@@ -518,7 +536,12 @@
                     "items": {
                       "type": "string"
                     },
-                    "minItems": 1
+                    "minItems": 1,
+                    "description": "Event identifiers to rank against the authenticated user's current profile.",
+                    "example": [
+                      "26855",
+                      "139574"
+                    ]
                   }
                 }
               },
@@ -592,7 +615,7 @@
           "Events"
         ],
         "summary": "Unlock event access",
-        "description": "Unlock base event access for complete exhibitor and personnel results. A first unlock can consume 2,000 credits, repeated unlocks are idempotent, and the separate visitor data layer is not included.",
+        "description": "Unlock the base event access layer so event-scoped exhibitor and personnel endpoints can return complete coverage beyond preview limits.\n\nUse this endpoint only after the user has selected an event and reviewed the preview semantics from exhibitor or personnel lists. The first successful base unlock can consume `2,000` credits. Repeating the call for an already unlocked event is idempotent and should not charge again.\n\nThis endpoint does not unlock the separate registered Visitor layer. Use action precheck before execution, provide `x-call-source` for attribution, and use Visitor unlock or full-access unlock only when Visitor data is also required.",
         "operationId": "unlockEvent",
         "parameters": [
           {
@@ -650,7 +673,7 @@
           "Events"
         ],
         "summary": "Unlock event visitor access",
-        "description": "Unlock visitor records for an event that already has base event access. The first successful visitor unlock consumes 3,000 credits, requires an active subscription and available visitor data, and repeated unlocks are idempotent.",
+        "description": "Unlock the registered Visitor data layer for an event that already has base event access.\n\nUse this endpoint when Visitor records are available and the caller needs that source in addition to base exhibitor and personnel coverage. Run action precheck with `unlock_event_visitors` first. A first successful Visitor unlock consumes `3,000` credits, requires an active subscription, and requires Visitor data to be available for the event.\n\nThe operation is idempotent for an already unlocked Visitor layer. It does not replace the base event unlock prerequisite. Handle `409` state conflicts and availability failures as workflow states rather than blindly retrying the paid request.",
         "operationId": "unlockEventVisitors",
         "parameters": [
           {
@@ -720,7 +743,7 @@
           "Events"
         ],
         "summary": "Unlock full event access",
-        "description": "Atomically unlock base event access and visitor access, charging only for missing access layers: 2,000 credits for base event access and 3,000 credits for visitor access, up to 5,000 credits total.",
+        "description": "Atomically request all available access layers for one event and pay only for layers that are still locked.\n\nUse this endpoint when the user wants both base exhibitor/personnel coverage and registered Visitor coverage in one confirmed action. Base access costs `2,000` credits and Visitor access costs `3,000` credits, so a fully locked event can consume up to `5,000` credits. Already unlocked layers are not charged again.\n\nRun action precheck with `unlock_event_full_access` before execution. The response identifies which layers changed, whether Visitor access was skipped, the exact credits used, and the balance afterward. If Visitor data is unavailable and only base access is required, use the base event unlock endpoint.",
         "operationId": "unlockEventFullAccess",
         "parameters": [
           {
@@ -787,7 +810,7 @@
           "Exhibitors"
         ],
         "summary": "List event exhibitors",
-        "description": "Return paginated exhibitors for an event with preview or full-access semantics and visible coverage counts.",
+        "description": "List exhibitors within one selected event, with company filters, optional personnel hints, pagination, and preview/full-access semantics.\n\nUse this endpoint to build an event exhibitor directory, filter companies by keyword, country, category, or industry, and collect exhibitor IDs for profile or related-event calls. `personnelLimit` can request a best-effort nested personnel sample; use the event personnel endpoint when contacts are required.\n\nAlways inspect `semantics.accessMode`, counts, page state, and unlock guidance. Preview results can be intentionally limited until base event access is unlocked. No matches return an empty page, while an unknown event returns an error.",
         "operationId": "listExhibitors",
         "parameters": [
           {
@@ -805,7 +828,9 @@
             "schema": {
               "type": "string",
               "maxLength": 200
-            }
+            },
+            "description": "Search exhibitor company names and related company text within the event.",
+            "example": "Acme"
           },
           {
             "name": "country",
@@ -813,7 +838,9 @@
             "schema": {
               "type": "string",
               "maxLength": 100
-            }
+            },
+            "description": "Filter exhibitors by company country.",
+            "example": "United States"
           },
           {
             "$ref": "#/components/parameters/CategoryArray"
@@ -829,7 +856,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by one or more nested personnel job-title terms.",
+            "example": [
+              "VP Marketing"
+            ]
           },
           {
             "name": "managementLevel",
@@ -839,7 +870,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by normalized personnel management levels such as `vp` or `c_suite`.",
+            "example": [
+              "vp"
+            ]
           },
           {
             "name": "department",
@@ -849,7 +884,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by normalized personnel departments such as `marketing` or `sales`.",
+            "example": [
+              "marketing"
+            ]
           },
           {
             "name": "personnelLimit",
@@ -857,7 +896,9 @@
             "schema": {
               "type": "integer",
               "minimum": 0
-            }
+            },
+            "description": "Maximum best-effort nested personnel samples per exhibitor. Use `0` or omit the parameter for no nested sample.",
+            "example": 3
           }
         ],
         "responses": {
@@ -930,7 +971,7 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company context",
-        "description": "Search exhibitor records using a company website URL or target-audience context.",
+        "description": "Search Lensmor exhibitor records from company context such as a public company URL or a target-audience description.\n\nUse this endpoint when the workflow starts from a company or buyer profile rather than a known event. Provide at least one of `company_url` or `target_audience`; providing both gives the matcher more context. The result is a paginated exhibitor list that can feed exhibitor profile, related-event, or contact discovery workflows.\n\nThis is broader contextual matching, not an exact company-name lookup. Use the company-name endpoint for precision-first name matching and the exhibitor event-search endpoint when the desired output is events rather than companies.",
         "operationId": "searchExhibitors",
         "requestBody": {
           "$ref": "#/components/requestBodies/ExhibitorSearchBody"
@@ -984,7 +1025,7 @@
           "Exhibitors"
         ],
         "summary": "Search exhibitors by company name",
-        "description": "Run a precision-first exhibitor lookup by company name. A non-empty result consumes 50 credits; an empty result does not consume credits.",
+        "description": "Run a precision-first lookup for exhibitor company records from a required company name.\n\nUse this endpoint when the input is a known company name and the desired output is exhibitor IDs and enriched company records. Matching intentionally favors precision over broad fuzzy recall, so ambiguous or weak input can return an empty page. Reuse the selected exhibitor ID for profile and related-event calls instead of repeating the paid search.\n\nA non-empty result consumes `50` credits; an empty result consumes `0` credits. Check the credit balance and confirm charged searches in user-facing or bulk workflows. Use exhibitor event search when the desired output is the events associated with the company.",
         "operationId": "searchExhibitorsByCompanyName",
         "parameters": [
           {
@@ -1046,7 +1087,7 @@
           "Exhibitors"
         ],
         "summary": "Search events by exhibitor company name",
-        "description": "Find events associated with a company name. A non-empty result consumes 50 credits; an empty result does not consume credits.",
+        "description": "Find deduplicated events associated with exhibitor companies that match a required company name.\n\nUse this endpoint for account planning, CRM enrichment, or the question “which events is this company associated with?” without first resolving an exhibitor ID. Optional `sponsor_match_starred` filtering can select starred or non-starred Sponsor Match events; omit it to include both states.\n\nThe endpoint returns events, not exhibitor records. A non-empty result consumes `50` credits and an empty result consumes `0` credits, so check the balance before bulk or user-confirmed searches. Matching is precision-first and incomplete names can legitimately return no results.",
         "operationId": "searchEventsByExhibitorCompanyName",
         "parameters": [
           {
@@ -1114,7 +1155,7 @@
           "Exhibitors"
         ],
         "summary": "Get exhibitor profile",
-        "description": "Return the public company profile for one exhibitor identifier.",
+        "description": "Retrieve the detailed public company profile for one known exhibitor identifier.\n\nUse this endpoint after selecting an exhibitor from an event list, contextual search, company-name search, or recommendation result. The response is suited to company profile cards and includes enrichment such as description, industry, company size, country, website, LinkedIn identity, and compact event references when available. Store the exhibitor ID as the stable Lensmor reference for follow-up calls.\n\nThis read-only call does not unlock event access or contact data. Use the related-events endpoint for a paginated event history and personnel/contact endpoints when the next step is people discovery.",
         "operationId": "getExhibitorProfile",
         "parameters": [
           {
@@ -1170,7 +1211,7 @@
           "Exhibitors"
         ],
         "summary": "List exhibitor related events",
-        "description": "Return paginated events associated with one exhibitor identifier.",
+        "description": "Return a paginated list of Lensmor events associated with one known exhibitor identifier.\n\nUse this endpoint when an exhibitor profile has already been resolved and the integration needs the company's event history or current event associations. Event items use the shared public event shape and can be passed to event detail, fit scoring, ranking, or access workflows. Follow `hasMore` and increment `page` to retrieve additional results.\n\nIf the starting input is only a company name, use exhibitor event search instead. An exhibitor with no associated events returns a successful empty page; an unknown exhibitor identifier returns an error.",
         "operationId": "listExhibitorEvents",
         "parameters": [
           {
@@ -1230,7 +1271,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
-        "description": "Return paginated people for an event with event-scoped attendee source labels and preview or full base-event access semantics. The sourceType array can contain exhibitor, social, and visitors; labels are not mutually exclusive. Use the sourceType query parameter to filter by one supported attendee source. Visitor is a separate access layer, so semantics.accessMode does not by itself confirm Visitor access.",
+        "description": "List people associated with one event, with optional exhibitor, department, seniority, text, and attendee-source filtering.\n\nUse this endpoint to build attendee exploration, segment people within an event, and collect personnel IDs for profile, LinkedIn activity, contact unlock, or outreach workflows. `sourceType` accepts one event-scoped value—`exhibitor`, `social`, or `visitors`—while each returned person's `sourceType` array can contain multiple non-exclusive labels.\n\nInspect the returned access semantics and counts. Base-event preview/full mode does not by itself confirm separate Visitor-layer access. This endpoint is read-only and does not unlock email addresses, phone numbers, or LinkedIn activity.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -1247,14 +1288,18 @@
               "minimum": 1,
               "maximum": 50,
               "default": 50
-            }
+            },
+            "description": "Maximum personnel records requested per page. The default and maximum are `50` for this endpoint.",
+            "example": 50
           },
           {
             "name": "exhibitor_id",
             "in": "query",
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Limit results to one exhibitor within the selected event.",
+            "example": "4182"
           },
           {
             "name": "department",
@@ -1262,7 +1307,9 @@
             "schema": {
               "type": "string",
               "maxLength": 100
-            }
+            },
+            "description": "Filter by normalized department label.",
+            "example": "marketing"
           },
           {
             "name": "level",
@@ -1270,7 +1317,9 @@
             "schema": {
               "type": "string",
               "maxLength": 50
-            }
+            },
+            "description": "Filter by normalized seniority or management level.",
+            "example": "vp"
           },
           {
             "name": "search_query",
@@ -1278,12 +1327,14 @@
             "schema": {
               "type": "string",
               "maxLength": 200
-            }
+            },
+            "description": "Search the person's name or job title within the event-scoped result set.",
+            "example": "Jane Doe"
           },
           {
             "name": "sourceType",
             "in": "query",
-            "description": "Filter personnel by one event-scoped attendee source label. Supported values are exhibitor, social, and visitors.",
+            "description": "Filter by one event-scoped attendee-source label: `exhibitor`, `social`, or `visitors`.",
             "schema": {
               "type": "string",
               "enum": [
@@ -1292,7 +1343,8 @@
                 "visitors"
               ],
               "maxLength": 50
-            }
+            },
+            "example": "social"
           }
         ],
         "responses": {
@@ -1354,7 +1406,7 @@
           "Personnel"
         ],
         "summary": "Get personnel profile",
-        "description": "Return the public professional profile for one personnel identifier. The sourceType array can aggregate non-exclusive attendee source labels across the person's associated events.",
+        "description": "Retrieve the public professional profile for one known Lensmor personnel identifier.\n\nUse this endpoint after a person is selected from event personnel, contact search, or LinkedIn-based event lookup. It is designed to confirm identity, company and role context, normalized department/seniority metadata, aggregated attendee-source labels, and the current contact access state before a follow-up action.\n\nThis read-only profile call does not unlock email, phone, or LinkedIn activity. `sourceType` can aggregate non-exclusive labels across associated events; use the event personnel list when event-specific source context is required.",
         "operationId": "getPersonnelProfile",
         "parameters": [
           {
@@ -1410,7 +1462,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events",
-        "description": "Return paginated events associated with one personnel identifier.",
+        "description": "Return a paginated list of Lensmor events associated with one known personnel identifier.\n\nUse this endpoint when the integration already has `personnel_id` and needs the person's event history or current event associations. Returned event items use the shared public event shape and can be passed directly to event detail, scoring, ranking, or event-access workflows. Follow `hasMore` and increment `page` when additional results are available.\n\nThis lookup does not expose or unlock contact data. If the starting identifier is a LinkedIn URL, use the LinkedIn-based lookup; if only a full name is available, use the exact-name event search and account for its credit and concurrency rules.",
         "operationId": "listPersonnelEvents",
         "parameters": [
           {
@@ -1466,7 +1518,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events by LinkedIn URL",
-        "description": "Resolve a public LinkedIn profile URL to a personnel record and its related events.",
+        "description": "Normalize a public LinkedIn profile URL, resolve the matching Lensmor personnel record, and return that person's related events.\n\nUse this endpoint for browser-extension, CRM-enrichment, or research workflows where LinkedIn URL is the stable starting identifier. The response includes personnel context plus a paginated event list, allowing the client to recover a Lensmor personnel ID for later profile or contact workflows. Continue through pages only while `hasMore` is true.\n\nURL normalization handles common LinkedIn profile variations, but a URL that cannot be resolved returns a not-found response. This call is read-only and does not unlock contact data.",
         "operationId": "listPersonnelEventsByLinkedin",
         "parameters": [
           {
@@ -1476,7 +1528,9 @@
             "schema": {
               "type": "string",
               "maxLength": 500
-            }
+            },
+            "description": "Public LinkedIn profile URL used for normalized personnel matching.",
+            "example": "https://www.linkedin.com/in/jane-doe"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1552,42 +1606,42 @@
           "Personnel"
         ],
         "summary": "Search personnel related events by name",
-        "description": "Return a paginated, deduplicated event list for up to 50 personnel records whose full name exactly matches the supplied name. This endpoint requires an active paid user. A non-empty result consumes 50 credits; an empty result consumes 0 credits. At most 10 requests can run concurrently for one user.",
+        "description": "Find a paginated, deduplicated event list for up to 50 personnel records whose full name exactly matches the supplied name.\n\nUse this endpoint only when neither a Lensmor personnel ID nor a LinkedIn URL is available. Matching is case-insensitive after trimming but is not partial or fuzzy. Date filters apply to event start dates; without `date_start_from`, the search defaults to upcoming events.\n\nThis endpoint requires an active paid user. A non-empty result consumes `50` credits, an empty result consumes `0` credits, and at most `10 requests` can run concurrently for one user. The response contains events rather than a separate personnel object.",
         "operationId": "searchPersonnelEventsByName",
         "parameters": [
           {
             "name": "person_name",
             "in": "query",
             "required": true,
-            "description": "Exact personnel full name. Matching is case-insensitive and ignores leading and trailing whitespace.",
+            "description": "Exact full name. Matching is case-insensitive after trimming; partial and fuzzy matching are not used.",
             "schema": {
               "type": "string",
               "minLength": 1,
               "maxLength": 200
             },
-            "example": "Jane Smith"
+            "example": "Jane Doe"
           },
           {
             "name": "date_start_from",
             "in": "query",
             "required": false,
-            "description": "Inclusive lower bound for the event start date. Defaults to the current date when omitted.",
+            "description": "Inclusive event start-date lower bound. Defaults to the current date when omitted.",
             "schema": {
               "type": "string",
               "format": "date"
             },
-            "example": "2026-08-10"
+            "example": "2025-01-01"
           },
           {
             "name": "date_start_to",
             "in": "query",
             "required": false,
-            "description": "Inclusive upper bound for the event start date. Omit for no upper bound.",
+            "description": "Inclusive event start-date upper bound. Omit it for no upper bound.",
             "schema": {
               "type": "string",
               "format": "date"
             },
-            "example": "2026-12-31"
+            "example": "2025-12-31"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1690,7 +1744,7 @@
           "Personnel"
         ],
         "summary": "Unlock LinkedIn activity",
-        "description": "Start asynchronous LinkedIn activity analysis for one or more personnel records in an event context.",
+        "description": "Start LinkedIn activity analysis for one or more selected personnel records in a specific event context.\n\nUse this endpoint after collecting personnel IDs from an event-scoped workflow and when the product needs activity metadata rather than contact details. Submit between one and 50 personnel IDs with the event identifier; the response reports acceptance, already-unlocked state, task identity, and item-level errors independently for each person.\n\nThe workflow is asynchronous for newly requested analysis. Do not treat a successful submission as completed analysis; poll or refresh the personnel data according to the returned task state. This endpoint does not unlock email addresses or phone numbers.",
         "operationId": "unlockLinkedinActivity",
         "parameters": [
           {
@@ -1756,13 +1810,15 @@
           "Contacts"
         ],
         "summary": "Search contacts",
-        "description": "Search public contact records by required company name and optional role or person-name filters. Returned sourceType arrays can aggregate non-exclusive attendee source labels across associated events.",
+        "description": "Search Lensmor contacts within a required company scope. Start with `company_name`, then add `role`, `person_name`, or both to narrow the results.\n\nUse this endpoint to find people at a target account, confirm coverage before an unlock workflow, and collect personnel IDs for profile, email, phone, or outreach actions.\n\nThis is a read-only, company-scoped discovery endpoint; it does not unlock contact data. Use only the documented filters. No matches return `200 OK` with an empty `items` array. `sourceType` contains non-exclusive labels aggregated across associated events, while `linkedinActivity` and `linkedinActivityStatus` remain `null` here.",
         "operationId": "searchContacts",
         "parameters": [
           {
             "name": "company_name",
             "in": "query",
             "required": true,
+            "description": "Required company-name search term that scopes the contact search. Length: 1–200 characters.",
+            "example": "Acme",
             "schema": {
               "type": "string",
               "minLength": 1,
@@ -1772,6 +1828,8 @@
           {
             "name": "role",
             "in": "query",
+            "description": "Optional job-role or title term used to narrow people within the company. Blank values are ignored.",
+            "example": "VP Marketing",
             "schema": {
               "type": "string",
               "maxLength": 200
@@ -1780,6 +1838,8 @@
           {
             "name": "person_name",
             "in": "query",
+            "description": "Optional person-name term used to narrow people within the company. Blank values are ignored.",
+            "example": "Jane",
             "schema": {
               "type": "string",
               "maxLength": 200
@@ -1794,7 +1854,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated contacts",
+            "description": "Paginated matching contacts. A valid search with no matches returns the same envelope with an empty `items` array and zero totals.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1806,6 +1866,9 @@
                       "id": "101",
                       "fullName": "Jane Doe",
                       "title": "VP Marketing",
+                      "department": "marketing",
+                      "seniorityLevel": "vp",
+                      "linkedinUrl": "https://linkedin.com/in/jane",
                       "companyName": "Acme",
                       "sourceType": [
                         "social",
@@ -1847,7 +1910,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact emails",
-        "description": "Start an asynchronous email unlock task that can consume 15 credits per chargeable contact.",
+        "description": "Submit selected personnel records for email enrichment in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs email addresses. Newly chargeable work consumes `15` credits per contact and returns `status: accepted` with a task identifier. If every record is already unlocked or skipped, the endpoint can return `status: success` without creating a task.\n\nOnly poll the email task endpoint when `status` is `accepted` and `task_id` is present. A `201` response means the submission was processed, not that every email was found. Inspect skipped details and item-level results, and avoid duplicate work while an earlier task is active.",
         "operationId": "unlockContactEmails",
         "parameters": [
           {
@@ -1871,12 +1934,18 @@
                     "maxItems": 100,
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "Lensmor personnel identifiers selected for this batch operation.",
+                    "example": [
+                      "789"
+                    ]
                   },
                   "event_id": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+                    "example": "26855"
                   }
                 }
               },
@@ -1933,7 +2002,7 @@
           "Contacts"
         ],
         "summary": "Get contact unlock task",
-        "description": "Poll an email unlock task and inspect terminal job status plus item-level email results.",
+        "description": "Poll an email-unlock task created by the contact email submission endpoint.\n\nStore the returned `task_id` and use it here to make the workflow resumable across background jobs, frontend refreshes, or retries. Continue polling while `taskStatus` is `pending` or `processing`, then stop when it reaches `completed` or `failed`. Use a controlled polling interval and treat each read as a status check, not a new unlock request.\n\nTask completion does not guarantee an email for every submitted person. Process item-level status, email, and error information independently, persist successful results, and do not retry the same task after it reaches a terminal state.",
         "operationId": "getContactUnlockTask",
         "parameters": [
           {
@@ -1942,7 +2011,9 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Email-unlock task identifier returned as `task_id` by the submission endpoint.",
+            "example": "contact_unlock_123"
           }
         ],
         "responses": {
@@ -1989,7 +2060,7 @@
           "Profile Matching"
         ],
         "summary": "Apply profile and get recommended events",
-        "description": "Apply profile-matching input synchronously and return a paginated list of recommended events without spending credits.",
+        "description": "Apply company-profile inputs synchronously and return a paginated set of Lensmor events ranked for that profile.\n\nUse this endpoint when discovery starts from a company website or target-audience description rather than from a known event. Provide at least one of `company_url` or `target_audience`, then optionally narrow results by geography, category, event type, dates, future status, or attendee-count range.\n\nThis endpoint does not spend credits or unlock event access. Recommendation scores, tiers, reasons, and matched-exhibitor evidence are point-in-time outputs that can change as the profile or Lensmor data changes. Use neutral event list search when profile-based ranking is not required.",
         "operationId": "applyRecommendedEventsPaged",
         "requestBody": {
           "$ref": "#/components/requestBodies/ProfileMatchingBody"
@@ -2045,7 +2116,7 @@
           "Profile Matching"
         ],
         "summary": "Get recommended exhibitors for event",
-        "description": "Return paginated exhibitors recommended for the authenticated user's profile within one event.",
+        "description": "Return exhibitor recommendation state for one selected event under the authenticated user's current profile.\n\nUse this endpoint when the workflow needs profile-aware exhibitor prioritization rather than the neutral event exhibitor catalog. Filters can narrow the recommendation page by location, company text or exact name, category, industry, and employee-count range.\n\nDepending on recommendation readiness, items can contain ranked match evidence or an unranked fallback state. Inspect `recommendationProcessing`, `isRecommended`, rank, status, score, tier, and reason instead of assuming every result is fully scored. Use the standard exhibitor list when preview/full event-access semantics are the primary requirement.",
         "operationId": "getRecommendedExhibitors",
         "parameters": [
           {
@@ -2065,14 +2136,20 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by one or more country or region labels. Repeat the query parameter for multiple values.",
+            "example": [
+              "United States"
+            ]
           },
           {
             "name": "searchQuery",
             "in": "query",
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Search company names or descriptions within the event recommendation set.",
+            "example": "analytics"
           },
           {
             "name": "exhibitorName",
@@ -2082,7 +2159,11 @@
               "items": {
                 "type": "string"
               }
-            }
+            },
+            "description": "Filter by one or more exact exhibitor company names.",
+            "example": [
+              "Acme"
+            ]
           },
           {
             "$ref": "#/components/parameters/CategoryArray"
@@ -2096,7 +2177,9 @@
             "schema": {
               "type": "integer",
               "minimum": 0
-            }
+            },
+            "description": "Minimum company employee count, inclusive.",
+            "example": 50
           },
           {
             "name": "employeesMax",
@@ -2104,7 +2187,9 @@
             "schema": {
               "type": "integer",
               "minimum": 0
-            }
+            },
+            "description": "Maximum company employee count, inclusive.",
+            "example": 1000
           }
         ],
         "responses": {
@@ -2156,7 +2241,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact phone numbers",
-        "description": "Start an asynchronous phone unlock task that consumes 150 credits per chargeable contact.",
+        "description": "Submit one or more selected personnel records for phone-number enrichment in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs phone numbers. Newly chargeable work consumes `150` credits per contact and returns `status: accepted` with a task identifier. When there is no chargeable work, the endpoint can return `status: success` without creating a task.\n\nOnly poll the phone task endpoint when `status` is `accepted` and `task_id` is present. A `201` response does not guarantee that every phone number will be found. Inspect skipped details and item-level failures, and avoid duplicate submissions while a previous task is pending or processing.",
         "operationId": "unlockContactPhones",
         "parameters": [
           {
@@ -2222,7 +2307,7 @@
           "Contacts"
         ],
         "summary": "Get phone unlock task",
-        "description": "Poll a phone unlock task and inspect terminal job status plus item-level phone results.",
+        "description": "Poll a phone-unlock task created by the contact phone submission endpoint.\n\nStore the returned `task_id` so the workflow can resume across background jobs, frontend refreshes, or retries. Poll while `taskStatus` is `pending` or `processing`, then stop when it reaches `completed` or `failed`. Use a controlled interval and treat each read as a status check, not a new unlock request.\n\nTask-level completion does not guarantee a phone number for every person. Handle item-level status, phone, and `errorCode` independently, persist successful results, surface per-record failures, and do not retry a terminal task.",
         "operationId": "getPhoneUnlockTask",
         "parameters": [
           {
@@ -2231,7 +2316,9 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Phone-unlock task identifier returned as `task_id` by the submission endpoint.",
+            "example": "phone_unlock_123"
           }
         ],
         "responses": {
@@ -2274,7 +2361,7 @@
           "Personnel"
         ],
         "summary": "Generate outreach messages",
-        "description": "Start asynchronous AI outreach generation for one or more personnel records and selected channels.",
+        "description": "Start asynchronous AI outreach generation for one or more personnel records in a selected event context.\n\nUse this endpoint after personnel selection when the integration needs personalized email or LinkedIn copy. Submit up to 50 personnel IDs, choose `email`, `linkedin_message`, or both, and optionally choose LinkedIn variants (`inmail`, `connection_note`, `connected_message`) plus an outreach purpose.\n\nEach personnel item can succeed or fail independently and may create background work. Store the returned task identifiers and retrieve the latest generated content with the outreach detail endpoint. Generating content does not send a message or contact the person.",
         "operationId": "generateOutreachMessage",
         "parameters": [
           {
@@ -2349,7 +2436,7 @@
           "Personnel"
         ],
         "summary": "Get outreach message detail",
-        "description": "Return the most recent generated outreach content for one personnel and event combination.",
+        "description": "Retrieve the most recent AI-generated outreach result for one personnel and event combination.\n\nUse this endpoint after submitting outreach generation, or before regenerating, to check whether content already exists. The response can include email content and separate LinkedIn variants such as InMail, connection note, and connected-message copy, together with source, purpose, tone, status, and timestamps when available.\n\n`found: false` is a valid lookup result when content has not been generated or is not ready. This endpoint only retrieves draft content; it does not send messages. Regenerating the same personnel-and-event combination can replace the previous result.",
         "operationId": "getOutreachDetail",
         "parameters": [
           {
@@ -2360,7 +2447,9 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 20
-            }
+            },
+            "description": "Personnel identifier used in the outreach generation request.",
+            "example": "789"
           },
           {
             "name": "event_id",
@@ -2370,7 +2459,9 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 20
-            }
+            },
+            "description": "Event identifier used in the outreach generation request.",
+            "example": "139574"
           }
         ],
         "responses": {
@@ -2433,6 +2524,8 @@
       "Page": {
         "name": "page",
         "in": "query",
+        "description": "One-based page number. Use `1` for the first page and increment it while `hasMore` is `true`.",
+        "example": 1,
         "schema": {
           "type": "integer",
           "minimum": 1,
@@ -2442,6 +2535,8 @@
       "PageSize": {
         "name": "pageSize",
         "in": "query",
+        "description": "Maximum number of records requested per page. The shared default is `20` and the shared upper limit is `100`; individual endpoints can document a lower maximum.",
+        "example": 20,
         "schema": {
           "type": "integer",
           "minimum": 1,
@@ -2457,7 +2552,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100
-        }
+        },
+        "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+        "example": "26855"
       },
       "EventIdPath": {
         "name": "id",
@@ -2467,7 +2564,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 100
-        }
+        },
+        "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+        "example": "26855"
       },
       "ExhibitorIdQuery": {
         "name": "exhibitor_id",
@@ -2476,7 +2575,9 @@
         "schema": {
           "type": "string",
           "minLength": 1
-        }
+        },
+        "description": "Lensmor exhibitor identifier returned by exhibitor list, search, or recommendation results.",
+        "example": "4182"
       },
       "PersonnelIdQuery": {
         "name": "personnel_id",
@@ -2486,7 +2587,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 20
-        }
+        },
+        "description": "Lensmor personnel identifier returned by personnel or contact results.",
+        "example": "789"
       },
       "CategoryArray": {
         "name": "category",
@@ -2496,7 +2599,11 @@
           "items": {
             "type": "string"
           }
-        }
+        },
+        "description": "Filter by one or more category labels. Repeat the query parameter for multiple values.",
+        "example": [
+          "Technology"
+        ]
       },
       "IndustryArray": {
         "name": "industry",
@@ -2506,7 +2613,11 @@
           "items": {
             "type": "string"
           }
-        }
+        },
+        "description": "Filter by one or more industry labels. Repeat the query parameter for multiple values.",
+        "example": [
+          "Software"
+        ]
       },
       "CallSource": {
         "name": "x-call-source",
@@ -2518,7 +2629,9 @@
             "api",
             "agent"
           ]
-        }
+        },
+        "description": "Identify the caller as `api` or `agent` for usage attribution. Defaults to `api` when omitted.",
+        "example": "api"
       }
     },
     "requestBodies": {
@@ -2535,7 +2648,9 @@
                 "event_id": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 100
+                  "maxLength": 100,
+                  "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+                  "example": "26855"
                 }
               }
             },
@@ -2543,7 +2658,8 @@
               "event_id": "139574"
             }
           }
-        }
+        },
+        "description": "Select the event to score or otherwise process."
       },
       "ExhibitorSearchBody": {
         "required": true,
@@ -2554,21 +2670,29 @@
               "properties": {
                 "company_url": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri",
+                  "description": "Public `http(s)` company website used as profile context. Provide it or `target_audience`.",
+                  "example": "https://acme.example"
                 },
                 "target_audience": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Free-form ideal-customer or target-audience description. Provide it or `company_url`.",
+                  "example": "Enterprise marketing teams in North America"
                 },
                 "page": {
                   "type": "integer",
                   "minimum": 1,
-                  "default": 1
+                  "default": 1,
+                  "description": "One-based result page number.",
+                  "example": 1
                 },
                 "pageSize": {
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 100,
-                  "default": 20
+                  "default": 20,
+                  "description": "Maximum records requested per page; defaults to `20` and cannot exceed `100`.",
+                  "example": 20
                 }
               },
               "anyOf": [
@@ -2590,7 +2714,8 @@
               "pageSize": 20
             }
           }
-        }
+        },
+        "description": "Provide company-profile context and pagination for contextual exhibitor matching."
       },
       "CompanyNameBody": {
         "required": true,
@@ -2605,18 +2730,24 @@
                 "company_name": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 200
+                  "maxLength": 200,
+                  "description": "Company-name search term. Matching is precision-first for company-name endpoints.",
+                  "example": "Acme"
                 },
                 "page": {
                   "type": "integer",
                   "minimum": 1,
-                  "default": 1
+                  "default": 1,
+                  "description": "One-based result page number.",
+                  "example": 1
                 },
                 "pageSize": {
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 100,
-                  "default": 20
+                  "default": 20,
+                  "description": "Maximum records requested per page; defaults to `20` and cannot exceed `100`.",
+                  "example": 20
                 }
               }
             },
@@ -2626,7 +2757,8 @@
               "pageSize": 20
             }
           }
-        }
+        },
+        "description": "Provide the required company name and pagination for precision-first exhibitor lookup."
       },
       "SearchEventsByCompanyNameBody": {
         "required": true,
@@ -2641,7 +2773,9 @@
                 "company_name": {
                   "type": "string",
                   "minLength": 1,
-                  "maxLength": 200
+                  "maxLength": 200,
+                  "description": "Company-name search term. Matching is precision-first for company-name endpoints.",
+                  "example": "Acme"
                 },
                 "sponsor_match_starred": {
                   "type": "integer",
@@ -2649,18 +2783,23 @@
                     0,
                     1
                   ],
-                  "description": "Filter to events whose Sponsor Match starred state is 0 or 1. Omit the field to include both states."
+                  "description": "Use `1` for starred Sponsor Match events or `0` for non-starred events; omit it to include both.",
+                  "example": 1
                 },
                 "page": {
                   "type": "integer",
                   "minimum": 1,
-                  "default": 1
+                  "default": 1,
+                  "description": "One-based result page number.",
+                  "example": 1
                 },
                 "pageSize": {
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 100,
-                  "default": 20
+                  "default": 20,
+                  "description": "Maximum records requested per page; defaults to `20` and cannot exceed `100`.",
+                  "example": 20
                 }
               }
             },
@@ -2671,7 +2810,8 @@
               "pageSize": 20
             }
           }
-        }
+        },
+        "description": "Provide the company name, optional Sponsor Match filter, and pagination for event reverse search."
       },
       "ProfileMatchingBody": {
         "required": true,
@@ -2682,64 +2822,98 @@
               "properties": {
                 "company_url": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri",
+                  "description": "Public `http(s)` company website used as profile context. Provide it or `target_audience`.",
+                  "example": "https://acme.example"
                 },
                 "target_audience": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Free-form ideal-customer or target-audience description. Provide it or `company_url`.",
+                  "example": "Enterprise marketing teams in North America"
                 },
                 "page": {
                   "type": "integer",
                   "minimum": 1,
-                  "default": 1
+                  "default": 1,
+                  "description": "One-based result page number.",
+                  "example": 1
                 },
                 "pageSize": {
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 100,
-                  "default": 20
+                  "default": 20,
+                  "description": "Maximum records requested per page; defaults to `20` and cannot exceed `100`.",
+                  "example": 20
                 },
                 "autoRecommendTop3EventsEnabled": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "description": "Override synchronous top-three recommendation-reason generation for this request.",
+                  "example": true
                 },
                 "city": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Filter recommendations by city.",
+                  "example": "Las Vegas"
                 },
                 "region": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Filter recommendations by region or state.",
+                  "example": "Nevada"
                 },
                 "country": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Filter recommendations by country.",
+                  "example": "United States"
                 },
                 "category": {
                   "type": "array",
                   "items": {
                     "type": "string"
-                  }
+                  },
+                  "description": "Filter by category labels. Arrays and comma-separated inputs are normalized.",
+                  "example": [
+                    "Technology"
+                  ]
                 },
                 "eventTypeIds": {
                   "type": "array",
                   "items": {
                     "type": "integer"
-                  }
+                  },
+                  "description": "Filter by Lensmor event-type identifiers.",
+                  "example": [
+                    1
+                  ]
                 },
                 "dateStartFrom": {
                   "type": "string",
-                  "format": "date"
+                  "format": "date",
+                  "description": "Inclusive lower bound for event start date in `YYYY-MM-DD` format.",
+                  "example": "2025-01-01"
                 },
                 "dateStartTo": {
                   "type": "string",
-                  "format": "date"
+                  "format": "date",
+                  "description": "Inclusive upper bound for event start date in `YYYY-MM-DD` format.",
+                  "example": "2025-12-31"
                 },
                 "future": {
-                  "type": "integer"
+                  "type": "integer",
+                  "description": "Future-event flag used by the recommendation filter.",
+                  "example": 1
                 },
                 "attendeeCountMin": {
                   "type": "integer",
-                  "minimum": 0
+                  "minimum": 0,
+                  "description": "Minimum attendee count, inclusive.",
+                  "example": 500
                 },
                 "attendeeCountMax": {
                   "type": "integer",
-                  "minimum": 0
+                  "minimum": 0,
+                  "description": "Maximum attendee count, inclusive.",
+                  "example": 50000
                 }
               },
               "anyOf": [
@@ -2763,7 +2937,8 @@
               "future": 1
             }
           }
-        }
+        },
+        "description": "Provide company-profile context, pagination, and optional event filters for recommendation generation."
       }
     },
     "responses": {
@@ -2773,6 +2948,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 400,
+              "message": "Invalid request",
+              "errorKey": "INVALID_REQUEST",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2783,6 +2964,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 401,
+              "message": "Invalid API key",
+              "errorKey": "INVALID_API_KEY",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2793,6 +2980,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 402,
+              "message": "Insufficient credits",
+              "errorKey": "INSUFFICIENT_CREDITS",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2803,6 +2996,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 404,
+              "message": "Resource not found",
+              "errorKey": "NOT_FOUND",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2813,6 +3012,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 409,
+              "message": "Request conflicts with the current resource state",
+              "errorKey": "STATE_CONFLICT",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2823,6 +3028,12 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 429,
+              "message": "Rate limit exceeded",
+              "errorKey": "RATE_LIMIT_EXCEEDED",
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
             }
           }
         }
@@ -2839,18 +3050,23 @@
         ],
         "properties": {
           "code": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Numeric or symbolic code that identifies the response or business condition."
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable explanation suitable for logs or user-facing error handling."
           },
           "errorKey": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable machine-readable error key for branching and analytics."
           },
           "traceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Request trace identifier to include in support or incident reports."
           }
-        }
+        },
+        "description": "Shared error envelope returned by public Lensmor API endpoints."
       },
       "ConcurrencyLimitBusinessError": {
         "type": "object",
@@ -2865,26 +3081,33 @@
         "properties": {
           "code": {
             "type": "integer",
-            "const": 429
+            "const": 429,
+            "description": "Numeric or symbolic code that identifies the response or business condition."
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Human-readable explanation suitable for logs or user-facing error handling."
           },
           "errorKey": {
             "type": "string",
-            "const": "USER_CONCURRENCY_LIMIT_EXCEEDED"
+            "const": "USER_CONCURRENCY_LIMIT_EXCEEDED",
+            "description": "Stable machine-readable error key for branching and analytics."
           },
           "data": {
-            "type": "null"
+            "type": "null",
+            "description": "Optional structured business-error data; `null` when no extra data is available."
           },
           "details": {
-            "type": "null"
+            "type": "null",
+            "description": "Optional structured error details; `null` when no extra details are available."
           },
           "traceId": {
-            "type": "string"
+            "type": "string",
+            "description": "Request trace identifier to include in support or incident reports."
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Business error returned when a user exceeds the endpoint's concurrent-request limit."
       },
       "CreditBalance": {
         "type": "object",
@@ -2902,42 +3125,53 @@
         ],
         "properties": {
           "totalAmount": {
-            "type": "number"
+            "type": "number",
+            "description": "Total credits allocated across subscription, add-on, and gift buckets."
           },
           "totalBalance": {
-            "type": "number"
+            "type": "number",
+            "description": "Total credits currently available to spend across all buckets."
           },
           "subscriptionAmount": {
-            "type": "number"
+            "type": "number",
+            "description": "Credits allocated by the current subscription period."
           },
           "subscriptionBalance": {
-            "type": "number"
+            "type": "number",
+            "description": "Subscription credits currently available to spend."
           },
           "addonAmount": {
-            "type": "number"
+            "type": "number",
+            "description": "Total credits allocated through add-on purchases."
           },
           "addonBalance": {
-            "type": "number"
+            "type": "number",
+            "description": "Add-on credits currently available to spend."
           },
           "addonExpireAt": {
             "type": [
               "number",
               "null"
-            ]
+            ],
+            "description": "Unix timestamp for add-on credit expiry, or `null` when no expiry applies."
           },
           "giftAmount": {
-            "type": "number"
+            "type": "number",
+            "description": "Total promotional or gifted credits allocated."
           },
           "giftBalance": {
-            "type": "number"
+            "type": "number",
+            "description": "Promotional or gifted credits currently available to spend."
           },
           "resetAt": {
             "type": [
               "number",
               "null"
-            ]
+            ],
+            "description": "Unix timestamp for the next subscription-credit reset, or `null` when unavailable."
           }
-        }
+        },
+        "description": "Current total and per-bucket Lensmor credit amounts for the API key owner."
       },
       "EventItem": {
         "type": "object",
@@ -2948,78 +3182,91 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable Lensmor identifier for this record."
           },
           "eventId": {
-            "type": "string"
+            "type": "string",
+            "description": "Public event identifier accepted by event-scoped endpoints."
           },
           "name": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Display name when available."
           },
           "nickname": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Alternative or shortened event name when available."
           },
           "description": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Public description when available."
           },
           "url": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Canonical public website URL when available."
           },
           "dateStart": {
             "type": [
               "string",
               "null"
             ],
-            "format": "date"
+            "format": "date",
+            "description": "Event start date in ISO `YYYY-MM-DD` format when available."
           },
           "dateEnd": {
             "type": [
               "string",
               "null"
             ],
-            "format": "date"
+            "format": "date",
+            "description": "Event end date in ISO `YYYY-MM-DD` format when available."
           },
           "venue": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Event venue name when available."
           },
           "city": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "City associated with the record when available."
           },
           "region": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Region, state, or province when available."
           },
           "country": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Country associated with the record when available."
           },
           "exhibitorCount": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Known exhibitor count for the event when available."
           },
           "hasVisitors": {
             "type": "boolean",
@@ -3037,14 +3284,17 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Public image or logo URL when available."
           },
           "dataSource": {
             "type": "string",
-            "const": "Lensmor"
+            "const": "Lensmor",
+            "description": "Source label for the returned Lensmor record."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Shared public event summary used by event lists, search results, and recommendation workflows."
       },
       "EventDetail": {
         "allOf": [
@@ -3058,85 +3308,101 @@
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Latitude returned as part of this event detail object."
               },
               "longitude": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Longitude returned as part of this event detail object."
               },
               "attendeeCount": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Attendee Count returned as part of this event detail object."
               },
               "priceLower": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Price Lower returned as part of this event detail object."
               },
               "priceUpper": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Price Upper returned as part of this event detail object."
               },
               "eventType": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Event Type returned as part of this event detail object."
               },
               "categories": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": true
-                }
+                },
+                "description": "Category labels associated with the company or event."
               },
               "topics": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Topics returned as part of this event detail object."
               },
               "topicsCount": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Topics Count returned as part of this event detail object."
               },
               "verified": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Verified returned as part of this event detail object."
               },
               "future": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Future returned as part of this event detail object."
               },
               "historic": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Historic returned as part of this event detail object."
               },
               "historicEvent": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Historic Event returned as part of this event detail object."
               },
               "personnelCount": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Personnel Count returned as part of this event detail object."
               },
               "eventTypes": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": true
-                }
+                },
+                "description": "Event Types returned as part of this event detail object."
               }
             }
           }
-        ]
+        ],
+        "description": "Detailed event response that extends the shared event summary."
       },
       "EventPage": {
         "type": "object",
@@ -3153,25 +3419,32 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EventItem"
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           },
           "total": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total matching records across all pages."
           },
           "page": {
-            "type": "integer"
+            "type": "integer",
+            "description": "One-based page number returned."
           },
           "pageSize": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum records requested for this page."
           },
           "totalPages": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total pages available for the current query."
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another result page is available."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Standard paginated collection of public event summaries."
       },
       "MatchedExhibitorSummary": {
         "type": "object",
@@ -3181,15 +3454,18 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable Lensmor identifier for this record."
           },
           "companyName": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company display name when available."
           }
-        }
+        },
+        "description": "Compact exhibitor identity explaining an event-company match."
       },
       "EventReverseSearchItem": {
         "allOf": [
@@ -3206,11 +3482,13 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/MatchedExhibitorSummary"
-                }
+                },
+                "description": "Matched Exhibitors returned as part of this event reverse search item object."
               }
             }
           }
-        ]
+        ],
+        "description": "Event result enriched with the exhibitor company that produced the reverse-search match."
       },
       "EventReverseSearchPage": {
         "type": "object",
@@ -3227,24 +3505,31 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/EventReverseSearchItem"
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           },
           "total": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total matching records across all pages."
           },
           "page": {
-            "type": "integer"
+            "type": "integer",
+            "description": "One-based page number returned."
           },
           "pageSize": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum records requested for this page."
           },
           "totalPages": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total pages available for the current query."
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another result page is available."
           }
-        }
+        },
+        "description": "Paginated events returned by exhibitor company-name reverse search."
       },
       "EventFitScore": {
         "type": "object",
@@ -3256,7 +3541,8 @@
         ],
         "properties": {
           "event": {
-            "$ref": "#/components/schemas/EventItem"
+            "$ref": "#/components/schemas/EventItem",
+            "description": "Event record associated with this result."
           },
           "score": {
             "type": "number",
@@ -3300,9 +3586,11 @@
                 "description": "Event-scale component derived from the Lensmor exhibitor count and capped at 10."
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Structured explanation of factors contributing to the fit score."
           }
-        }
+        },
+        "description": "Profile-dependent fit assessment for one event."
       },
       "RecommendedExhibitorItem": {
         "type": "object",
@@ -3313,70 +3601,82 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable Lensmor identifier for this record."
           },
           "companyName": {
-            "type": "string"
+            "type": "string",
+            "description": "Company display name when available."
           },
           "description": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Public description when available."
           },
           "logo": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company logo URL when available."
           },
           "website": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company website URL when available."
           },
           "country": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Country associated with the record when available."
           },
           "industry": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized company industry when available."
           },
           "categories": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Category labels associated with the company or event."
           },
           "employeeCount": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Known company employee count when available."
           },
           "companySize": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized company-size band when available."
           },
           "fundingRound": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Latest known funding-round label when available."
           },
           "techStacks": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Known technology-stack labels associated with the company."
           },
           "isRecommended": {
             "type": "boolean",
@@ -3387,7 +3687,8 @@
               "integer",
               "null"
             ],
-            "minimum": 1
+            "minimum": 1,
+            "description": "One-based recommendation rank when scoring is ready."
           },
           "matchStatus": {
             "type": [
@@ -3400,13 +3701,15 @@
               "ready",
               "failed",
               null
-            ]
+            ],
+            "description": "Current recommendation or matching processing state."
           },
           "matchScore": {
             "type": [
               "number",
               "null"
-            ]
+            ],
+            "description": "Numeric profile-match score when available."
           },
           "matchTier": {
             "type": [
@@ -3418,7 +3721,8 @@
               "strong_match",
               "qualifying_match",
               null
-            ]
+            ],
+            "description": "Normalized match tier when available."
           },
           "reason": {
             "type": [
@@ -3428,7 +3732,8 @@
             "description": "Recommendation reason when matchStatus is ready. The field name is reason, not matchReason."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Exhibitor company plus recommendation readiness and match evidence."
       },
       "RecommendedExhibitorPage": {
         "type": "object",
@@ -3446,27 +3751,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RecommendedExhibitorItem"
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           },
           "total": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Total matching records across all pages."
           },
           "page": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "One-based page number returned."
           },
           "pageSize": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100
+            "maximum": 100,
+            "description": "Maximum records requested for this page."
           },
           "totalPages": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Total pages available for the current query."
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another result page is available."
           },
           "recommendationProcessing": {
             "type": "boolean",
@@ -3488,7 +3799,8 @@
             "description": "Present on fallback results. This flag does not identify the cause or prescribe a required action."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Paginated exhibitor recommendation state for one event."
       },
       "EventRankItem": {
         "type": "object",
@@ -3501,27 +3813,33 @@
         ],
         "properties": {
           "event_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Lensmor event identifier associated with this record or action."
           },
           "name": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Display name when available."
           },
           "rank": {
-            "type": "integer"
+            "type": "integer",
+            "description": "One-based rank within the supplied candidate set."
           },
           "match_score": {
-            "type": "number"
+            "type": "number",
+            "description": "Numeric match score used to order the ranked result."
           },
           "reasons": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Human-readable reasons supporting the rank."
           }
-        }
+        },
+        "description": "One ranked event and its profile-match evidence."
       },
       "EventUnlockResult": {
         "type": "object",
@@ -3534,13 +3852,16 @@
         ],
         "properties": {
           "success": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this operation or item completed successfully."
           },
           "alreadyUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the requested access was already available before this call."
           },
           "creditsUsed": {
-            "type": "number"
+            "type": "number",
+            "description": "Credits consumed by this operation."
           },
           "balanceAfter": {
             "oneOf": [
@@ -3554,16 +3875,20 @@
                 ],
                 "properties": {
                   "subscriptionBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Subscription credits currently available to spend."
                   },
                   "permanentBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Permanent Balance returned as part of this event unlock result object."
                   },
                   "totalBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Total credits currently available to spend across all buckets."
                   },
                   "unlimited": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Unlimited returned as part of this event unlock result object."
                   }
                 },
                 "additionalProperties": true
@@ -3571,7 +3896,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Credit balance remaining after the operation."
           },
           "event": {
             "type": "object",
@@ -3582,20 +3908,25 @@
             ],
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "description": "Stable Lensmor identifier for this record."
               },
               "eventId": {
-                "type": "string"
+                "type": "string",
+                "description": "Public event identifier accepted by event-scoped endpoints."
               },
               "name": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Display name when available."
               }
-            }
+            },
+            "description": "Event record associated with this result."
           }
-        }
+        },
+        "description": "Result of requesting the base event access layer."
       },
       "EventUnlockIdentity": {
         "type": "object",
@@ -3606,18 +3937,22 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable Lensmor identifier for this record."
           },
           "eventId": {
-            "type": "string"
+            "type": "string",
+            "description": "Public event identifier accepted by event-scoped endpoints."
           },
           "name": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Display name when available."
           }
-        }
+        },
+        "description": "Compact identity of the event affected by an unlock operation."
       },
       "EventVisitorUnlockResult": {
         "type": "object",
@@ -3630,14 +3965,17 @@
         ],
         "properties": {
           "success": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this operation or item completed successfully."
           },
           "alreadyUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the requested access was already available before this call."
           },
           "creditsSpent": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Credits consumed by this operation."
           },
           "balanceAfter": {
             "oneOf": [
@@ -3647,12 +3985,15 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Credit balance remaining after the operation."
           },
           "event": {
-            "$ref": "#/components/schemas/EventUnlockIdentity"
+            "$ref": "#/components/schemas/EventUnlockIdentity",
+            "description": "Event record associated with this result."
           }
-        }
+        },
+        "description": "Result of requesting the registered Visitor access layer."
       },
       "EventFullAccessUnlockResult": {
         "type": "object",
@@ -3668,23 +4009,29 @@
         ],
         "properties": {
           "success": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this operation or item completed successfully."
           },
           "alreadyUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the requested access was already available before this call."
           },
           "eventUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this call newly unlocked the base event layer."
           },
           "visitorUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this call newly unlocked the registered Visitor layer."
           },
           "visitorSkipped": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether Visitor access was skipped because it was unavailable or not required."
           },
           "totalCreditsUsed": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Total credits consumed across all requested access layers."
           },
           "balanceAfter": {
             "oneOf": [
@@ -3698,16 +4045,20 @@
                 ],
                 "properties": {
                   "subscriptionBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Subscription credits currently available to spend."
                   },
                   "permanentBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Permanent Balance returned as part of this event full access unlock result object."
                   },
                   "totalBalance": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Total credits currently available to spend across all buckets."
                   },
                   "unlimited": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Unlimited returned as part of this event full access unlock result object."
                   }
                 },
                 "additionalProperties": true
@@ -3715,12 +4066,15 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Credit balance remaining after the operation."
           },
           "event": {
-            "$ref": "#/components/schemas/EventUnlockIdentity"
+            "$ref": "#/components/schemas/EventUnlockIdentity",
+            "description": "Event record associated with this result."
           }
-        }
+        },
+        "description": "Result of atomically requesting all available event access layers."
       },
       "ExhibitorBase": {
         "type": "object",
@@ -3731,121 +4085,142 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Stable Lensmor identifier for this record."
           },
           "companyName": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company display name when available."
           },
           "domain": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized company domain when available."
           },
           "description": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Public description when available."
           },
           "website": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company website URL when available."
           },
           "industry": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized company industry when available."
           },
           "employeeCount": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Known company employee count when available."
           },
           "country": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Country associated with the record when available."
           },
           "logo": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company logo URL when available."
           },
           "dataSource": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Source label for the returned Lensmor record."
           },
           "linkedinUrl": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "LinkedIn company or person profile URL when available."
           },
           "fundingRound": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Latest known funding-round label when available."
           },
           "matched_event_ids": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Event identifiers that contributed to the exhibitor match."
           },
           "isRecommended": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the exhibitor is currently marked as recommended for the caller."
           },
           "recommendationRank": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "One-based recommendation rank when scoring is ready."
           },
           "matchStatus": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Current recommendation or matching processing state."
           },
           "matchScore": {
             "type": [
               "number",
               "null"
-            ]
+            ],
+            "description": "Numeric profile-match score when available."
           },
           "matchTier": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized match tier when available."
           },
           "matchReason": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Human-readable explanation for the exhibitor match when available."
           },
           "categories": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Category labels associated with the company or event."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Shared public exhibitor company identity, enrichment, and recommendation fields."
       },
       "ExhibitorSignalFields": {
         "type": "object",
@@ -3854,13 +4229,15 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Known technology-stack labels associated with the company."
           },
           "buyingSignalTags": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Normalized buying-signal labels associated with the exhibitor."
           },
           "buyingSignalStatus": {
             "type": [
@@ -3880,72 +4257,86 @@
               ],
               "properties": {
                 "signalTag": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Signal Tag returned as part of this exhibitor signal fields object."
                 },
                 "signalDate": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Signal Date returned as part of this exhibitor signal fields object."
                 },
                 "sourceType": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Non-exclusive attendee-source labels associated with the person."
                 },
                 "sourceTitle": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Source Title returned as part of this exhibitor signal fields object."
                 },
                 "sourceUrl": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Source Url returned as part of this exhibitor signal fields object."
                 },
                 "evidenceSummary": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Evidence Summary returned as part of this exhibitor signal fields object."
                 },
                 "relevanceToIcp": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Relevance To Icp returned as part of this exhibitor signal fields object."
                 },
                 "recommendedPlay": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Recommended Play returned as part of this exhibitor signal fields object."
                 },
                 "signalScore": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Signal Score returned as part of this exhibitor signal fields object."
                 },
                 "confidence": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Confidence returned as part of this exhibitor signal fields object."
                 },
                 "directOrInferred": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Direct Or Inferred returned as part of this exhibitor signal fields object."
                 },
                 "analyzedAt": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Analyzed At returned as part of this exhibitor signal fields object."
                 }
               }
-            }
+            },
+            "description": "Structured buying-signal evidence when available."
           }
-        }
+        },
+        "description": "Optional technology and buying-signal enrichment for an exhibitor."
       },
       "ExhibitorItem": {
         "allOf": [
@@ -3955,7 +4346,8 @@
           {
             "$ref": "#/components/schemas/ExhibitorSignalFields"
           }
-        ]
+        ],
+        "description": "Exhibitor list item composed from base company and signal fields."
       },
       "ExhibitorProfile": {
         "allOf": [
@@ -3971,23 +4363,28 @@
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Stable Lensmor identifier for this record."
                     },
                     "eventId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Public event identifier accepted by event-scoped endpoints."
                     },
                     "name": {
                       "type": [
                         "string",
                         "null"
-                      ]
+                      ],
+                      "description": "Display name when available."
                     }
                   }
-                }
+                },
+                "description": "Events returned as part of this exhibitor profile object."
               }
             }
           }
-        ]
+        ],
+        "description": "Detailed exhibitor profile composed from shared company and signal fields."
       },
       "ExhibitorPage": {
         "type": "object",
@@ -4004,24 +4401,31 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ExhibitorItem"
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           },
           "total": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total matching records across all pages."
           },
           "page": {
-            "type": "integer"
+            "type": "integer",
+            "description": "One-based page number returned."
           },
           "pageSize": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum records requested for this page."
           },
           "totalPages": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total pages available for the current query."
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another result page is available."
           }
-        }
+        },
+        "description": "Standard paginated collection of exhibitors."
       },
       "ExhibitorPageWithSemantics": {
         "allOf": [
@@ -4032,23 +4436,28 @@
             "type": "object",
             "properties": {
               "recommendationProcessing": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether recommendation computation is still in progress."
               },
               "semantics": {
-                "$ref": "#/components/schemas/AccessSemantics"
+                "$ref": "#/components/schemas/AccessSemantics",
+                "description": "Semantics returned as part of this exhibitor page with semantics object."
               },
               "recommendationProcessingFeature": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Recommendation Processing Feature returned as part of this exhibitor page with semantics object."
               }
             }
           }
-        ]
+        ],
+        "description": "Paginated exhibitors plus event-access and preview semantics."
       },
       "ContactItem": {
         "type": "object",
+        "description": "Public personnel/contact record with identity, access state, and optional unlocked values.",
         "required": [
           "id",
           "fullName",
@@ -4056,43 +4465,57 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Personnel identifier to pass to profile, event, email-unlock, phone-unlock, and outreach workflows.",
+            "example": "101"
           },
           "fullName": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Person's display name when available.",
+            "example": "Jane Doe"
           },
           "title": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Current job title when available.",
+            "example": "VP Marketing"
           },
           "department": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized department label when available.",
+            "example": "marketing"
           },
           "seniorityLevel": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Normalized seniority label when available.",
+            "example": "vp"
           },
           "linkedinUrl": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "LinkedIn profile URL when available.",
+            "example": "https://linkedin.com/in/jane"
           },
           "companyName": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Company associated with the person when available.",
+            "example": "Acme"
           },
           "sourceType": {
             "type": "array",
@@ -4110,16 +4533,22 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Email address when already accessible to the caller; otherwise `null`. Search endpoints do not unlock it.",
+            "example": null
           },
           "phone": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Phone number when already accessible to the caller; otherwise `null`. Search endpoints do not unlock it.",
+            "example": null
           },
           "contactUnlockStatus": {
-            "type": "string"
+            "type": "string",
+            "description": "Current email/contact access state for the authenticated API key owner.",
+            "example": "locked"
           },
           "phoneUnlockStatus": {
             "type": [
@@ -4131,25 +4560,31 @@
               "processing",
               "failed",
               null
-            ]
+            ],
+            "description": "Phone unlock state: `ready`, `processing`, `failed`, or `null` when no phone-unlock state is available.",
+            "example": null
           },
           "linkedinActivity": {
             "type": [
               "object",
               "null"
             ],
+            "description": "LinkedIn activity summary when populated by the endpoint; otherwise `null`.",
             "properties": {
               "activityLevel": {
-                "type": "string"
+                "type": "string",
+                "description": "Normalized LinkedIn activity level."
               },
               "isActive": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Whether recent LinkedIn activity indicates that the person is active."
               },
               "latestPostAt": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Timestamp of the latest known LinkedIn post when available."
               }
             }
           },
@@ -4157,13 +4592,17 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "LinkedIn activity analysis state when populated by the endpoint; otherwise `null`.",
+            "example": null
           },
           "eventCount": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Number of Lensmor events associated with the person when available.",
+            "example": 3
           },
           "outreachMessageStatus": {
             "type": [
@@ -4183,6 +4622,7 @@
       },
       "ContactPage": {
         "type": "object",
+        "description": "Standard paginated collection of contact records.",
         "required": [
           "items",
           "total",
@@ -4194,24 +4634,35 @@
         "properties": {
           "items": {
             "type": "array",
+            "description": "Contact records returned on the current page.",
             "items": {
               "$ref": "#/components/schemas/ContactItem"
             }
           },
           "total": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total matching contacts across all pages.",
+            "example": 1
           },
           "page": {
-            "type": "integer"
+            "type": "integer",
+            "description": "One-based page number returned.",
+            "example": 1
           },
           "pageSize": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Requested maximum number of contacts per page.",
+            "example": 20
           },
           "totalPages": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Total number of pages for the current search.",
+            "example": 1
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page is available after the current page.",
+            "example": false
           }
         }
       },
@@ -4224,11 +4675,13 @@
             "type": "object",
             "properties": {
               "semantics": {
-                "$ref": "#/components/schemas/AccessSemantics"
+                "$ref": "#/components/schemas/AccessSemantics",
+                "description": "Semantics returned as part of this contact page with semantics object."
               }
             }
           }
-        ]
+        ],
+        "description": "Paginated contacts plus event-access and preview semantics."
       },
       "AccessSemantics": {
         "type": "object",
@@ -4238,79 +4691,97 @@
             "enum": [
               "preview",
               "full"
-            ]
+            ],
+            "description": "Base-event access mode for this result: `preview` or `full`."
           },
           "previewLimit": {
             "type": [
               "integer",
               "null"
-            ]
+            ],
+            "description": "Maximum preview records when preview mode applies, otherwise `null`."
           },
           "counts": {
             "type": "object",
             "properties": {
               "actualTotal": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Actual Total returned as part of this access semantics object."
               },
               "visibleTotal": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Visible Total returned as part of this access semantics object."
               },
               "remainingLockedCount": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Remaining Locked Count returned as part of this access semantics object."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Visible and available record counts used to explain coverage."
           },
           "pageState": {
             "type": "object",
             "properties": {
               "requestedPage": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Requested Page returned as part of this access semantics object."
               },
               "accessible": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Accessible returned as part of this access semantics object."
               },
               "maxAccessiblePage": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Max Accessible Page returned as part of this access semantics object."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Pagination state after applying access and preview rules."
           },
           "unlock": {
             "type": "object",
             "properties": {
               "requiredForMoreResults": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Required For More Results returned as part of this access semantics object."
               },
               "actionType": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Action Type returned as part of this access semantics object."
               },
               "credits": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Credits expected for the action under the current state."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Unlock eligibility, cost, and state metadata for the current scope."
           },
           "guidance": {
             "type": "object",
             "properties": {
               "code": {
-                "type": "string"
+                "type": "string",
+                "description": "Numeric or symbolic code that identifies the response or business condition."
               },
               "message": {
-                "type": "string"
+                "type": "string",
+                "description": "Human-readable explanation suitable for logs or user-facing error handling."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Structured integration guidance for the current access state."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Metadata explaining preview/full access, visible counts, page state, and unlock guidance."
       },
       "ContactUnlockSubmission": {
         "type": "object",
@@ -4338,7 +4809,8 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Submitted personnel identifiers that did not create chargeable work."
           },
           "skipped_detail": {
             "type": "object",
@@ -4347,40 +4819,47 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Invalid personnel ids returned as part of this contact unlock submission object."
               },
               "missing_personnel_ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Missing personnel ids returned as part of this contact unlock submission object."
               },
               "unlinked_personnel_ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Unlinked personnel ids returned as part of this contact unlock submission object."
               },
               "already_unlocked_personnel_ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Already unlocked personnel ids returned as part of this contact unlock submission object."
               },
               "unlocking_personnel_ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Unlocking personnel ids returned as part of this contact unlock submission object."
               }
-            }
+            },
+            "description": "Reasons submitted personnel records were skipped, grouped by condition."
           }
         },
         "oneOf": [
           {
             "properties": {
               "status": {
-                "const": "accepted"
+                "const": "accepted",
+                "description": "Current normalized status for the submission, task, or generated content."
               }
             },
             "required": [
@@ -4391,11 +4870,13 @@
           {
             "properties": {
               "status": {
-                "const": "success"
+                "const": "success",
+                "description": "Current normalized status for the submission, task, or generated content."
               }
             }
           }
-        ]
+        ],
+        "description": "Email or phone unlock submission outcome, including accepted work and skipped records."
       },
       "ContactUnlockTask": {
         "type": "object",
@@ -4406,7 +4887,8 @@
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Asynchronous task identifier."
           },
           "taskStatus": {
             "type": "string",
@@ -4415,7 +4897,8 @@
               "processing",
               "completed",
               "failed"
-            ]
+            ],
+            "description": "Current task lifecycle state."
           },
           "items": {
             "type": "array",
@@ -4427,7 +4910,8 @@
               ],
               "properties": {
                 "personnelId": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Personnel Id returned as part of this contact unlock task object."
                 },
                 "status": {
                   "type": "string",
@@ -4436,21 +4920,26 @@
                     "processing",
                     "unlocked",
                     "failed"
-                  ]
+                  ],
+                  "description": "Current normalized status for the submission, task, or generated content."
                 },
                 "email": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Email address when already accessible; otherwise `null`."
                 },
                 "errorCode": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Error Code returned as part of this contact unlock task object."
                 }
               }
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           }
-        }
+        },
+        "description": "Asynchronous email unlock task and its item-level results."
       },
       "ProfileEventRecommendationPage": {
         "allOf": [
@@ -4461,31 +4950,37 @@
             "type": "object",
             "properties": {
               "status": {
-                "type": "string"
+                "type": "string",
+                "description": "Current normalized status for the submission, task, or generated content."
               },
               "condition_tags": {
                 "type": "object",
-                "additionalProperties": true
+                "additionalProperties": true,
+                "description": "Condition tags returned as part of this profile event recommendation page object."
               },
               "profile_version": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Profile version returned as part of this profile event recommendation page object."
               },
               "active_result_version": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Active result version returned as part of this profile event recommendation page object."
               },
               "is_stale": {
-                "type": "boolean"
+                "type": "boolean",
+                "description": "Is stale returned as part of this profile event recommendation page object."
               }
             },
             "additionalProperties": true
           }
-        ]
+        ],
+        "description": "Paginated profile-matched events and recommendation metadata."
       },
       "ActionPrecheckRequest": {
         "type": "object",
@@ -4506,29 +5001,46 @@
               "search_exhibitor_events",
               "search_personnel_events_by_name",
               "others"
-            ]
+            ],
+            "description": "Supported action to evaluate. Use the same action type for the follow-up execution workflow.",
+            "example": "unlock_contact_emails"
           },
           "call_source": {
-            "type": "string"
+            "type": "string",
+            "description": "Caller source label, typically `api` or `agent`.",
+            "example": "api"
           },
           "params": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Action-specific identifiers and inputs, such as an `event_id`.",
+            "example": {
+              "event_id": "26855"
+            }
           },
           "locale": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional locale used for localized guidance or messages.",
+            "example": "en-US"
           },
           "trace_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional caller-provided trace identifier for support correlation.",
+            "example": "trace_123"
           },
           "conversation_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional conversation identifier for agent workflows.",
+            "example": "conversation_123"
           },
           "channel_message_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional channel message identifier for agent workflows.",
+            "example": "message_123"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Read-only action eligibility and expected-credit evaluation request."
       },
       "ActionPrecheckResponse": {
         "type": "object",
@@ -4545,19 +5057,24 @@
         "properties": {
           "ok": {
             "type": "boolean",
-            "const": true
+            "const": true,
+            "description": "Whether the precheck itself completed successfully."
           },
           "action_type": {
-            "type": "string"
+            "type": "string",
+            "description": "Action evaluated by the precheck."
           },
           "allowed": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the action is currently allowed to proceed."
           },
           "should_charge": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether executing the action is expected to consume credits."
           },
           "credits": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Credits expected for the action under the current state."
           },
           "reason_code": {
             "type": "string",
@@ -4574,17 +5091,21 @@
               "not_found",
               "forbidden",
               "system_error"
-            ]
+            ],
+            "description": "Stable reason explaining the eligibility and charging decision."
           },
           "biz_code": {
-            "type": "string"
+            "type": "string",
+            "description": "Business code associated with the precheck decision."
           },
           "detail": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "Action-specific eligibility, cost, or state detail."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": true,
+        "description": "Action eligibility, expected charging, reason, and action-specific detail."
       },
       "LinkedinActivityUnlockRequest": {
         "type": "object",
@@ -4599,15 +5120,22 @@
             "maxItems": 50,
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Lensmor personnel identifiers selected for this batch operation.",
+            "example": [
+              "789"
+            ]
           },
           "event_id": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 20
+            "maxLength": 20,
+            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+            "example": "26855"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Batch LinkedIn activity analysis request in one event context."
       },
       "LinkedinActivityUnlockItem": {
         "type": "object",
@@ -4620,27 +5148,33 @@
         ],
         "properties": {
           "personnel_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Lensmor personnel identifier for this item."
           },
           "success": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether this operation or item completed successfully."
           },
           "alreadyUnlocked": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the requested access was already available before this call."
           },
           "taskId": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Asynchronous task identifier."
           },
           "error": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Item-level error message when the operation failed, otherwise `null`."
           }
-        }
+        },
+        "description": "Item-level LinkedIn activity submission outcome for one person."
       },
       "LinkedinActivityUnlockResponse": {
         "type": "object",
@@ -4652,9 +5186,11 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LinkedinActivityUnlockItem"
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           }
-        }
+        },
+        "description": "Batch LinkedIn activity submission outcomes."
       },
       "PhoneUnlockRequest": {
         "type": "object",
@@ -4669,14 +5205,21 @@
             "maxItems": 100,
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Lensmor personnel identifiers selected for this batch operation.",
+            "example": [
+              "789"
+            ]
           },
           "event_id": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+            "example": "26855"
           }
-        }
+        },
+        "description": "Batch phone enrichment request in one event context."
       },
       "PhoneUnlockTask": {
         "type": "object",
@@ -4687,7 +5230,8 @@
         ],
         "properties": {
           "taskId": {
-            "type": "string"
+            "type": "string",
+            "description": "Asynchronous task identifier."
           },
           "taskStatus": {
             "type": "string",
@@ -4696,7 +5240,8 @@
               "processing",
               "completed",
               "failed"
-            ]
+            ],
+            "description": "Current task lifecycle state."
           },
           "items": {
             "type": "array",
@@ -4708,7 +5253,8 @@
               ],
               "properties": {
                 "personnelId": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Personnel Id returned as part of this phone unlock task object."
                 },
                 "status": {
                   "type": "string",
@@ -4717,21 +5263,26 @@
                     "processing",
                     "unlocked",
                     "failed"
-                  ]
+                  ],
+                  "description": "Current normalized status for the submission, task, or generated content."
                 },
                 "phone": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Phone number when already accessible; otherwise `null`."
                 },
                 "errorCode": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Error Code returned as part of this phone unlock task object."
                 }
               }
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           }
-        }
+        },
+        "description": "Asynchronous phone unlock task and its item-level results."
       },
       "OutreachMessageRequest": {
         "type": "object",
@@ -4746,10 +5297,16 @@
             "maxItems": 50,
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Lensmor personnel identifiers selected for this batch operation.",
+            "example": [
+              "789"
+            ]
           },
           "event_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+            "example": "26855"
           },
           "channels": {
             "type": "array",
@@ -4759,7 +5316,12 @@
                 "email",
                 "linkedin_message"
               ]
-            }
+            },
+            "description": "Output channels to generate: `email`, `linkedin_message`, or both.",
+            "example": [
+              "email",
+              "linkedin_message"
+            ]
           },
           "linkedin_message_types": {
             "type": "array",
@@ -4771,12 +5333,19 @@
                 "connected_message"
               ]
             },
-            "description": "LinkedIn message variants to generate when linkedin_message is requested."
+            "description": "LinkedIn variants to generate: `inmail`, `connection_note`, and/or `connected_message`.",
+            "example": [
+              "inmail",
+              "connection_note"
+            ]
           },
           "outreach_purpose": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional offer, call-to-action, or purpose context used to personalize the drafts.",
+            "example": "Invite the contact to a product demo"
           }
-        }
+        },
+        "description": "Batch AI outreach generation request for selected channels and personnel."
       },
       "OutreachMessageResponse": {
         "type": "object",
@@ -4796,25 +5365,30 @@
               ],
               "properties": {
                 "personnel_id": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Lensmor personnel identifier for this item."
                 },
                 "success": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "description": "Whether this operation or item completed successfully."
                 },
                 "taskId": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Asynchronous task identifier."
                 },
                 "error": {
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Item-level error message when the operation failed, otherwise `null`."
                 }
               }
-            }
+            },
+            "description": "Records returned on the current page or in the current batch."
           },
           "taskCenterId": {
             "type": [
@@ -4823,7 +5397,8 @@
             ],
             "description": "TaskCenter identifier returned when at least one outreach generation task was created."
           }
-        }
+        },
+        "description": "Item-level outreach generation submissions and optional batch task identity."
       },
       "OutreachDetail": {
         "type": "object",
@@ -4834,13 +5409,15 @@
         ],
         "properties": {
           "found": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether generated outreach content exists for this personnel-event combination."
           },
           "channels": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Requested or available outreach content channels."
           },
           "messages": {
             "type": "object",
@@ -4849,13 +5426,15 @@
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Email address when already accessible; otherwise `null`."
               },
               "linkedin_message": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Linkedin message returned as part of this outreach detail object."
               },
               "linkedin": {
                 "type": "object",
@@ -4864,56 +5443,69 @@
                     "type": "object",
                     "properties": {
                       "subject": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Generated email or InMail subject when applicable."
                       },
                       "body": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Generated message body."
                       }
-                    }
+                    },
+                    "description": "Inmail returned as part of this outreach detail object."
                   },
                   "connection_note": {
                     "type": "object",
                     "properties": {
                       "body": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Generated message body."
                       }
-                    }
+                    },
+                    "description": "Connection note returned as part of this outreach detail object."
                   },
                   "connected_message": {
                     "type": "object",
                     "properties": {
                       "body": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Generated message body."
                       }
-                    }
+                    },
+                    "description": "Connected message returned as part of this outreach detail object."
                   }
-                }
+                },
+                "description": "Linkedin returned as part of this outreach detail object."
               }
-            }
+            },
+            "description": "Generated outreach content organized by channel and message variant."
           },
           "reason": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Human-readable reason or absence explanation when available."
           },
           "sources": {
             "type": "array",
             "items": {
               "type": "object"
-            }
+            },
+            "description": "Evidence or source references used during generation when available."
           },
           "outreach_purpose": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Purpose or offer context used to personalize the outreach."
           },
           "tone": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Tone selected or inferred for the generated content."
           },
           "status": {
             "type": [
@@ -4938,7 +5530,8 @@
             "format": "int64",
             "description": "Record update timestamp in milliseconds. Null when no record exists."
           }
-        }
+        },
+        "description": "Latest generated outreach content and metadata for one personnel-event combination."
       }
     }
   }

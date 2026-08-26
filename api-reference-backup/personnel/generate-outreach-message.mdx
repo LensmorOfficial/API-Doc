@@ -49,6 +49,38 @@ Outreach message generation consumes credits per personnel record processed.
 - Maximum 50 personnel IDs per request.
 - Insufficient balance returns `402 Payment Required`.
 
+## Response example
+
+```json
+{
+  "items": [
+    {
+      "personnel_id": "789",
+      "success": true,
+      "taskId": "outreach_321",
+      "error": null
+    }
+  ],
+  "taskCenterId": "outreach_batch_321"
+}
+```
+
+## Response handling
+
+- Process each `items` entry independently; one failed person does not invalidate successful submissions.
+- Store `personnel_id`, `event_id`, and the returned item `taskId` together.
+- Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the most recent generated content.
+- Generating a draft does not send an email or LinkedIn message.
+
+## Error responses
+
+| Status | Meaning | Recommended handling |
+| --- | --- | --- |
+| `400 Bad Request` | Invalid channels, LinkedIn variants, batch size, or identifiers. | Fix the request before retrying. |
+| `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
+| `402 Payment Required` | Insufficient credits for the requested generation work. | Stop retries and surface the credit requirement. |
+| `429 Too Many Requests` | Rate limit exceeded. | Honor `Retry-After` and retry with backoff. |
+
 ## Notes
 - Poll [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) with `personnel_id` and `event_id` to retrieve generated messages.
 - Messages are generated using AI based on the contact's profile, company context, and event participation data.
