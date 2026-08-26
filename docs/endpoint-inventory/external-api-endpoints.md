@@ -4,6 +4,7 @@
 - Source of truth for method/path: controllers
 - Source of truth for customer-facing auth example: Business `sk_` API key format
 - Source of truth for external error body: `/external/*` branch in AllExceptionsFilter
+- Audit baseline: Event Business `origin/master` from `git@git.ziniao.com:a60-lensmor/service/a60-lensmor-event-business.git`, commit `ce54e3e6e18c756ce154f1ba8800bfc89d7ac193` (August 20, 2026)
 
 ## Endpoint table
 | Method | Path | Controller file | Auth required | Success status | Published in Mintlify | Notes |
@@ -21,13 +22,14 @@
 | GET | /external/exhibitors/list | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | Event-scoped exhibitor list with preview semantics |
 | POST | /external/exhibitors/search | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Heuristic exhibitor search by company URL/audience |
 | POST | /external/exhibitors/search-by-company-name | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Precision-first exhibitor lookup |
-| POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | `@Post('search-events')` under `@Controller('external/exhibitors')` |
+| POST | /external/exhibitors/search-events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `201 Created` | Yes | Normal success is `201`; concurrency guard can return body `code: 429` with HTTP `200` |
 | GET | /external/exhibitors/profile | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `@Get('profile')` under `@Controller('external/exhibitors')` |
 | GET | /external/exhibitors/events | `src/modules/external-api/controllers/external-exhibitors.controller.ts` | Yes | `200 OK` | Yes | `@Get('events')` under `@Controller('external/exhibitors')` |
 | GET | /external/personnel/list | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | Event-scoped personnel list with preview semantics |
 | GET | /external/personnel/profile | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `@Get('profile')` under `@Controller('external/personnel')` |
 | GET | /external/personnel/events | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | `@Get('events')` under `@Controller('external/personnel')` |
 | GET | /external/personnel/events/by-linkedin | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | LinkedIn URL to related events |
+| GET | /external/personnel/events/by-name | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | Exact full-name reverse lookup; paid-feature and concurrency guards use HTTP `200` business errors |
 | POST | /external/personnel/unlock-linkedin-activity | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `201 Created` | Yes | Starts LinkedIn activity analysis/unlock tasks |
 | POST | /external/personnel/generate-outreach-message | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `201 Created` | Yes | Starts outreach message generation tasks |
 | GET | /external/personnel/outreach | `src/modules/external-api/controllers/external-personnel.controller.ts` | Yes | `200 OK` | Yes | Reads generated outreach message detail |
@@ -51,13 +53,15 @@
 - Customer-facing authorization format: `Authorization: Bearer sk_your_api_key`
 - Bearer scheme stripping is case-insensitive at runtime via `/^Bearer\s+/i`
 - New public examples must use Business `sk_...` keys from **Settings -> API Keys**.
-- External error responses are emitted as `{ code, message, errorKey, traceId }`
-- `/external/*` errors do not expose internal `data` or `details` fields in the final HTTP body
-- The external exception path uses real HTTP status codes for the final response status
+- External exception responses are emitted as `{ code, message, errorKey, traceId }` plus optional structured `details`
+- Search-events and by-name concurrency interceptors emit `{ code, message, errorKey, data, details, traceId }` and deliberately use HTTP `200` for body-level `code: 429`
+- Visitor unlock, full-access unlock, and by-name can return HTTP `200` with body `code: 400` and `errorKey: USER_HAS_NO_FEATURE`
+- The external exception path normally uses real HTTP status codes; explicitly documented business guards are the exception
 - External rate limiting can emit `429 RATE_LIMIT_EXCEEDED` with `Retry-After`
 
 ## Verification notes
-- Included exactly 30 customer-facing routes in Mintlify and OpenAPI
+- Included exactly 31 customer-facing routes in Mintlify and OpenAPI
+- Reconciled those routes against Event Business `origin/master` commit `ce54e3e6e18c756ce154f1ba8800bfc89d7ac193`
 - Confirmed Agent Files, Agent-only Integrations, Debug, and deprecated profile-matching route are intentionally excluded
 - Confirmed customer-facing auth docs use Business `sk_...` examples
-- Confirmed `/external/*` exceptions are replied with only `code`, `message`, `errorKey`, and `traceId`
+- Confirmed `/external/*` exceptions can include structured `details`, while the concurrency guard additionally includes `data: null`

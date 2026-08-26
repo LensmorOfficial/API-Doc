@@ -209,6 +209,23 @@ Source: /changelog
 
 Track documentation updates, newly documented API capabilities, and behavior clarifications that may affect integrations.
 
+## v0.26.0
+
+Released August 26, 2026.
+
+### Fixed
+
+- Reconciled all `31` published customer-facing routes against Event Business `origin/master` commit `ce54e3e6e18c756ce154f1ba8800bfc89d7ac193`.
+- Corrected phone, LinkedIn activity, and outreach task identifiers to decimal numeric strings and documented nullable child-task IDs.
+- Added the inherited profile-matching request fields and a concrete recommended-event response schema with recommendation evidence.
+- Documented HTTP `200` subscription and concurrency business-error envelopes, missing validation/conflict responses, and the default rate-limit configuration.
+- Corrected multi-value personnel `sourceType` filtering, response-source notes, and examples where internal `id` and public `eventId` can differ.
+- Documented that outreach generation currently requires internal event `id` when `event_id` is supplied.
+
+### Changed
+
+- Updated OpenAPI metadata to version `0.26.0` and regenerated the machine-readable documentation resources.
+
 ## v0.25.0
 
 Released August 10, 2026.
@@ -435,7 +452,7 @@ curl "https://platform.lensmor.com/external/events/list?keyword=retail&country=U
 
 The event list is paginated. Use the `eventId` field from responses when calling other endpoints:
 
-- `id` and `eventId` currently return the same value for all events.
+- `id` and `eventId` are separate identifiers and can differ; prefer `eventId` for external storage and calls.
 - Use `eventId` when passing to endpoints that accept `event_id`.
 - Many event-scoped endpoints accept either value.
 
@@ -630,7 +647,7 @@ Store the person ID, event ID, full `sourceType` array, and unlock state in your
 ## Current limitations
 
 - Event list and event detail expose `hasVisitors` as a Visitor-data availability signal.
-- Event list does not currently expose a public `has_visitors` query filter.
+- Event list accepts `has_visitors=1` or `0` to filter by Visitor-data availability.
 - Visitor coverage varies by event and must not be inferred from event category, size, or location.
 
 ---
@@ -844,7 +861,7 @@ The response tells you whether credits were used:
     "unlimited": false
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -966,7 +983,7 @@ curl -X POST "https://platform.lensmor.com/external/contacts/unlock" \
   }'
 ```
 
-The API accepts up to `100` personnel IDs per request.
+The API accepts up to `2000` personnel IDs per request. `event_id` is optional; omitting it skips event membership validation.
 
 ```json
 {
@@ -1005,7 +1022,7 @@ Completed tasks can contain mixed item outcomes. Show failed, ineligible, or unr
 Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
-- Batches larger than `100` personnel IDs are rejected.
+- Batches larger than `2000` personnel IDs return `422 Unprocessable Entity`.
 - Insufficient balance returns `402 Payment Required`.
 - The response and your commercial agreement are the source of truth for billing.
 
@@ -1080,6 +1097,7 @@ Production integrations should handle authentication, pagination, credit-aware a
 | `402 Payment Required` | The operation needs credits or access that is not currently available. | Pause the workflow, show credit context, and let the user decide. |
 | `404 Not Found` | The requested event, exhibitor, person, or task was not found. | Re-check stored identifiers and avoid retry loops. |
 | `409 Conflict` | The request conflicts with current profile, task, or workflow state. | Refresh current state before retrying. |
+| `422 Unprocessable Entity` | A selected personnel batch exceeds the runtime limit of `2000`. | Split the selection into smaller batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
 
 ## Credit-safe UI pattern
@@ -1258,7 +1276,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `action_type` | Yes | string | Supported customer actions include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, `search_personnel_events_by_name`, and `others`. |
+| `action_type` | Yes | string | Explicitly handled values include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, `search_personnel_events_by_name`, `integration_status`, `integration_export_contacts`, `integration_export_exhibitors`, and `others`. Other 1–100 character strings are accepted but return `allowed: false` with `reason_code: "unsupported_action"`. |
 | `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
 | `call_source` | No | string | Source label such as `api` or `agent`. |
 | `locale` | No | string | Optional locale, such as `en-US`. |
@@ -1336,6 +1354,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
+- `action_type` is validated as a non-empty string rather than a closed enum. Branch on `allowed` and `reason_code`; do not assume every accepted string names a supported action.
 - `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
 - `search_personnel_events_by_name` is useful before calling [Personnel events by name](/api-reference/personnel/search-personnel-related-events-by-name). Put `person_name` and optional `date_start_from` and `date_start_to` values in `params`. A valid-name precheck quotes `50` credits; execution charges only when the lookup returns events.
 - `unlock_event_visitors` requires base event access first. It can report `3000` expected credits, `state_conflict` when the event is still locked, `no_contacts_available` when visitor data is unavailable, or `forbidden` when the account has no active subscription.
@@ -1386,6 +1405,8 @@ See [Authentication](/authentication)
 | `date_start_to` | No | ISO date string | Inclusive upper bound for event date filtering. |
 | `event_type` | No | string[] | Event type filter. Comma-separated input is supported. Known values include `In-person`, `conference_led`, `expo_led`, `hybrid`. |
 | `quality` | No | string[] | Quality label filter. Comma-separated input is supported. Known values include `Verified`, `Standard`. |
+| `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events; `0` returns non-starred events. |
+| `has_visitors` | No | integer | `1` returns events with registered Visitor data; `0` returns events without it. |
 
 ## Request example
 ```bash
@@ -1409,12 +1430,21 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
+### Filter by Sponsor Match or Visitor availability
+
+```bash
+curl "https://platform.lensmor.com/external/events/list?sponsor_match_starred=1&has_visitors=1&page=1&pageSize=20" \
+  -H "Authorization: Bearer $LENSMOR_API_KEY"
+```
+
+Both filters accept only `0` or `1`.
+
 ## Response example
 ```json
 {
   "items": [
     {
-      "id": "26855",
+      "id": "8458",
       "eventId": "26855",
       "name": "CES 2025",
       "nickname": "Consumer Electronics Show 2025",
@@ -1446,8 +1476,8 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 | Field | Description |
 | --- | --- |
 | `items` | Event records for the requested page. |
-| `id` | Internal Lensmor event identifier (string). Currently identical to `eventId`. |
-| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. Currently identical to `id`. |
+| `id` | Internal Lensmor event row identifier returned as a string. |
+| `eventId` | Public event identifier. Use this value when passing to other endpoints that accept `event_id`. It can differ from `id`. |
 | `name` | Canonical event name. |
 | `nickname` | Optional short name or common alias. |
 | `description` | Short event description when available. |
@@ -1468,8 +1498,9 @@ curl "https://platform.lensmor.com/external/events/list?event_type=conference_le
 - This endpoint returns a paginated event catalog rather than recommendation-specific results.
 - Pagination fields follow the shared conventions described in [Pagination conventions](/concepts/pagination).
 - Results are not guaranteed to be relevance-ranked unless a keyword or filter strongly narrows the result set.
-- `id` and `eventId` currently return the same value. Use `eventId` when passing to event-scoped endpoints.
-- `hasVisitors` is returned as an availability signal, but this endpoint does not expose a public `has_visitors` filter yet. For a known event, use the Visitor or Full Access action precheck before an unlock workflow.
+- `id` and `eventId` are separate values and can differ. Use `eventId` when passing to event-scoped endpoints.
+- `hasVisitors` is returned as an availability signal and can be filtered with `has_visitors`. It still does not mean Visitor access is unlocked; use the Visitor or Full Access action precheck before an unlock workflow.
+- `sponsorMatchStarred` can be filtered with `sponsor_match_starred`.
 - `event_type` and `quality` filters must match actual values in the database (e.g. `In-person`, `conference_led` for event type; `Verified`, `Standard` for quality). Invalid values return an empty result set rather than an error.
 - Filter values are applied to the event catalog, but summary list items may still omit or return `null` for some classification fields. Fetch event detail when you need the full classification shape.
 
@@ -1518,7 +1549,7 @@ curl "https://platform.lensmor.com/external/events/139574" \
 ```json
 {
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025",
     "nickname": "Consumer Electronics Show 2025",
@@ -1605,7 +1636,7 @@ When you need current coverage numbers, call the event-scoped list endpoint and 
 - `429 Too Many Requests`
 
 ## Notes
-- For event identifiers, see [Identifiers](/concepts/identifiers). In the current API version, `id` and `eventId` return the same value.
+- For event identifiers, see [Identifiers](/concepts/identifiers). `id` and `eventId` are separate values and can differ.
 - Some fields can be `null` when the underlying source does not provide that data.
 - String-typed numeric fields (`latitude`, `longitude`, `priceLower`, `priceUpper`) require client-side parsing when used for calculations.
 - `dataSource` is always `"Lensmor"` for public event records.
@@ -1839,7 +1870,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string[] | List of event identifiers to rank. |
+| `event_ids` | Yes | string[] | List of event identifiers to rank. Runtime validation permits an empty array. |
 
 ## Request example
 ```bash
@@ -1898,6 +1929,7 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 - `429 Too Many Requests`
 
 ## Notes
+- A successful request with an empty `event_ids` array returns an empty `items` array.
 - This endpoint uses `POST` because the request body contains an array of event IDs that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current service returns an ordered `items` array with `rank` and `match_score`.
 - `reasons` is currently emitted as an empty array by the live service.
@@ -1966,7 +1998,7 @@ curl -X POST "https://platform.lensmor.com/external/events/139574/unlock" \
     "unlimited": false
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -2000,9 +2032,11 @@ After a successful unlock, call event-scoped exhibitor or personnel list endpoin
 To add visitor records, call [Unlock event visitor access](/api-reference/events/unlock-event-visitor-access) after base access, or use [Unlock full event access](/api-reference/events/unlock-full-event-access) to unlock missing layers atomically.
 
 ## Error responses
+- `400 Bad Request` — invalid input or no chargeable event contacts are available.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`
+- `409 Conflict` — another credit operation is in progress.
 - `429 Too Many Requests`
 
 ## Notes
@@ -2105,7 +2139,7 @@ curl -X POST "https://platform.lensmor.com/external/events/26855/visitors/unlock
     "resetAt": 1785542400000
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -2128,7 +2162,8 @@ Repeating the unlock for the same account and event does not charge again. An id
 
 ## Error responses
 
-- `400 Bad Request` — no active subscription, base event access is still locked, or no visitor data is available.
+- `200 OK` business error — free users receive body `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`; treat the action as failed.
+- `400 Bad Request` — base event access is still locked, no visitor data is available, or another request input is invalid.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`
@@ -2234,7 +2269,7 @@ curl -X POST "https://platform.lensmor.com/external/events/26855/full-access/unl
     "unlimited": false
   },
   "event": {
-    "id": "26855",
+    "id": "8458",
     "eventId": "26855",
     "name": "CES 2025"
   }
@@ -2260,7 +2295,8 @@ The base event and visitor unlocks run in one transaction. If the paid operation
 
 ## Error responses
 
-- `400 Bad Request` — no chargeable base-event contacts or no active subscription for an available visitor layer.
+- `200 OK` business error — free users receive body `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`; treat the action as failed.
+- `400 Bad Request` — no chargeable base-event contacts or another request input is invalid.
 - `401 Unauthorized`
 - `402 Payment Required`
 - `404 Not Found`
@@ -2862,6 +2898,10 @@ This endpoint consumes `50` credits after the company-name matcher finds at leas
 
 Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
 
+## Concurrency limit
+
+Only one call to this endpoint can run concurrently for the same user. When the slot is occupied, the service returns HTTP `200` with `code: 429` and `errorKey: "USER_CONCURRENCY_LIMIT_EXCEEDED"`. Inspect the response body even though the normal successful search uses `201 Created`, and retry only after the in-flight call finishes.
+
 ## Error responses
 - `400 Bad Request`
 - `401 Unauthorized`
@@ -3074,13 +3114,13 @@ Common use cases:
 
 - browse people associated with an event
 - filter by department or seniority
-- filter by one event-scoped `sourceType` label
+- filter by one or more event-scoped `sourceType` labels
 - find contacts for a selected exhibitor
 - segment accessible attendees by their event-scoped `sourceType` labels
 - collect personnel IDs before calling [Unlock contact emails](/api-reference/contacts/unlock-contact-emails)
 
 <Note>
-  `sourceType` filtering is event-scoped. Use `exhibitor`, `social`, or `visitors`; labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
+  `sourceType` filtering is event-scoped. Use one or more of `exhibitor`, `social`, or `visitors`, either comma-separated or as repeated query parameters. Labels are still non-exclusive on returned records. See [Attendee source types](/concepts/attendee-source-types).
 </Note>
 
 ## Endpoint
@@ -3100,7 +3140,7 @@ See [Authentication](/authentication)
 | `department` | No | string | Department filter. |
 | `level` | No | string | Seniority-level filter. |
 | `search_query` | No | string | Name or job-title search. |
-| `sourceType` | No | string | Source label filter. Supported values: `exhibitor`, `social`, `visitors`. |
+| `sourceType` | No | string | One or more source labels. Supported values: `exhibitor`, `social`, `visitors`; send comma-separated values or repeat the parameter. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `50`; maximum `50`. |
 
@@ -3123,6 +3163,8 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&depar
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
+
+To match either Social Signals or Visitor records in one request, use `sourceType=social,visitors`. Repeated `sourceType` query parameters are normalized the same way.
 
 ## Response example
 ```json
@@ -3648,12 +3690,16 @@ Each user can run up to `10` calls to this endpoint concurrently. When that limi
 
 Treat this body as an error and retry after one or more in-flight requests finish. This differs from the ordinary HTTP `429 Too Many Requests` rate-limit response.
 
+## Paid-feature business error
+
+For a free user, the normal guard returns HTTP `200` with `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`. Treat it as a failed lookup and prompt for an eligible subscription. A `403` `NO_ACTIVE_SUBSCRIPTION` response remains possible from the API-key guard fallback path.
+
 ## Error responses
 
 - `400 Bad Request` for a missing, blank, overlong, or invalid query value
 - `401 Unauthorized`
 - `402 Payment Required` for insufficient credits on a non-empty lookup
-- `403 Forbidden` when the API-key owner has no active paid subscription
+- `403 Forbidden` from the API-key subscription fallback path
 - `429 Too Many Requests` for ordinary rate limiting
 
 ## Notes
@@ -3667,7 +3713,7 @@ Treat this body as an error and retry after one or more in-flight requests finis
 
 Source: /api-reference/personnel/unlock-linkedin-activity
 
-Unlock LinkedIn activity visibility for one or more personnel records in an event.
+Unlock LinkedIn activity visibility for one or more personnel records, optionally in an event context.
 
 Use this endpoint when your integration already has personnel IDs and wants to expose LinkedIn activity metadata such as `linkedinActivity` and `linkedinActivityStatus`.
 
@@ -3683,8 +3729,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | One to 50 personnel IDs. |
-| `event_id` | Yes | string | Event identifier. Supports `eventId` or `id` returned by event responses. |
+| `personnel_ids` | Yes | string[] | One to `2000` personnel IDs. |
+| `event_id` | No | string | Optional event identifier. When omitted, event membership validation is skipped. |
 
 ## Request example
 ```bash
@@ -3705,7 +3751,7 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
       "personnel_id": "789",
       "success": true,
       "alreadyUnlocked": false,
-      "taskId": "901",
+      "taskId": null,
       "error": null
     },
     {
@@ -3726,13 +3772,14 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 | `personnel_id` | The personnel ID from the request. |
 | `success` | Whether this personnel item was accepted or already available. |
 | `alreadyUnlocked` | `true` when the caller already has an active or completed LinkedIn activity unlock for this personnel record. |
-| `taskId` | Analysis task ID when a new LinkedIn activity analysis task is created. `null` when data already exists, the item is already unlocked, or the item failed validation. |
+| `taskId` | Decimal numeric child-task ID for existing in-progress work. A newly accepted item commonly returns `null` while child-task dispatch is queued; it is also `null` when data already exists or the item failed. |
 | `error` | Item-level failure message. `null` on success. |
 
 ## Notes
 - This endpoint is idempotent for personnel records with active or completed LinkedIn activity unlocks.
 - If LinkedIn activity data already exists, the API can mark the record as unlocked without creating a new task.
-- If activity data does not exist, the API creates an asynchronous LinkedIn activity analysis task and returns `taskId`.
+- If activity data does not exist, the API reserves asynchronous work. The initial accepted item can return `taskId: null`; observe completion through refreshed personnel data rather than requiring an immediate child-task ID.
+- When `event_id` is omitted, the service processes valid personnel IDs without checking their membership in a specific event.
 - This endpoint does not unlock contact emails. Use [Unlock contact emails](/api-reference/contacts/unlock-contact-emails) for email unlock workflows.
 - Poll [Personnel list](/api-reference/personnel/list-event-personnel) or [Personnel profile](/api-reference/personnel/get-personnel-profile) to observe `linkedinActivityStatus` and `linkedinActivity` after processing.
 
@@ -3740,6 +3787,7 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 - `400 Bad Request`
 - `401 Unauthorized`
 - `404 Not Found`
+- `422 Unprocessable Entity`
 - `429 Too Many Requests`
 
 ---
@@ -3748,7 +3796,7 @@ curl -X POST "https://platform.lensmor.com/external/personnel/unlock-linkedin-ac
 
 Source: /api-reference/personnel/generate-outreach-messages
 
-Generate AI-powered personalized outreach messages for one or more personnel in an event context.
+Generate AI-powered personalized outreach messages for one or more personnel, optionally using event context.
 
 Use this endpoint when your integration needs AI-generated cold outreach content tailored to each contact's role, company, and event participation.
 
@@ -3766,20 +3814,24 @@ This endpoint is asynchronous. Each personnel item may create a background task.
   Channels must be one or more of: `email`, `linkedin_message`. When requesting LinkedIn output, use `linkedin_message_types` to choose `inmail`, `connection_note`, and/or `connected_message`.
 </Note>
 
+<Warning>
+  When `event_id` is supplied, this endpoint currently requires the numeric internal event `id` field, not public `eventId`. The service converts it directly to `BigInt` and does not run the usual event identifier resolver.
+</Warning>
+
 ## Request body
 
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | Maximum `50` personnel IDs. |
-| `event_id` | Yes | string | Supports external `eventId` or internal event ID. |
-| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. |
+| `personnel_ids` | Yes | string[] | Maximum `2000` personnel IDs. Runtime validation permits an empty array, but useful generation requires at least one ID. |
+| `event_id` | No | string | Optional numeric internal event `id`. Do not pass public `eventId`. When omitted, generation does not validate event membership or use event context. |
+| `channels` | Yes | string[] | One or both of `email`, `linkedin_message`. Runtime validation permits an empty array, but it creates no useful output. |
 | `linkedin_message_types` | No | string[] | LinkedIn variants: `inmail`, `connection_note`, `connected_message`. |
 | `outreach_purpose` | No | string | Purpose or offer context for personalization. |
 
 ```json
 {
   "personnel_ids": ["789"],
-  "event_id": "139574",
+  "event_id": "501",
   "channels": ["email", "linkedin_message"],
   "linkedin_message_types": ["inmail", "connection_note"],
   "outreach_purpose": "Invite the contact to a product demo"
@@ -3788,10 +3840,10 @@ This endpoint is asynchronous. Each personnel item may create a background task.
 
 ## Credit behavior
 
-Outreach message generation consumes credits per personnel record processed.
+Outreach message generation does not deduct credits in the current service implementation. Created batch task-center records use `creditsCost: 0`.
 
-- Maximum 50 personnel IDs per request.
-- Insufficient balance returns `402 Payment Required`.
+- Maximum `2000` personnel IDs per request.
+- Requests above the limit return `422 Unprocessable Entity`.
 
 ## Response example
 
@@ -3801,18 +3853,19 @@ Outreach message generation consumes credits per personnel record processed.
     {
       "personnel_id": "789",
       "success": true,
-      "taskId": "outreach_321",
+      "taskId": null,
       "error": null
     }
   ],
-  "taskCenterId": "outreach_batch_321"
+  "taskCenterId": "321"
 }
 ```
 
 ## Response handling
 
 - Process each `items` entry independently; one failed person does not invalidate successful submissions.
-- Store `personnel_id`, `event_id`, and the returned item `taskId` together.
+- `taskCenterId` is the decimal numeric batch identifier when new work was reserved. New items normally have `taskId: null` until child dispatch; an existing in-progress item can return a decimal numeric child-task ID.
+- When `event_id` is provided, store the internal event `id` with `personnel_id`. Do not require an item `taskId` before polling the outreach detail endpoint.
 - Use [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) to retrieve the most recent generated content.
 - Generating a draft does not send an email or LinkedIn message.
 
@@ -3820,13 +3873,14 @@ Outreach message generation consumes credits per personnel record processed.
 
 | Status | Meaning | Recommended handling |
 | --- | --- | --- |
-| `400 Bad Request` | Invalid channels, LinkedIn variants, batch size, or identifiers. | Fix the request before retrying. |
+| `400 Bad Request` | Invalid channels, LinkedIn variants, or identifiers. | Fix the request before retrying. |
 | `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
-| `402 Payment Required` | Insufficient credits for the requested generation work. | Stop retries and surface the credit requirement. |
+| `409 Conflict` | Another outreach batch is being prepared for the same user and event context. | Retry after the active batch preparation finishes. |
+| `422 Unprocessable Entity` | More than `2000` personnel IDs were submitted. | Split the request into smaller selected batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Honor `Retry-After` and retry with backoff. |
 
 ## Notes
-- Poll [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) with `personnel_id` and `event_id` to retrieve generated messages.
+- [Get outreach message detail](/api-reference/personnel/get-outreach-message-detail) requires `personnel_id` and `event_id`. Provide the internal event `id` during generation when the draft must be retrieved through that endpoint; the lookup endpoint itself can later resolve either `id` or `eventId`.
 - Messages are generated using AI based on the contact's profile, company context, and event participation data.
 
 ---
@@ -3852,14 +3906,14 @@ Use `GET /external/personnel/outreach` when:
 | Name | Required | Type | Description | Example |
 | --- | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Personnel ID used in the generation request. | `789` |
-| `event_id` | Yes | string | Event ID used in the generation request. | `139574` |
+| `event_id` | Yes | string | Event identifier for lookup. This endpoint resolves either internal `id` or public `eventId`; use the same internal `id` supplied during generation when possible. | `501` |
 
 ## Request example
 
 ```bash
 curl --get "https://platform.lensmor.com/external/personnel/outreach" \
   --data-urlencode "personnel_id=789" \
-  --data-urlencode "event_id=139574" \
+  --data-urlencode "event_id=501" \
   --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -3889,18 +3943,19 @@ curl --get "https://platform.lensmor.com/external/personnel/outreach" \
 
 ## No content yet
 
-`found: false` is a valid lookup result when no message has been generated or the latest generation is not ready. Do not treat it as sent outreach or invent fallback copy.
+`found: false` is a valid lookup result when no message has been generated, the latest generation is not ready, or the event cannot be resolved. Do not treat it as sent outreach or invent fallback copy.
 
 ## Error responses
 
 | Status | Meaning | Recommended handling |
 | --- | --- | --- |
+| `400 Bad Request` | A personnel or event identifier is not a valid numeric string. | Fix the identifier before retrying. |
 | `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
-| `404 Not Found` | Personnel/event context is unavailable. | Re-check both identifiers. |
 | `429 Too Many Requests` | Polling exceeded the active rate limit. | Wait for `Retry-After` before retrying. |
 
 ## Notes
 - Returns the most recent outreach generation result for the given personnel and event combination.
+- An unknown but well-formed event does not return `404`; it produces the normal `200 OK` response with `found: false`.
 - `messages.linkedin` can contain separate `inmail`, `connection_note`, and `connected_message` objects. InMail can include `subject` and `body`; the other variants contain `body`.
 - `messages.linkedin_message` remains available as the legacy single-message field when present.
 - Re-generating outreach for the same personnel + event will overwrite previous content.
@@ -4162,8 +4217,8 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `100` per request. |
-| `event_id` | Yes | string | Supports event `id` or `eventId` returned by event responses. |
+| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `2000` per request. |
+| `event_id` | No | string | Optional event `id` or `eventId`. When omitted, event membership validation is skipped. |
 
 ## Headers
 | Name | Required | Type | Notes |
@@ -4221,7 +4276,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
 - Failed or ineligible items may not produce an email. Treat the task result and refreshed balance as the source of truth for actual delivery and billing.
-- The API rejects batches larger than `100` personnel IDs.
+- The API rejects batches larger than `2000` personnel IDs with `422 Unprocessable Entity`.
 - Insufficient balance returns `402 Payment Required`.
 - Retry behavior should be tied to the task state, not only the create response.
 
@@ -4231,6 +4286,7 @@ Contact email unlock currently costs `15` credits per chargeable contact.
 - `402 Payment Required`
 - `404 Not Found`
 - `409 Conflict`
+- `422 Unprocessable Entity`
 - `429 Too Many Requests`
 
 ## Notes
@@ -4378,7 +4434,7 @@ Phone unlock costs `150` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
 - Insufficient balance returns `402 Payment Required`.
-- The API rejects batches larger than 100 personnel IDs.
+- The API rejects batches larger than `2000` personnel IDs with `422 Unprocessable Entity`.
 
 If there is no chargeable work to enqueue, the endpoint can return `status: "success"` without `task_id` or `job_id`. The response can also include `skipped_personnel_ids` and `skipped_detail` so the caller can explain invalid, missing, unlinked, already unlocked, or currently unlocking records.
 
@@ -4386,6 +4442,13 @@ If there is no chargeable work to enqueue, the endpoint can return `status: "suc
 
 - For `status: "accepted"`, use `task_id` (or its `job_id` alias) to poll the phone unlock task.
 - For `status: "success"`, do not poll. Inspect `skipped_personnel_ids` and `skipped_detail` to explain why no task was needed.
+
+## Request body
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `2000` per request. |
+| `event_id` | No | string | Optional event `id` or `eventId`. When omitted, event membership validation is skipped. |
 
 ## Request example
 
@@ -4405,8 +4468,8 @@ curl --request POST "https://platform.lensmor.com/external/contacts/unlock-phone
 ```json
 {
   "status": "accepted",
-  "task_id": "phone_321",
-  "job_id": "phone_321"
+  "task_id": "321",
+  "job_id": "321"
 }
 ```
 
@@ -4426,15 +4489,17 @@ curl --request POST "https://platform.lensmor.com/external/contacts/unlock-phone
 
 | Status | Meaning | Recommended handling |
 | --- | --- | --- |
-| `400 Bad Request` | Invalid body or more than 100 personnel IDs. | Fix the request before retrying. |
+| `400 Bad Request` | Invalid request body or field value. | Fix the request before retrying. |
 | `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
 | `402 Payment Required` | Insufficient credits for chargeable contacts. | Stop retries and show the credit requirement. |
 | `404 Not Found` | Event or submitted personnel context is unavailable. | Re-check stored identifiers. |
 | `409 Conflict` | A task or resource state conflicts with the request. | Refresh task/access state before retrying. |
+| `422 Unprocessable Entity` | More than `2000` personnel IDs were submitted. | Split the request into smaller selected batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Honor `Retry-After` and retry with backoff. |
 
 ## Notes
 - Only poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) when `status` is `accepted` and `task_id` is present.
+- `task_id` and `job_id` are the same decimal numeric string. Do not add a `phone_` prefix.
 - Do not create duplicate unlock tasks while a prior task is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.
 
@@ -4456,12 +4521,12 @@ Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job c
 
 | Name | Required | Type | Description | Example |
 | --- | --- | --- | --- | --- |
-| `taskId` | Yes | string | Phone-unlock task ID returned as `task_id` by the submission endpoint. | `phone_321` |
+| `taskId` | Yes | string | Decimal numeric phone-unlock task ID returned as `task_id` by the submission endpoint. | `321` |
 
 ## Request example
 
 ```bash
-curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_321" \
+curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/321" \
   --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -4469,7 +4534,7 @@ curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_32
 
 ```json
 {
-  "taskId": "phone_321",
+  "taskId": "321",
   "taskStatus": "completed",
   "items": [
     {
@@ -4508,6 +4573,7 @@ curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_32
 ## Notes
 - Phone number is present only when the individual item has been unlocked successfully.
 - Failed items can include `errorCode`.
+- `taskId` is a decimal numeric string because the service converts it to `BigInt`; prefixed values such as `phone_321` are invalid.
 
 ---
 
@@ -4546,6 +4612,14 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
 | `target_audience` | Conditionally | string | Audience description. Provide at least one of `company_url` or `target_audience`. |
+| `linkedin_url` | No | string | Safe public LinkedIn profile URL; maximum `500` characters. |
+| `company_description` | No | string | Additional company context; maximum `2000` characters. |
+| `industry` | No | string | Company industry; maximum `255` characters. |
+| `target_industry` | No | string[] | Target industries; each value is limited to `255` characters. |
+| `planned_events` | No | string | Free-text planned events; maximum `500` characters. |
+| `target_management_level` | No | string[] | Target management levels; each value is limited to `100` characters. |
+| `target_job_titles` | No | string[] | Target job titles/functions. The runtime retains the first five non-empty values; each is limited to `255` characters. |
+| `timeout_ms` | No | integer | Processing timeout from `60000` to `3600000` milliseconds. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `autoRecommendTop3EventsEnabled` | No | boolean | Override synchronous top-3 recommendation reason generation for this request. |
@@ -4589,7 +4663,7 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
   "status": "completed",
   "items": [
     {
-      "id": "10067",
+      "id": "501",
       "eventId": "10067",
       "name": "American Banker Digital Banking 2026",
       "nickname": "",
@@ -4683,7 +4757,7 @@ Each event item includes the full event detail shape:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`, `eventId` | string | Event identifiers (currently identical values). |
+| `id`, `eventId` | string | Separate internal-row and public event identifiers; values can differ. |
 | `name`, `nickname`, `description` | string | Event identity fields. |
 | `url` | string \| null | Source or official event URL. |
 | `dateStart`, `dateEnd` | string | ISO date strings. |
@@ -4749,7 +4823,7 @@ Each event item includes the full event detail shape:
 - Use this endpoint for profile-based event recommendations.
 - Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
 - `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
-- `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
+- `id` and `eventId` are separate values and can differ. Use `eventId` for endpoints that resolve either identifier. Use internal `id` for the current `POST /external/personnel/generate-outreach-message` exception documented under [Identifiers](/concepts/identifiers).
 - Status metadata such as `status`, `profile_version`, and `active_result_version` describes the current paged result set.
 
 ---
@@ -4924,7 +4998,7 @@ Use filters to narrow the returned event exhibitor rows. Apply the same recommen
 
 Source: /concepts/errors
 
-Lensmor API errors use real HTTP status codes.
+Lensmor API exceptions normally use real HTTP status codes. A small number of business guards return `HTTP 200` with an error `code` in the body; clients must inspect both the HTTP status and `code`.
 
 ## Error body
 ```json
@@ -4936,6 +5010,12 @@ Lensmor API errors use real HTTP status codes.
 }
 ```
 
+`details` is optional. Business and validation errors can include structured context such as requested count, runtime limit, missing identifiers, or access state.
+
+The company-to-event reverse search and personnel events-by-name routes use an `HTTP 200` concurrency business error. It returns `code: 429`, `errorKey: "USER_CONCURRENCY_LIMIT_EXCEEDED"`, `data: null`, and `details: null` when the per-user concurrency limit is reached.
+
+Visitor unlock, full-access unlock, and personnel events-by-name can also return `HTTP 200` with `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"` when an active paid subscription is required. Treat these as failed business actions even though the transport status is successful.
+
 ## Common status codes
 | Status | Meaning | Recommended client behavior |
 | --- | --- | --- |
@@ -4944,6 +5024,7 @@ Lensmor API errors use real HTTP status codes.
 | `402 Payment Required` | Insufficient credits or access for a credit-consuming operation. | Stop automatic retries and surface the credit requirement. |
 | `404 Not Found` | Requested resource does not exist or is not visible to the caller. | Re-check stored identifiers; do not retry indefinitely. |
 | `409 Conflict` | Business conflict, profile state conflict, or task/workflow state conflict. | Refresh state before retrying. |
+| `422 Unprocessable Entity` | A selected personnel batch exceeds the runtime limit of `2000`. | Split the selected IDs into smaller batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Retry only after `Retry-After`; use exponential backoff. |
 
 ## Trace fields
@@ -4964,11 +5045,13 @@ Do not include API keys or unlocked email addresses in support logs.
 
 - Retry network failures and `429` responses with backoff.
 - Do not automatically retry `400` or `401` without changing the request.
+- Do not retry `422` with the same selected batch; reduce it to at most `2000` personnel IDs.
 - Treat `402` as a product state, not a transient failure.
 - For asynchronous contact unlocks, retry polling the task endpoint rather than creating duplicate unlock tasks.
 
 ## Notes
-- Error bodies do not include raw debugging fields.
+- Error bodies do not include raw debugging fields, but can include the optional structured `details` field.
+- Inspect body `code` even when the HTTP status is `200` on endpoints that document a business-error success envelope.
 - Individual endpoint pages may list the subset of statuses most relevant to that route.
 
 ---
@@ -5101,10 +5184,14 @@ In event-scoped requests, `event_id` accepts either:
 - `id` — the Lensmor event identifier returned as a string in event responses.
 
 <Note>
-  In the current API version, `id` and `eventId` return the same value for all events. You can safely use either one when calling event-scoped endpoints. If they diverge in a future version, `eventId` is the preferred stable reference for external systems.
+  `id` is the Lensmor database row identifier and `eventId` is the public event identifier. They are returned separately and can differ. Event-scoped resolvers accept either value where the endpoint documents `event_id` support.
 </Note>
 
 Prefer `eventId` when storing or exchanging event identifiers with external systems.
+
+<Warning>
+  `POST /external/personnel/generate-outreach-message` is a current code-level exception: when `event_id` is supplied, it must be the numeric internal event `id`. That endpoint converts the value directly to `BigInt` and does not resolve public `eventId`. The related `GET /external/personnel/outreach` lookup does accept either event identifier.
+</Warning>
 
 ## Entity identifiers
 Use the identifier returned by the matching resource endpoint:
@@ -5114,11 +5201,12 @@ Use the identifier returned by the matching resource endpoint:
 | `event_id` | `event.eventId` or `event.id` | Prefer `eventId`. |
 | `exhibitor_id` | `exhibitor.id` | Numeric string. |
 | `personnel_id` | `personnel.id` or contact `id` | Numeric string. |
-| `taskId` | `task_id` from contact unlock response | Used for unlock task polling. |
+| `taskId` | `task_id` from contact unlock response | Decimal numeric string used for unlock task polling. |
 
 ## Naming conventions
 - Request parameters use the casing shown on each endpoint page.
 - Event responses include both `id` and `eventId`, while exhibitor event matches use `matched_event_ids`. Use the field names shown on each endpoint page.
+- Contact, phone, LinkedIn activity, and outreach task identifiers are decimal numeric strings. Do not add prefixes such as `task_` or `phone_`.
 - Array parameters are route-specific. Some body fields accept arrays directly; some query filters use repeated query parameters. Follow the endpoint page for each route.
 
 ---
@@ -5177,7 +5265,7 @@ The `semantics.accessMode` field on the personnel list describes base event prev
 
 ## Filtering
 
-`GET /external/personnel/list` accepts a single `sourceType` query parameter when you want the API to return people matching one event-scoped source label:
+`GET /external/personnel/list` accepts one or more `sourceType` values when you want the API to return people matching event-scoped source labels. Send a comma-separated value or repeat the query parameter:
 
 ```bash
 curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourceType=visitors&page=1&pageSize=50" \
@@ -5185,6 +5273,8 @@ curl "https://platform.lensmor.com/external/personnel/list?event_id=139574&sourc
 ```
 
 Supported values are `exhibitor`, `social`, and `visitors`.
+
+For example, `sourceType=social,visitors` matches either supported source. The response still returns the complete non-exclusive `sourceType` array for each matched person.
 
 You can also fetch the accessible event-scoped result set without `sourceType`, then segment it client-side:
 
@@ -5340,7 +5430,7 @@ Recommended behavior:
 
 Source: /concepts/rate-limits
 
-Lensmor applies rate limits to API requests to protect availability for all customers.
+Lensmor applies rate limits to API requests to protect availability for all customers. In the current `master` defaults, the window is `60` seconds, with `120` requests per API key and `600` requests per IP. Deployment configuration can override these values, so response headers remain authoritative.
 
 ## Default behavior
 Rate limits are evaluated by IP address and API key. When a request is allowed, the response includes rate-limit headers for the active API-key bucket when available.
@@ -5378,3 +5468,4 @@ Wait at least `Retry-After` seconds before retrying.
 - Back off when `X-RateLimit-Remaining` is low.
 - Retry `429` responses only after `Retry-After`.
 - Include the `traceId` when contacting support about rate-limit behavior.
+- In Clay or another scheduler, start at no more than `120` requests per `60000` ms for one API key and lower the rate when several tables or workers share that key.

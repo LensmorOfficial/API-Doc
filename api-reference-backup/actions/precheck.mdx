@@ -20,7 +20,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `action_type` | Yes | string | Supported customer actions include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, `search_personnel_events_by_name`, and `others`. |
+| `action_type` | Yes | string | Explicitly handled values include `query_event_personnel`, `unlock_event_contacts`, `unlock_event_visitors`, `unlock_event_full_access`, `unlock_contact_emails`, `unlock_contact_phones`, `search_exhibitor_events`, `search_personnel_events_by_name`, `integration_status`, `integration_export_contacts`, `integration_export_exhibitors`, and `others`. Other 1–100 character strings are accepted but return `allowed: false` with `reason_code: "unsupported_action"`. |
 | `params` | Yes | object | Action-specific inputs, such as `{ "event_id": "26855" }`. |
 | `call_source` | No | string | Source label such as `api` or `agent`. |
 | `locale` | No | string | Optional locale, such as `en-US`. |
@@ -98,6 +98,7 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 
 ## Notes
 - Precheck is read-only. It does not unlock records, create tasks, or consume credits.
+- `action_type` is validated as a non-empty string rather than a closed enum. Branch on `allowed` and `reason_code`; do not assume every accepted string names a supported action.
 - `query_event_personnel` is useful before calling [Personnel list](/api-reference/personnel/list-event-personnel).
 - `search_personnel_events_by_name` is useful before calling [Personnel events by name](/api-reference/personnel/search-personnel-related-events-by-name). Put `person_name` and optional `date_start_from` and `date_start_to` values in `params`. A valid-name precheck quotes `50` credits; execution charges only when the lookup returns events.
 - `unlock_event_visitors` requires base event access first. It can report `3000` expected credits, `state_conflict` when the event is still locked, `no_contacts_available` when visitor data is unavailable, or `forbidden` when the account has no active subscription.

@@ -102,12 +102,16 @@ Each user can run up to `10` calls to this endpoint concurrently. When that limi
 
 Treat this body as an error and retry after one or more in-flight requests finish. This differs from the ordinary HTTP `429 Too Many Requests` rate-limit response.
 
+## Paid-feature business error
+
+For a free user, the normal guard returns HTTP `200` with `code: 400` and `errorKey: "USER_HAS_NO_FEATURE"`. Treat it as a failed lookup and prompt for an eligible subscription. A `403` `NO_ACTIVE_SUBSCRIPTION` response remains possible from the API-key guard fallback path.
+
 ## Error responses
 
 - `400 Bad Request` for a missing, blank, overlong, or invalid query value
 - `401 Unauthorized`
 - `402 Payment Required` for insufficient credits on a non-empty lookup
-- `403 Forbidden` when the API-key owner has no active paid subscription
+- `403 Forbidden` from the API-key subscription fallback path
 - `429 Too Many Requests` for ordinary rate limiting
 
 ## Notes

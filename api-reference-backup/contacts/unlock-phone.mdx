@@ -28,7 +28,7 @@ Phone unlock costs `150` credits per chargeable contact.
 
 - Already unlocked contacts are not charged again.
 - Insufficient balance returns `402 Payment Required`.
-- The API rejects batches larger than 100 personnel IDs.
+- The API rejects batches larger than `2000` personnel IDs with `422 Unprocessable Entity`.
 
 If there is no chargeable work to enqueue, the endpoint can return `status: "success"` without `task_id` or `job_id`. The response can also include `skipped_personnel_ids` and `skipped_detail` so the caller can explain invalid, missing, unlinked, already unlocked, or currently unlocking records.
 
@@ -36,6 +36,13 @@ If there is no chargeable work to enqueue, the endpoint can return `status: "suc
 
 - For `status: "accepted"`, use `task_id` (or its `job_id` alias) to poll the phone unlock task.
 - For `status: "success"`, do not poll. Inspect `skipped_personnel_ids` and `skipped_detail` to explain why no task was needed.
+
+## Request body
+
+| Name | Required | Type | Notes |
+| --- | --- | --- | --- |
+| `personnel_ids` | Yes | string[] | One or more personnel identifiers. Maximum `2000` per request. |
+| `event_id` | No | string | Optional event `id` or `eventId`. When omitted, event membership validation is skipped. |
 
 ## Request example
 
@@ -55,8 +62,8 @@ curl --request POST "https://platform.lensmor.com/external/contacts/unlock-phone
 ```json
 {
   "status": "accepted",
-  "task_id": "phone_321",
-  "job_id": "phone_321"
+  "task_id": "321",
+  "job_id": "321"
 }
 ```
 
@@ -76,14 +83,16 @@ curl --request POST "https://platform.lensmor.com/external/contacts/unlock-phone
 
 | Status | Meaning | Recommended handling |
 | --- | --- | --- |
-| `400 Bad Request` | Invalid body or more than 100 personnel IDs. | Fix the request before retrying. |
+| `400 Bad Request` | Invalid request body or field value. | Fix the request before retrying. |
 | `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
 | `402 Payment Required` | Insufficient credits for chargeable contacts. | Stop retries and show the credit requirement. |
 | `404 Not Found` | Event or submitted personnel context is unavailable. | Re-check stored identifiers. |
 | `409 Conflict` | A task or resource state conflicts with the request. | Refresh task/access state before retrying. |
+| `422 Unprocessable Entity` | More than `2000` personnel IDs were submitted. | Split the request into smaller selected batches. |
 | `429 Too Many Requests` | Rate limit exceeded. | Honor `Retry-After` and retry with backoff. |
 
 ## Notes
 - Only poll [Get phone unlock task](/api-reference/contacts/get-phone-unlock-task) when `status` is `accepted` and `task_id` is present.
+- `task_id` and `job_id` are the same decimal numeric string. Do not add a `phone_` prefix.
 - Do not create duplicate unlock tasks while a prior task is still pending or processing.
 - See [Credits and access](/concepts/credits-and-access) for shared credit behavior.

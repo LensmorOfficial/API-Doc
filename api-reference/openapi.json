@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lensmor API",
-    "version": "0.25.0",
+    "version": "0.26.0",
     "description": "Lensmor Event Intelligence API for event discovery, exhibitor research, personnel lookup, credits, and profile matching.",
     "license": {
       "name": "Lensmor Terms of Service",
@@ -160,7 +160,7 @@
           "Events"
         ],
         "summary": "List events",
-        "description": "Browse the Lensmor event catalog with keyword, geography, date, event-type, and quality filters.\n\nUse this endpoint for broad discovery, search pages, and the first step of an event workflow. Returned `id` and `eventId` values can be passed to event detail, exhibitor, personnel, scoring, ranking, recommendation, and access-unlock endpoints.\n\nFilters narrow the catalog and pagination is one-based. `hasVisitors` is an availability signal showing whether registered Visitor data exists for an event; it does not mean the caller has unlocked that data. The public list does not currently expose a `has_visitors` query filter. No matches return `200 OK` with an empty `items` array.",
+        "description": "Browse the Lensmor event catalog with keyword, geography, date, event-type, quality, Sponsor Match, and Visitor-data filters.\n\nUse this endpoint for broad discovery, search pages, and the first step of an event workflow. Returned `id` and `eventId` values can be passed to event detail, exhibitor, personnel, scoring, ranking, recommendation, and access-unlock endpoints.\n\nFilters narrow the catalog and pagination is one-based. Use `sponsor_match_starred=1` or `0` for Sponsor Match state and `has_visitors=1` or `0` for Visitor-data availability. Returned `hasVisitors` is an availability signal; it does not mean the caller has unlocked Visitor data. No matches return `200 OK` with an empty `items` array.",
         "operationId": "listEvents",
         "parameters": [
           {
@@ -246,6 +246,32 @@
             "example": [
               "Verified"
             ]
+          },
+          {
+            "name": "sponsor_match_starred",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "description": "Filter by Sponsor Match starred state: `1` for starred or `0` for not starred.",
+            "example": 1
+          },
+          {
+            "name": "has_visitors",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "description": "Filter by registered Visitor-data availability: `1` when available or `0` when unavailable.",
+            "example": 1
           }
         ],
         "responses": {
@@ -259,7 +285,7 @@
                 "example": {
                   "items": [
                     {
-                      "id": "26855",
+                      "id": "8458",
                       "eventId": "26855",
                       "name": "CES 2025",
                       "nickname": "Consumer Electronics Show 2025",
@@ -286,6 +312,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -327,7 +356,7 @@
                 },
                 "example": {
                   "event": {
-                    "id": "26855",
+                    "id": "8458",
                     "eventId": "26855",
                     "name": "CES 2025",
                     "description": "Consumer technology trade show in Las Vegas.",
@@ -346,6 +375,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -439,6 +471,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -498,6 +533,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -536,8 +574,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "minItems": 1,
-                    "description": "Event identifiers to rank against the authenticated user's current profile.",
+                    "description": "Event identifiers to rank against the authenticated user's current profile. Runtime validation permits an empty array.",
                     "example": [
                       "26855",
                       "139574"
@@ -594,6 +631,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -644,13 +684,16 @@
                     "unlimited": false
                   },
                   "event": {
-                    "id": "26855",
+                    "id": "8458",
                     "eventId": "26855",
                     "name": "CES 2025"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -660,6 +703,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -684,6 +730,22 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Business-error envelope when the caller has no active paid subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureUnavailableBusinessError"
+                },
+                "example": {
+                  "code": 400,
+                  "message": "This feature is not available to free users, please upgrade to continue",
+                  "errorKey": "USER_HAS_NO_FEATURE",
+                  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Visitor access unlock result",
             "content": {
@@ -708,7 +770,7 @@
                     "resetAt": 1785542400000
                   },
                   "event": {
-                    "id": "26855",
+                    "id": "8458",
                     "eventId": "26855",
                     "name": "CES 2025"
                   }
@@ -754,6 +816,22 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Business-error envelope when the caller has no active paid subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureUnavailableBusinessError"
+                },
+                "example": {
+                  "code": 400,
+                  "message": "This feature is not available to free users, please upgrade to continue",
+                  "errorKey": "USER_HAS_NO_FEATURE",
+                  "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Full event access unlock result",
             "content": {
@@ -775,7 +853,7 @@
                     "unlimited": false
                   },
                   "event": {
-                    "id": "26855",
+                    "id": "8458",
                     "eventId": "26855",
                     "name": "CES 2025"
                   }
@@ -947,11 +1025,18 @@
                       "requiredForMoreResults": true,
                       "actionType": "unlock_event_exhibitors",
                       "credits": 2000
+                    },
+                    "guidance": {
+                      "code": "preview_results_truncated",
+                      "message": "This event is locked. Only the first 50 matching exhibitors are currently accessible. Unlock the event to access the remaining matching results."
                     }
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -1098,6 +1183,24 @@
           "$ref": "#/components/requestBodies/SearchEventsByCompanyNameBody"
         },
         "responses": {
+          "200": {
+            "description": "Business-error envelope when another request already occupies the per-user concurrency slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcurrencyLimitBusinessError"
+                },
+                "example": {
+                  "code": 429,
+                  "message": "Too many concurrent requests for this endpoint",
+                  "errorKey": "USER_CONCURRENCY_LIMIT_EXCEEDED",
+                  "data": null,
+                  "details": null,
+                  "traceId": "trace-123"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Paginated events",
             "content": {
@@ -1193,6 +1296,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -1253,6 +1359,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -1271,7 +1380,7 @@
           "Personnel"
         ],
         "summary": "List event personnel",
-        "description": "List people associated with one event, with optional exhibitor, department, seniority, text, and attendee-source filtering.\n\nUse this endpoint to build attendee exploration, segment people within an event, and collect personnel IDs for profile, LinkedIn activity, contact unlock, or outreach workflows. `sourceType` accepts one event-scoped value—`exhibitor`, `social`, or `visitors`—while each returned person's `sourceType` array can contain multiple non-exclusive labels.\n\nInspect the returned access semantics and counts. Base-event preview/full mode does not by itself confirm separate Visitor-layer access. This endpoint is read-only and does not unlock email addresses, phone numbers, or LinkedIn activity.",
+        "description": "List people associated with one event, with optional exhibitor, department, seniority, text, and attendee-source filtering.\n\nUse this endpoint to build attendee exploration, segment people within an event, and collect personnel IDs for profile, LinkedIn activity, contact unlock, or outreach workflows. `sourceType` accepts one or more event-scoped values—`exhibitor`, `social`, or `visitors`—comma-separated or repeated; returned arrays can still contain multiple non-exclusive labels.\n\nInspect the returned access semantics and counts. Base-event preview/full mode does not by itself confirm separate Visitor-layer access. This endpoint is read-only and does not unlock email addresses, phone numbers, or LinkedIn activity.",
         "operationId": "listPersonnel",
         "parameters": [
           {
@@ -1334,17 +1443,12 @@
           {
             "name": "sourceType",
             "in": "query",
-            "description": "Filter by one event-scoped attendee-source label: `exhibitor`, `social`, or `visitors`.",
+            "description": "Filter by one or more event-scoped attendee-source labels: `exhibitor`, `social`, or `visitors`. Send comma-separated values or repeat the query parameter.",
             "schema": {
               "type": "string",
-              "enum": [
-                "exhibitor",
-                "social",
-                "visitors"
-              ],
-              "maxLength": 50
+              "maxLength": 200
             },
-            "example": "social"
+            "example": "social,visitors"
           }
         ],
         "responses": {
@@ -1387,6 +1491,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -1444,6 +1551,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -1486,7 +1596,7 @@
                 "example": {
                   "items": [
                     {
-                      "id": "139574",
+                      "id": "501",
                       "eventId": "139574",
                       "name": "Retail Technology Expo 2026"
                     }
@@ -1499,6 +1609,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -1573,7 +1686,7 @@
                   "events": {
                     "items": [
                       {
-                        "id": "139574",
+                        "id": "501",
                         "eventId": "139574",
                         "name": "Retail Technology Expo 2026"
                       }
@@ -1587,6 +1700,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -1655,13 +1771,16 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated events, or a business-error envelope when the per-user concurrency limit is exceeded",
+            "description": "Paginated events, a paid-feature business error, or a per-user concurrency business error",
             "content": {
               "application/json": {
                 "schema": {
                   "oneOf": [
                     {
                       "$ref": "#/components/schemas/EventPage"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FeatureUnavailableBusinessError"
                     },
                     {
                       "$ref": "#/components/schemas/ConcurrencyLimitBusinessError"
@@ -1708,6 +1827,14 @@
                       "details": null,
                       "traceId": "trace-123"
                     }
+                  },
+                  "featureUnavailable": {
+                    "value": {
+                      "code": 400,
+                      "message": "This feature is not available to free users, please upgrade to continue",
+                      "errorKey": "USER_HAS_NO_FEATURE",
+                      "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+                    }
                   }
                 }
               }
@@ -1744,7 +1871,7 @@
           "Personnel"
         ],
         "summary": "Unlock LinkedIn activity",
-        "description": "Start LinkedIn activity analysis for one or more selected personnel records in a specific event context.\n\nUse this endpoint after collecting personnel IDs from an event-scoped workflow and when the product needs activity metadata rather than contact details. Submit between one and 50 personnel IDs with the event identifier; the response reports acceptance, already-unlocked state, task identity, and item-level errors independently for each person.\n\nThe workflow is asynchronous for newly requested analysis. Do not treat a successful submission as completed analysis; poll or refresh the personnel data according to the returned task state. This endpoint does not unlock email addresses or phone numbers.",
+        "description": "Start LinkedIn activity analysis for personnel records, optionally in an event context.\n\nUse this endpoint after collecting personnel IDs and when the product needs activity metadata rather than contact details. Submit between one and 2,000 personnel IDs. `event_id` is optional; when omitted, the service does not validate that each person belongs to an event. The response reports acceptance, unlock state, task identity, and per-person errors.\n\nThe workflow is asynchronous for newly requested analysis. Do not treat a successful submission as completed analysis; poll or refresh personnel data according to the returned task state. This endpoint does not unlock email addresses or phone numbers.",
         "operationId": "unlockLinkedinActivity",
         "parameters": [
           {
@@ -1781,7 +1908,7 @@
                       "personnel_id": "789",
                       "success": true,
                       "alreadyUnlocked": false,
-                      "taskId": "task_321",
+                      "taskId": null,
                       "error": null
                     }
                   ]
@@ -1797,6 +1924,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -1910,7 +2040,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact emails",
-        "description": "Submit selected personnel records for email enrichment in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs email addresses. Newly chargeable work consumes `15` credits per contact and returns `status: accepted` with a task identifier. If every record is already unlocked or skipped, the endpoint can return `status: success` without creating a task.\n\nOnly poll the email task endpoint when `status` is `accepted` and `task_id` is present. A `201` response means the submission was processed, not that every email was found. Inspect skipped details and item-level results, and avoid duplicate work while an earlier task is active.",
+        "description": "Submit personnel records for email enrichment, optionally in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs email addresses. Newly chargeable work consumes `15` credits per contact and returns `status: accepted` with a task identifier. `event_id` is optional; omitting it skips event membership validation. If every record is already unlocked or skipped, the endpoint can return `status: success` without a task.\n\nOnly poll the email task endpoint when `status` is `accepted` and `task_id` is present. A `201` response means the submission was processed, not that every email was found. Inspect skipped details and item-level results, and avoid duplicate work while an earlier task is active.",
         "operationId": "unlockContactEmails",
         "parameters": [
           {
@@ -1924,14 +2054,13 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "personnel_ids",
-                  "event_id"
+                  "personnel_ids"
                 ],
                 "properties": {
                   "personnel_ids": {
                     "type": "array",
                     "minItems": 1,
-                    "maxItems": 100,
+                    "maxItems": 2000,
                     "items": {
                       "type": "string"
                     },
@@ -1944,7 +2073,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 100,
-                    "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+                    "description": "Optional Lensmor event identifier returned as `id` or `eventId`. When omitted, event membership validation is skipped.",
                     "example": "26855"
                   }
                 }
@@ -1990,6 +2119,9 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
@@ -2010,10 +2142,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[0-9]+$"
             },
             "description": "Email-unlock task identifier returned as `task_id` by the submission endpoint.",
-            "example": "contact_unlock_123"
+            "example": "321"
           }
         ],
         "responses": {
@@ -2077,9 +2210,21 @@
                   "status": "completed",
                   "items": [
                     {
-                      "id": "10067",
+                      "id": "501",
                       "eventId": "10067",
-                      "name": "American Banker Digital Banking 2026"
+                      "name": "American Banker Digital Banking 2026",
+                      "city": "Orlando",
+                      "country": "United States",
+                      "attendeeCount": 1825,
+                      "declaredExpectedAttendees": 600,
+                      "sourceTags": [],
+                      "dataSource": "Lensmor",
+                      "matched_exhibitor_count": 19,
+                      "matched_personnel_count": 85,
+                      "match_score": 0.84,
+                      "unlocked": false,
+                      "relevanceReason": null,
+                      "rank": 1
                     }
                   ],
                   "total": 42,
@@ -2223,6 +2368,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -2241,7 +2389,7 @@
           "Contacts"
         ],
         "summary": "Unlock contact phone numbers",
-        "description": "Submit one or more selected personnel records for phone-number enrichment in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs phone numbers. Newly chargeable work consumes `150` credits per contact and returns `status: accepted` with a task identifier. When there is no chargeable work, the endpoint can return `status: success` without creating a task.\n\nOnly poll the phone task endpoint when `status` is `accepted` and `task_id` is present. A `201` response does not guarantee that every phone number will be found. Inspect skipped details and item-level failures, and avoid duplicate submissions while a previous task is pending or processing.",
+        "description": "Submit personnel records for phone-number enrichment, optionally in an event context.\n\nUse this endpoint after contact or personnel discovery when the integration needs phone numbers. Newly chargeable work consumes `150` credits per contact and returns `status: accepted` with a task identifier. `event_id` is optional; omitting it skips event membership validation. When there is no chargeable work, the endpoint can return `status: success` without a task.\n\nOnly poll the phone task endpoint when `status` is `accepted` and `task_id` is present. A `201` response does not guarantee that every phone number will be found. Inspect skipped details and item-level failures, and avoid duplicate submissions while a task is pending or processing.",
         "operationId": "unlockContactPhones",
         "parameters": [
           {
@@ -2274,8 +2422,8 @@
                 },
                 "example": {
                   "status": "accepted",
-                  "task_id": "phone_321",
-                  "job_id": "phone_321"
+                  "task_id": "321",
+                  "job_id": "321"
                 }
               }
             }
@@ -2294,6 +2442,9 @@
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -2315,10 +2466,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^[0-9]+$"
             },
             "description": "Phone-unlock task identifier returned as `task_id` by the submission endpoint.",
-            "example": "phone_unlock_123"
+            "example": "321"
           }
         ],
         "responses": {
@@ -2330,7 +2482,7 @@
                   "$ref": "#/components/schemas/PhoneUnlockTask"
                 },
                 "example": {
-                  "taskId": "phone_321",
+                  "taskId": "321",
                   "taskStatus": "completed",
                   "items": [
                     {
@@ -2361,7 +2513,7 @@
           "Personnel"
         ],
         "summary": "Generate outreach messages",
-        "description": "Start asynchronous AI outreach generation for one or more personnel records in a selected event context.\n\nUse this endpoint after personnel selection when the integration needs personalized email or LinkedIn copy. Submit up to 50 personnel IDs, choose `email`, `linkedin_message`, or both, and optionally choose LinkedIn variants (`inmail`, `connection_note`, `connected_message`) plus an outreach purpose.\n\nEach personnel item can succeed or fail independently and may create background work. Store the returned task identifiers and retrieve the latest generated content with the outreach detail endpoint. Generating content does not send a message or contact the person.",
+        "description": "Start asynchronous AI outreach generation for one or more personnel records, with optional event context.\n\nUse this endpoint after personnel selection when the integration needs personalized email or LinkedIn copy. Submit up to 2,000 personnel IDs, choose `email`, `linkedin_message`, or both, and optionally provide `event_id`, LinkedIn variants (`inmail`, `connection_note`, `connected_message`), and an outreach purpose. The operation does not deduct credits.\n\nEach personnel item can succeed or fail independently and may create background work. Store returned task identifiers and retrieve the latest generated content with the outreach detail endpoint. Generating content does not send or contact the person.",
         "operationId": "generateOutreachMessage",
         "parameters": [
           {
@@ -2379,7 +2531,7 @@
                 "personnel_ids": [
                   "789"
                 ],
-                "event_id": "139574",
+                "event_id": "501",
                 "channels": [
                   "email",
                   "linkedin_message"
@@ -2406,11 +2558,11 @@
                     {
                       "personnel_id": "789",
                       "success": true,
-                      "taskId": "outreach_321",
+                      "taskId": null,
                       "error": null
                     }
                   ],
-                  "taskCenterId": "outreach_batch_321"
+                  "taskCenterId": "321"
                 }
               }
             }
@@ -2421,8 +2573,11 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
-          "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -2436,7 +2591,7 @@
           "Personnel"
         ],
         "summary": "Get outreach message detail",
-        "description": "Retrieve the most recent AI-generated outreach result for one personnel and event combination.\n\nUse this endpoint after submitting outreach generation, or before regenerating, to check whether content already exists. The response can include email content and separate LinkedIn variants such as InMail, connection note, and connected-message copy, together with source, purpose, tone, status, and timestamps when available.\n\n`found: false` is a valid lookup result when content has not been generated or is not ready. This endpoint only retrieves draft content; it does not send messages. Regenerating the same personnel-and-event combination can replace the previous result.",
+        "description": "Retrieve the most recent AI-generated outreach result for one personnel and event combination.\n\nUse this endpoint after submitting outreach generation, or before regenerating, to check whether content already exists. The response can include email content and separate LinkedIn variants such as InMail, connection note, and connected-message copy, together with source, purpose, tone, status, and timestamps when available.\n\n`found: false` is a valid lookup result when content has not been generated, is not ready, or the event cannot be resolved. Malformed numeric identifiers return `400`. This endpoint only retrieves draft content; it does not send messages. Regenerating the same personnel-and-event combination can replace the previous result.",
         "operationId": "getOutreachDetail",
         "parameters": [
           {
@@ -2498,11 +2653,11 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           },
           "429": {
             "$ref": "#/components/responses/RateLimited"
@@ -2824,7 +2979,8 @@
                   "type": "string",
                   "format": "uri",
                   "description": "Public `http(s)` company website used as profile context. Provide it or `target_audience`.",
-                  "example": "https://acme.example"
+                  "example": "https://acme.example",
+                  "maxLength": 500
                 },
                 "target_audience": {
                   "type": "string",
@@ -2914,6 +3070,75 @@
                   "minimum": 0,
                   "description": "Maximum attendee count, inclusive.",
                   "example": 50000
+                },
+                "linkedin_url": {
+                  "type": "string",
+                  "format": "uri",
+                  "maxLength": 500,
+                  "description": "Optional safe public LinkedIn profile URL used as additional profile context.",
+                  "example": "https://www.linkedin.com/in/jane-doe"
+                },
+                "company_description": {
+                  "type": "string",
+                  "maxLength": 2000,
+                  "description": "Optional company description used as additional profile-matching context.",
+                  "example": "We help retailers connect with technology vendors through trade shows and events."
+                },
+                "industry": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "description": "Optional company industry used as profile context.",
+                  "example": "Retail Technology"
+                },
+                "target_industry": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "description": "Optional target industries used to scope exhibitor recommendations.",
+                  "example": [
+                    "Artificial Intelligence",
+                    "Technology & Software"
+                  ]
+                },
+                "planned_events": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "description": "Optional free-text description of events the caller already plans to attend.",
+                  "example": "NRF, Shoptalk, and regional retail trade shows"
+                },
+                "target_management_level": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "description": "Optional management-level labels used for personnel matching.",
+                  "example": [
+                    "C-Level",
+                    "VP"
+                  ]
+                },
+                "target_job_titles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "description": "Optional job-title or function terms. The runtime normalizes the input and retains the first five non-empty values.",
+                  "example": [
+                    "marketing",
+                    "ecommerce",
+                    "VP Marketing"
+                  ]
+                },
+                "timeout_ms": {
+                  "type": "integer",
+                  "minimum": 60000,
+                  "maximum": 3600000,
+                  "description": "Optional synchronous processing timeout in milliseconds, from one minute to one hour.",
+                  "example": 900000
                 }
               },
               "anyOf": [
@@ -3022,6 +3247,27 @@
           }
         }
       },
+      "UnprocessableEntity": {
+        "description": "Selected personnel batch exceeds the runtime limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "code": 422,
+              "message": "Selected leads limit exceeded: requested 2001, limit 2000",
+              "errorKey": "LEAD_SELECTION_LIMIT_EXCEEDED",
+              "details": {
+                "requestedCount": 2001,
+                "limit": 2000,
+                "selectionMode": "selected"
+              },
+              "traceId": "2be6d7f4-3b2d-4d11-8e2d-7a2e4c3e9a10"
+            }
+          }
+        }
+      },
       "RateLimited": {
         "description": "Rate limit exceeded",
         "content": {
@@ -3064,6 +3310,9 @@
           "traceId": {
             "type": "string",
             "description": "Request trace identifier to include in support or incident reports."
+          },
+          "details": {
+            "description": "Optional structured business or validation context. Omitted when the error has no additional details."
           }
         },
         "description": "Shared error envelope returned by public Lensmor API endpoints."
@@ -4272,7 +4521,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Non-exclusive attendee-source labels associated with the person."
+                  "description": "Buying-signal evidence source category when available."
                 },
                 "sourceTitle": {
                   "type": [
@@ -4799,11 +5048,15 @@
           },
           "task_id": {
             "type": "string",
-            "description": "TaskCenter identifier. Present when status is accepted."
+            "description": "TaskCenter identifier. Present when status is accepted.",
+            "pattern": "^[0-9]+$",
+            "example": "321"
           },
           "job_id": {
             "type": "string",
-            "description": "Alias of task_id. Present when status is accepted."
+            "description": "Alias of task_id. Present when status is accepted.",
+            "pattern": "^[0-9]+$",
+            "example": "321"
           },
           "skipped_personnel_ids": {
             "type": "array",
@@ -4888,7 +5141,9 @@
         "properties": {
           "taskId": {
             "type": "string",
-            "description": "Asynchronous task identifier."
+            "description": "Asynchronous task identifier.",
+            "pattern": "^[0-9]+$",
+            "example": "321"
           },
           "taskStatus": {
             "type": "string",
@@ -4951,7 +5206,11 @@
             "properties": {
               "status": {
                 "type": "string",
-                "description": "Current normalized status for the submission, task, or generated content."
+                "enum": [
+                  "completed",
+                  "completed_empty"
+                ],
+                "description": "Synchronous recommendation outcome: results returned or no matching events found."
               },
               "condition_tags": {
                 "type": "object",
@@ -4975,9 +5234,23 @@
               "is_stale": {
                 "type": "boolean",
                 "description": "Is stale returned as part of this profile event recommendation page object."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProfileRecommendedEvent"
+                },
+                "description": "Recommended event records for the requested page."
               }
             },
-            "additionalProperties": true
+            "additionalProperties": true,
+            "required": [
+              "status",
+              "condition_tags",
+              "profile_version",
+              "active_result_version",
+              "is_stale"
+            ]
           }
         ],
         "description": "Paginated profile-matched events and recommendation metadata."
@@ -4991,7 +5264,9 @@
         "properties": {
           "action_type": {
             "type": "string",
-            "enum": [
+            "minLength": 1,
+            "maxLength": 100,
+            "examples": [
               "query_event_personnel",
               "unlock_event_contacts",
               "unlock_event_visitors",
@@ -5000,15 +5275,20 @@
               "unlock_contact_phones",
               "search_exhibitor_events",
               "search_personnel_events_by_name",
+              "integration_status",
+              "integration_export_contacts",
+              "integration_export_exhibitors",
               "others"
             ],
-            "description": "Supported action to evaluate. Use the same action type for the follow-up execution workflow.",
+            "description": "Action to evaluate. The listed examples are handled explicitly. Other 1–100 character strings are accepted and return `allowed: false` with `reason_code: unsupported_action`.",
             "example": "unlock_contact_emails"
           },
           "call_source": {
             "type": "string",
             "description": "Caller source label, typically `api` or `agent`.",
-            "example": "api"
+            "example": "api",
+            "minLength": 1,
+            "maxLength": 100
           },
           "params": {
             "type": "object",
@@ -5021,22 +5301,30 @@
           "locale": {
             "type": "string",
             "description": "Optional locale used for localized guidance or messages.",
-            "example": "en-US"
+            "example": "en-US",
+            "minLength": 1,
+            "maxLength": 20
           },
           "trace_id": {
             "type": "string",
             "description": "Optional caller-provided trace identifier for support correlation.",
-            "example": "trace_123"
+            "example": "trace_123",
+            "minLength": 1,
+            "maxLength": 200
           },
           "conversation_id": {
             "type": "string",
             "description": "Optional conversation identifier for agent workflows.",
-            "example": "conversation_123"
+            "example": "conversation_123",
+            "minLength": 1,
+            "maxLength": 200
           },
           "channel_message_id": {
             "type": "string",
             "description": "Optional channel message identifier for agent workflows.",
-            "example": "message_123"
+            "example": "message_123",
+            "minLength": 1,
+            "maxLength": 200
           }
         },
         "additionalProperties": false,
@@ -5110,14 +5398,13 @@
       "LinkedinActivityUnlockRequest": {
         "type": "object",
         "required": [
-          "personnel_ids",
-          "event_id"
+          "personnel_ids"
         ],
         "properties": {
           "personnel_ids": {
             "type": "array",
             "minItems": 1,
-            "maxItems": 50,
+            "maxItems": 2000,
             "items": {
               "type": "string"
             },
@@ -5130,12 +5417,12 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 20,
-            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+            "description": "Optional Lensmor event identifier returned as `id` or `eventId`. When omitted, event membership validation is skipped.",
             "example": "26855"
           }
         },
         "additionalProperties": false,
-        "description": "Batch LinkedIn activity analysis request in one event context."
+        "description": "Batch LinkedIn activity analysis request with optional event context."
       },
       "LinkedinActivityUnlockItem": {
         "type": "object",
@@ -5164,7 +5451,8 @@
               "string",
               "null"
             ],
-            "description": "Asynchronous task identifier."
+            "description": "Numeric child-task identifier for existing in-progress work; newly accepted items can return `null` while child dispatch is queued.",
+            "pattern": "^[0-9]+$"
           },
           "error": {
             "type": [
@@ -5195,14 +5483,13 @@
       "PhoneUnlockRequest": {
         "type": "object",
         "required": [
-          "personnel_ids",
-          "event_id"
+          "personnel_ids"
         ],
         "properties": {
           "personnel_ids": {
             "type": "array",
             "minItems": 1,
-            "maxItems": 100,
+            "maxItems": 2000,
             "items": {
               "type": "string"
             },
@@ -5215,11 +5502,11 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 100,
-            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
+            "description": "Optional Lensmor event identifier returned as `id` or `eventId`. When omitted, event membership validation is skipped.",
             "example": "26855"
           }
         },
-        "description": "Batch phone enrichment request in one event context."
+        "description": "Batch phone enrichment request with optional event context."
       },
       "PhoneUnlockTask": {
         "type": "object",
@@ -5231,7 +5518,9 @@
         "properties": {
           "taskId": {
             "type": "string",
-            "description": "Asynchronous task identifier."
+            "description": "Asynchronous task identifier.",
+            "pattern": "^[0-9]+$",
+            "example": "321"
           },
           "taskStatus": {
             "type": "string",
@@ -5288,25 +5577,25 @@
         "type": "object",
         "required": [
           "personnel_ids",
-          "event_id",
           "channels"
         ],
         "properties": {
           "personnel_ids": {
             "type": "array",
-            "maxItems": 50,
+            "maxItems": 2000,
             "items": {
               "type": "string"
             },
-            "description": "Lensmor personnel identifiers selected for this batch operation.",
+            "description": "Lensmor personnel identifiers selected for this batch operation. The runtime accepts an empty array, but useful generation requires at least one identifier.",
             "example": [
               "789"
             ]
           },
           "event_id": {
             "type": "string",
-            "description": "Lensmor event identifier returned as `id` or `eventId` by event responses.",
-            "example": "26855"
+            "description": "Optional internal Lensmor event row identifier from the event response `id` field. This endpoint currently converts the value directly to `BigInt`; unlike most event-scoped routes, it does not resolve public `eventId`. Omit it to skip membership validation and event context.",
+            "example": "501",
+            "pattern": "^[0-9]+$"
           },
           "channels": {
             "type": "array",
@@ -5317,7 +5606,7 @@
                 "linkedin_message"
               ]
             },
-            "description": "Output channels to generate: `email`, `linkedin_message`, or both.",
+            "description": "Output channels to generate: `email`, `linkedin_message`, or both. The runtime accepts an empty array, but an empty array creates no useful output.",
             "example": [
               "email",
               "linkedin_message"
@@ -5377,7 +5666,8 @@
                     "string",
                     "null"
                   ],
-                  "description": "Asynchronous task identifier."
+                  "description": "Numeric child-task identifier for existing in-progress work; newly accepted items normally return `null` while child dispatch is queued.",
+                  "pattern": "^[0-9]+$"
                 },
                 "error": {
                   "type": [
@@ -5395,7 +5685,9 @@
               "string",
               "null"
             ],
-            "description": "TaskCenter identifier returned when at least one outreach generation task was created."
+            "description": "Numeric TaskCenter identifier returned when at least one outreach generation task was created.",
+            "pattern": "^[0-9]+$",
+            "example": "321"
           }
         },
         "description": "Item-level outreach generation submissions and optional batch task identity."
@@ -5532,6 +5824,142 @@
           }
         },
         "description": "Latest generated outreach content and metadata for one personnel-event combination."
+      },
+      "FeatureUnavailableBusinessError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "errorKey",
+          "traceId"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "const": 400,
+            "description": "Business code returned in an HTTP 200 response for this paid-feature guard."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable explanation suitable for logs or user-facing error handling."
+          },
+          "errorKey": {
+            "type": "string",
+            "const": "USER_HAS_NO_FEATURE",
+            "description": "Stable machine-readable error key for a feature unavailable to free users."
+          },
+          "traceId": {
+            "type": "string",
+            "description": "Request trace identifier to include in support or incident reports."
+          },
+          "details": {
+            "description": "Optional structured error details; normally omitted for this business guard."
+          }
+        },
+        "additionalProperties": false,
+        "description": "HTTP 200 business-error envelope returned when an active paid subscription is required."
+      },
+      "ProfileRecommendedEvent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventDetail"
+          },
+          {
+            "type": "object",
+            "required": [
+              "matched_exhibitor_count",
+              "matched_personnel_count",
+              "match_score",
+              "unlocked",
+              "rank"
+            ],
+            "properties": {
+              "declaredExpectedAttendees": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Organizer-declared expected attendee count when available."
+              },
+              "estimatedExpectedAttendees": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Estimated expected attendee count serialized as a string when available."
+              },
+              "quality": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Event quality label when available."
+              },
+              "sourceTags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Source classification tags associated with the event."
+              },
+              "visibilityStatus": {
+                "type": "integer",
+                "description": "Event visibility state returned by the service."
+              },
+              "previewPersonnelCount": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Preview personnel count when populated for the event."
+              },
+              "createTime": {
+                "type": "string",
+                "pattern": "^[0-9]+$",
+                "description": "Creation time as a millisecond timestamp serialized to a decimal string."
+              },
+              "updateTime": {
+                "type": "string",
+                "pattern": "^[0-9]+$",
+                "description": "Last update time as a millisecond timestamp serialized to a decimal string."
+              },
+              "matched_exhibitor_count": {
+                "type": "integer",
+                "description": "Number of exhibitors matched to the supplied profile for this event."
+              },
+              "matched_personnel_count": {
+                "type": "integer",
+                "description": "Number of personnel matched to the supplied profile for this event."
+              },
+              "match_score": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Profile-to-event match score, or `null` when the scorer did not return one."
+              },
+              "unlocked": {
+                "type": "boolean",
+                "description": "Whether base event access is already unlocked for the API key owner."
+              },
+              "relevanceReason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Human-readable recommendation reason when generated; otherwise omitted or `null`."
+              },
+              "rank": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "One-based recommendation rank returned by the ICP recommendation pipeline."
+              }
+            }
+          }
+        ],
+        "description": "Full Lensmor event metadata plus profile-recommendation evidence and rank."
       }
     }
   }

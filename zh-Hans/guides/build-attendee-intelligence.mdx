@@ -126,5 +126,5 @@ curl -X POST "https://platform.lensmor.com/external/actions/precheck" \
 ## 当前限制
 
 - Event List 和 Event Detail 已公开 `hasVisitors` 字段，用于表示 Visitor 数据是否可用。
-- Event List 暂不公开 `has_visitors` 查询筛选参数。
+- Event List 支持 `has_visitors=1` 或 `0`，用于按 Visitor 数据可用性筛选。
 - Visitor 覆盖因展会而异，不能通过展会类别、规模或地点推断。

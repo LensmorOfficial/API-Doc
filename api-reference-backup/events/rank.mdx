@@ -33,7 +33,7 @@ See [Authentication](/authentication)
 ## Request body
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
-| `event_ids` | Yes | string[] | List of event identifiers to rank. |
+| `event_ids` | Yes | string[] | List of event identifiers to rank. Runtime validation permits an empty array. |
 
 ## Request example
 ```bash
@@ -92,6 +92,7 @@ curl -X POST "https://platform.lensmor.com/external/events/rank" \
 - `429 Too Many Requests`
 
 ## Notes
+- A successful request with an empty `event_ids` array returns an empty `items` array.
 - This endpoint uses `POST` because the request body contains an array of event IDs that does not fit cleanly in query parameters. It does not create a persistent resource.
 - The current service returns an ordered `items` array with `rank` and `match_score`.
 - `reasons` is currently emitted as an empty array by the live service.

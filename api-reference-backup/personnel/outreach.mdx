@@ -21,14 +21,14 @@ Use `GET /external/personnel/outreach` when:
 | Name | Required | Type | Description | Example |
 | --- | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Personnel ID used in the generation request. | `789` |
-| `event_id` | Yes | string | Event ID used in the generation request. | `139574` |
+| `event_id` | Yes | string | Event identifier for lookup. This endpoint resolves either internal `id` or public `eventId`; use the same internal `id` supplied during generation when possible. | `501` |
 
 ## Request example
 
 ```bash
 curl --get "https://platform.lensmor.com/external/personnel/outreach" \
   --data-urlencode "personnel_id=789" \
-  --data-urlencode "event_id=139574" \
+  --data-urlencode "event_id=501" \
   --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -58,18 +58,19 @@ curl --get "https://platform.lensmor.com/external/personnel/outreach" \
 
 ## No content yet
 
-`found: false` is a valid lookup result when no message has been generated or the latest generation is not ready. Do not treat it as sent outreach or invent fallback copy.
+`found: false` is a valid lookup result when no message has been generated, the latest generation is not ready, or the event cannot be resolved. Do not treat it as sent outreach or invent fallback copy.
 
 ## Error responses
 
 | Status | Meaning | Recommended handling |
 | --- | --- | --- |
+| `400 Bad Request` | A personnel or event identifier is not a valid numeric string. | Fix the identifier before retrying. |
 | `401 Unauthorized` | Missing or invalid API key. | Reconnect or rotate the key. |
-| `404 Not Found` | Personnel/event context is unavailable. | Re-check both identifiers. |
 | `429 Too Many Requests` | Polling exceeded the active rate limit. | Wait for `Retry-After` before retrying. |
 
 ## Notes
 - Returns the most recent outreach generation result for the given personnel and event combination.
+- An unknown but well-formed event does not return `404`; it produces the normal `200 OK` response with `found: false`.
 - `messages.linkedin` can contain separate `inmail`, `connection_note`, and `connected_message` objects. InMail can include `subject` and `body`; the other variants contain `body`.
 - `messages.linkedin_message` remains available as the legacy single-message field when present.
 - Re-generating outreach for the same personnel + event will overwrite previous content.

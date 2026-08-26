@@ -35,6 +35,14 @@ See [Authentication](/authentication)
 | --- | --- | --- | --- |
 | `company_url` | Conditionally | string | Public `http(s)` URL. Provide at least one of `company_url` or `target_audience`. |
 | `target_audience` | Conditionally | string | Audience description. Provide at least one of `company_url` or `target_audience`. |
+| `linkedin_url` | No | string | Safe public LinkedIn profile URL; maximum `500` characters. |
+| `company_description` | No | string | Additional company context; maximum `2000` characters. |
+| `industry` | No | string | Company industry; maximum `255` characters. |
+| `target_industry` | No | string[] | Target industries; each value is limited to `255` characters. |
+| `planned_events` | No | string | Free-text planned events; maximum `500` characters. |
+| `target_management_level` | No | string[] | Target management levels; each value is limited to `100` characters. |
+| `target_job_titles` | No | string[] | Target job titles/functions. The runtime retains the first five non-empty values; each is limited to `255` characters. |
+| `timeout_ms` | No | integer | Processing timeout from `60000` to `3600000` milliseconds. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 | `autoRecommendTop3EventsEnabled` | No | boolean | Override synchronous top-3 recommendation reason generation for this request. |
@@ -78,7 +86,7 @@ curl -X POST "https://platform.lensmor.com/external/profile-matching/actions/app
   "status": "completed",
   "items": [
     {
-      "id": "10067",
+      "id": "501",
       "eventId": "10067",
       "name": "American Banker Digital Banking 2026",
       "nickname": "",
@@ -172,7 +180,7 @@ Each event item includes the full event detail shape:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`, `eventId` | string | Event identifiers (currently identical values). |
+| `id`, `eventId` | string | Separate internal-row and public event identifiers; values can differ. |
 | `name`, `nickname`, `description` | string | Event identity fields. |
 | `url` | string \| null | Source or official event URL. |
 | `dateStart`, `dateEnd` | string | ISO date strings. |
@@ -238,5 +246,5 @@ Each event item includes the full event detail shape:
 - Use this endpoint for profile-based event recommendations.
 - Event items return the full event detail shape including geographic coordinates, pricing, categories, and topics.
 - `latitude`, `longitude`, `priceLower`, `priceUpper`, `createTime`, `updateTime`, and `confidence` are returned as string values, not numbers.
-- `id` and `eventId` currently return the same value for all events. Use `eventId` when passing to other endpoints that accept `event_id`.
+- `id` and `eventId` are separate values and can differ. Use `eventId` for endpoints that resolve either identifier. Use internal `id` for the current `POST /external/personnel/generate-outreach-message` exception documented under [Identifiers](/concepts/identifiers).
 - Status metadata such as `status`, `profile_version`, and `active_result_version` describes the current paged result set.

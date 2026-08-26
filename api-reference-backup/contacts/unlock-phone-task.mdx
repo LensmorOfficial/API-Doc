@@ -16,12 +16,12 @@ Use `GET /external/contacts/unlock-phone-tasks/{taskId}` to poll until the job c
 
 | Name | Required | Type | Description | Example |
 | --- | --- | --- | --- | --- |
-| `taskId` | Yes | string | Phone-unlock task ID returned as `task_id` by the submission endpoint. | `phone_321` |
+| `taskId` | Yes | string | Decimal numeric phone-unlock task ID returned as `task_id` by the submission endpoint. | `321` |
 
 ## Request example
 
 ```bash
-curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_321" \
+curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/321" \
   --header "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -29,7 +29,7 @@ curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_32
 
 ```json
 {
-  "taskId": "phone_321",
+  "taskId": "321",
   "taskStatus": "completed",
   "items": [
     {
@@ -68,3 +68,4 @@ curl "https://platform.lensmor.com/external/contacts/unlock-phone-tasks/phone_32
 ## Notes
 - Phone number is present only when the individual item has been unlocked successfully.
 - Failed items can include `errorCode`.
+- `taskId` is a decimal numeric string because the service converts it to `BigInt`; prefixed values such as `phone_321` are invalid.
