@@ -16,7 +16,7 @@
 
 ## 2. 当前基线
 
-检查对象：`api-reference/openapi.json`，文档版本 `0.26.0`。
+检查对象：`api-reference/openapi.json`，文档版本 `0.27.0`。
 
 | 指标 | 初始基线 | 完成全量 API Reference 优化后 | 判断 |
 | --- | ---: | ---: | --- |

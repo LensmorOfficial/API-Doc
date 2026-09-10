@@ -210,7 +210,7 @@ class PublicAssetSyncTests(unittest.TestCase):
 
     def test_company_search_contract_matches_current_credit_rule(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
-        self.assertEqual(spec["info"]["version"], "0.26.0")
+        self.assertEqual(spec["info"]["version"], "0.27.0")
 
         by_name = spec["paths"]["/external/personnel/events/by-name"]["get"]
         self.assertIn("up to 50 personnel records", by_name["description"])
