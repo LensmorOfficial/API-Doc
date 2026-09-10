@@ -1,0 +1,189 @@
+---
+title: "Lensmor MCP Server"
+description: "Connect an MCP-compatible AI client to Lensmor for event discovery, exhibitor research, contact discovery, and confirmed data access."
+---
+
+Connect your AI assistant to Lensmor. Search trade shows, research exhibitors, find relevant contacts, and request access to selected data without leaving the conversation.
+
+<Card title="MCP server URL" icon="plug">
+  `https://platform.lensmor.com/mcp`
+</Card>
+
+## What is the Lensmor MCP Server?
+
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open standard that lets AI assistants connect directly to external tools and data sources.
+
+The Lensmor MCP Server gives compatible AI clients live access to Lensmor event intelligence. Your assistant can search recorded trade shows, research exhibitors, discover relevant contacts, and help you complete data-access workflows using natural-language requests.
+
+<Note>
+  Lensmor MCP uses OAuth. A Lensmor Business API key is not a valid credential for the MCP endpoint.
+</Note>
+
+## Why use it?
+
+Without an MCP connection, an AI assistant cannot query your current Lensmor data or use Lensmor actions. Once connected, it can work with the available data and operation schemas directly.
+
+| Without Lensmor MCP | With Lensmor MCP |
+| --- | --- |
+| Search event information manually | Ask the assistant to find events by topic, location, or date |
+| Browse exhibitor directories page by page | Ask for exhibitors that match a product, technology, or use case |
+| Filter contacts manually | Describe the companies and roles you want to find |
+| Move between research and access screens | Request a quote and continue the approved workflow in the conversation |
+
+## Setup
+
+<Tabs>
+  <Tab title="Codex">
+    <Steps>
+      <Step title="Open Settings">
+        Open the profile menu in Codex and select **Settings**.
+      </Step>
+      <Step title="Add an MCP server">
+        Under **Integrations**, select **Plugins**, then choose **Add → Add MCP server**.
+      </Step>
+      <Step title="Configure Lensmor">
+        Enter **Lensmor** as the name, select **Streamable HTTP**, and enter `https://platform.lensmor.com/mcp` as the URL. Leave the bearer-token environment variable and headers empty.
+      </Step>
+      <Step title="Save and connect">
+        Select **Save**, complete Lensmor OAuth in the browser, and choose a Workspace when prompted.
+      </Step>
+    </Steps>
+
+    You can also add Lensmor from the Codex CLI:
+
+    ```bash
+    codex mcp add lensmor --url https://platform.lensmor.com/mcp
+    codex mcp login lensmor
+    ```
+  </Tab>
+
+  <Tab title="ChatGPT">
+    <Steps>
+      <Step title="Create a plugin">
+        In ChatGPT, open **Plugins**, select **+**, and create a new plugin.
+      </Step>
+      <Step title="Configure Lensmor">
+        Enter **Lensmor** as the name, choose **Server URL**, enter `https://platform.lensmor.com/mcp`, and select **OAuth** for authentication.
+      </Step>
+      <Step title="Create and connect">
+        Review the custom MCP server notice, select the acknowledgement checkbox, and choose **Create**. Complete Lensmor OAuth in the browser and choose a Workspace when prompted.
+      </Step>
+    </Steps>
+
+    <Note>
+      Custom plugins must be enabled for your ChatGPT plan and Workspace. If the **+** button is unavailable, contact your Workspace administrator.
+    </Note>
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    <Steps>
+      <Step title="Add a custom connector">
+        Open **Settings → Connectors**, select **Add custom connector**, and enter `https://platform.lensmor.com/mcp` as the Remote MCP server URL.
+      </Step>
+      <Step title="Connect Lensmor">
+        Save the connector, select **Connect**, and complete Lensmor OAuth. Choose a Workspace when prompted.
+      </Step>
+      <Step title="Restart Claude Desktop">
+        Restart the app before starting a new conversation so it can refresh the available Lensmor tools.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Claude Code">
+    Add Lensmor from your terminal:
+
+    ```bash
+    claude mcp add --transport http lensmor https://platform.lensmor.com/mcp
+    ```
+
+    Run `/mcp`, select Lensmor, and complete OAuth. Start a new session after connecting.
+  </Tab>
+
+  <Tab title="Other MCP clients">
+    Add a **Streamable HTTP** server using:
+
+    ```text
+    https://platform.lensmor.com/mcp
+    ```
+
+    Complete the Lensmor OAuth flow when your client prompts you to authenticate.
+  </Tab>
+</Tabs>
+
+### Tool permissions
+
+Your AI client may ask for approval before using a Lensmor tool for the first time. Use the client's permission settings to allow, prompt for, or block individual tools.
+
+Lensmor separately confirms operations that can consume credits. Connecting your account or allowing a tool does not approve a paid action.
+
+## Example prompts
+
+Once connected, describe the result you want as you would to a colleague.
+
+### Find relevant trade shows
+
+> “Find retail technology trade shows in Germany between March and June 2027.”
+
+### Research exhibitors
+
+> “At NRF 2027, find exhibitors offering computer-vision loss prevention and rank the best matches.”
+
+### Find contacts
+
+> “At CES 2027, find director-level procurement contacts at battery technology companies.”
+
+### Research a company
+
+> “Find marketing leaders at example.com and show the available contact summaries.”
+
+### Look up event history
+
+> “Which trade shows has Acme Robotics exhibited at since 2024? Show me the price before running the lookup.”
+
+### Request contact details
+
+> “Show me the price to unlock business emails for these five contacts.”
+
+## Credits and costs
+
+Most discovery and research operations are free to run. Directory access, reverse event lookups, and contact-detail unlocks can consume Lensmor credits.
+
+A paid workflow follows this sequence:
+
+```text
+Select data → Review quote → Confirm → Receive result
+```
+
+- Creating a quote does not consume credits.
+- The live quote shows the current price, chargeable items, available balance, and expiry.
+- Only the signed-in user can approve the confirmation.
+- Empty reverse-lookup results are not charged.
+- Existing access and previously unlocked fields are taken into account before charging.
+
+<Warning>
+  Prices and eligibility can vary by account, existing access, and product policy. Always use the live Lensmor quote as the final price before confirming.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The client cannot connect">
+    Verify that the server URL is exactly `https://platform.lensmor.com/mcp`, without a trailing slash or extra path. Restart the client after adding the server.
+  </Accordion>
+
+  <Accordion title="Authentication fails">
+    Complete Lensmor OAuth in the browser. Do not use a Business API key for this connection. If the authorization was revoked or the selected Workspace changed, disconnect Lensmor and authenticate again.
+  </Accordion>
+
+  <Accordion title="Lensmor tools are missing">
+    Reconnect the server and start a new conversation so the client refreshes its available tools. Availability can also depend on your account and Workspace permissions.
+  </Accordion>
+
+  <Accordion title="A search returns several possible matches">
+    Choose the correct event, company, or person when the assistant asks. Lensmor does not automatically select an ambiguous result.
+  </Accordion>
+
+  <Accordion title="A paid action cannot continue">
+    Read the reason returned with the quote or result. The account may have insufficient credits, lack the required access, or be ineligible for that operation.
+  </Accordion>
+</AccordionGroup>

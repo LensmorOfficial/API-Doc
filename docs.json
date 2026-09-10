@@ -140,6 +140,17 @@
                 ]
               }
             ]
+          },
+          {
+            "tab": "MCP",
+            "groups": [
+              {
+                "group": "Lensmor MCP",
+                "pages": [
+                  "mcp/overview"
+                ]
+              }
+            ]
           }
         ]
       },
