@@ -1,6 +1,6 @@
 ---
 title: "Personnel events by name"
-description: "Find upcoming or date-filtered Lensmor events associated with personnel records by exact full-name matching."
+description: "Find Lensmor events from 2026 onward, or set a date range, by exact personnel full-name matching."
 openapi: "openapi.json GET /external/personnel/events/by-name"
 ---
 
@@ -25,7 +25,8 @@ See [Authentication](/authentication). The API-key owner must have an active pai
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `person_name` | Yes | string | Exact full name, length `1` to `200`. Matching is case-insensitive and leading/trailing whitespace is ignored. Partial and fuzzy matching are not used. |
-| `date_start_from` | No | date | Inclusive lower bound on event start date. Defaults to the current date, so the default result contains upcoming events. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
+| `date_start_from` | No | date | Inclusive lower bound on event start date. Defaults to `2026-01-01` when omitted. |
 | `date_start_to` | No | date | Inclusive upper bound on event start date. Omit for no upper bound. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. This paginates events, not personnel candidates. |
@@ -34,7 +35,7 @@ See [Authentication](/authentication). The API-key owner must have an active pai
 ## Request example
 
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&date_start_from=2026-08-10&date_start_to=2026-12-31&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&attendance_scope=visitor&date_start_from=2026-08-10&date_start_to=2026-12-31&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "x-call-source: api"
 ```
@@ -60,6 +61,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name
       "exhibitorCount": 950,
       "hasVisitors": true,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
@@ -76,6 +78,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name
 
 - The server considers up to `50` personnel records with the exact full name. This candidate window is fixed and independent of event `pageSize`.
 - Events from those exact-name records are combined and deduplicated, then ordered by `dateStart` ascending.
+- Attendance evidence is combined per event across the exact-name personnel matches before scope filtering. `attendance_scope=visitor` excludes an event if any matched person has exhibitor-employee evidence there. Every event includes the complete `attendance_identity` array for the matching person or people at that event.
 - Both date bounds apply inclusively to `dateStart`. Set an earlier `date_start_from` to include historical events.
 - No personnel match or no qualifying event returns `200 OK` with `items: []`, `total: 0`, `totalPages: 0`, and `hasMore: false`.
 

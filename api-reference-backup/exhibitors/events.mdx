@@ -27,12 +27,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor`, or `visitor`. `exhibitor` includes events with exhibitor evidence, including dual-identity events. `visitor` returns visitor-only events and excludes exhibitor evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -55,11 +56,12 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
       "country": "United States",
       "exhibitorCount": 950,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
   ],
-  "total": 12,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
   "totalPages": 1,
@@ -78,6 +80,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `attendance_identity` | Complete array of this company's identities at this event: `exhibitor` and/or `visitor`. |
 | `image` | Event image URL when available. |
 | `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
@@ -89,6 +92,6 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the standard event-item response shape.
+- Event items include the standard event fields and the event-scoped `attendance_identity` array. With `attendance_scope=all`, a dual-identity event can return `["exhibitor", "visitor"]`.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.

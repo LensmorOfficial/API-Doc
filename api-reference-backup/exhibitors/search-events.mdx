@@ -36,6 +36,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor`, or `visitor`. `exhibitor` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor evidence. Other values, including `null`, return `400`. |
 | `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events, `0` returns non-starred events; omit to include both. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
@@ -51,7 +52,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-call-source: api" \
-  -d '{"company_name":"Acme","sponsor_match_starred":1,"page":1,"pageSize":20}'
+  -d '{"company_name":"Acme","attendance_scope":"exhibitor","sponsor_match_starred":1,"page":1,"pageSize":20}'
 ```
 
 ## Response example
@@ -73,6 +74,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
       "country": "United States",
       "exhibitorCount": 100,
       "sponsorMatchStarred": 1,
+      "attendance_identity": ["exhibitor", "visitor"],
       "image": null,
       "dataSource": "Lensmor",
       "matchedExhibitors": [
@@ -103,14 +105,15 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | `exhibitorCount` | Exhibitor coverage count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
 | `dataSource` | Always `Lensmor` for public event records. |
-| `matchedExhibitors` | Matched company records that connect the input to the returned event. Treat this as the primary evidence that the company-name input matched the returned event. |
+| `attendance_identity` | Complete array of this company's identities at this event: `exhibitor` and/or `visitor`. |
+| `matchedExhibitors` | Matched exhibitor relationships. Visitor-only events can have an empty array. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
 This endpoint consumes `50` credits after the company-name matcher finds at least one event. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
-Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, pagination, and `attendance_identity` to interpret the search result. `matchedExhibitors` can be empty for visitor-only events.
 
 ## Concurrency limit
 

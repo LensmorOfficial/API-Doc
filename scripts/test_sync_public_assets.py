@@ -215,9 +215,10 @@ class PublicAssetSyncTests(unittest.TestCase):
         by_name = spec["paths"]["/external/personnel/events/by-name"]["get"]
         self.assertIn("up to 50 personnel records", by_name["description"])
         self.assertIn("10 requests", by_name["description"])
+        self.assertIn("2026-01-01", by_name["description"])
         self.assertEqual(
             by_name["responses"]["200"]["content"]["application/json"]["schema"]["oneOf"][0]["$ref"],
-            "#/components/schemas/EventPage",
+            "#/components/schemas/PersonnelRelatedEventPage",
         )
         by_name_200_refs = {
             item["$ref"]
@@ -268,11 +269,20 @@ class PublicAssetSyncTests(unittest.TestCase):
             "application/json"
         ]["schema"]["properties"]
         self.assertEqual(event_search_fields["sponsor_match_starred"]["enum"], [0, 1])
+        self.assertEqual(
+            event_search_fields["attendance_scope"]["enum"], ["all", "exhibitor", "visitor"]
+        )
+        self.assertEqual(event_search_fields["attendance_scope"]["default"], "all")
+        self.assertIn(
+            "attendance_identity",
+            schemas["EventReverseSearchItem"]["allOf"][1]["required"],
+        )
 
         event_fields = schemas["EventItem"]["properties"]
         self.assertEqual(event_fields["dataSource"]["const"], "Lensmor")
         self.assertEqual(event_fields["sponsorMatchStarred"]["enum"], [0, 1])
         self.assertEqual(event_fields["hasVisitors"]["type"], "boolean")
+
         self.assertIn("availability signal", event_fields["hasVisitors"]["description"])
 
         event_list = spec["paths"]["/external/events/list"]["get"]
@@ -317,6 +327,58 @@ class PublicAssetSyncTests(unittest.TestCase):
             with self.subTest(event=example["eventId"]):
                 self.assertIn(example["sponsorMatchStarred"], [0, 1])
                 self.assertEqual(example["dataSource"], "Lensmor")
+
+    def test_reverse_event_attendance_contract(self) -> None:
+        spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))
+        schemas = spec["components"]["schemas"]
+        parameters = spec["components"]["parameters"]
+        paths = spec["paths"]
+
+        cases = (
+            ("/external/exhibitors/events", "exhibitor_id", "CompanyAttendanceScopeQuery",
+             "ExhibitorRelatedEventPage", ["exhibitor", "visitor"]),
+            ("/external/personnel/events", "personnel_id", "PersonnelAttendanceScopeQuery",
+             "PersonnelRelatedEventPage", ["exhibitor_employee", "visitor"]),
+            ("/external/personnel/events/by-linkedin", "linkedin_url", "PersonnelAttendanceScopeQuery",
+             "PersonnelRelatedEventPage", ["exhibitor_employee", "visitor"]),
+            ("/external/personnel/events/by-name", "person_name", "PersonnelAttendanceScopeQuery",
+             "PersonnelRelatedEventPage", ["exhibitor_employee", "visitor"]),
+        )
+        for path, identifier, scope_parameter, page_name, identities in cases:
+            operation = paths[path]["get"]
+            refs = {item.get("$ref") for item in operation["parameters"]}
+            self.assertIn(f"#/components/parameters/{scope_parameter}", refs)
+            scope = parameters[scope_parameter]
+            self.assertFalse(scope["required"])
+            self.assertEqual(scope["schema"]["enum"], ["all", *identities])
+            self.assertEqual(scope["schema"]["default"], "all")
+            self.assertIn("visitor-only", scope["description"])
+            sample = operation["x-codeSamples"][0]["source"]
+            self.assertIn(f"{identifier}=", sample)
+            self.assertIn("attendance_scope=visitor", sample)
+            self.assertIn("attendance_identity", operation["description"])
+            content = operation["responses"]["200"]["content"]["application/json"]
+            if path.endswith("/by-name"):
+                page_ref = content["schema"]["oneOf"][0]["$ref"]
+                event_example = content["examples"]["success"]["value"]["items"][0]
+            elif path.endswith("/by-linkedin"):
+                page_ref = content["schema"]["properties"]["events"]["$ref"]
+                event_example = content["example"]["events"]["items"][0]
+            else:
+                page_ref = content["schema"]["$ref"]
+                event_example = content["example"]["items"][0]
+            self.assertEqual(page_ref, f"#/components/schemas/{page_name}")
+            self.assertEqual(event_example["attendance_identity"], ["visitor"])
+
+        for item_name, identities in (
+            ("ExhibitorRelatedEventItem", ["exhibitor", "visitor"]),
+            ("PersonnelRelatedEventItem", ["exhibitor_employee", "visitor"]),
+        ):
+            extension = schemas[item_name]["allOf"][1]
+            self.assertIn("attendance_identity", extension["required"])
+            self.assertEqual(
+                extension["properties"]["attendance_identity"]["items"]["enum"], identities
+            )
 
     def test_contact_unlock_and_outreach_contracts(self) -> None:
         spec = json.loads(self.sync.OPENAPI_SOURCE.read_text(encoding="utf-8"))

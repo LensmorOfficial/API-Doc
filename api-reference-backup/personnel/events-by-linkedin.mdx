@@ -32,12 +32,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `linkedin_url` | Yes | string | LinkedIn profile URL used for normalized matching. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith%2F" \
+curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith%2F&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -76,6 +77,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
         "country": "United States",
         "exhibitorCount": 950,
         "sponsorMatchStarred": 0,
+        "attendance_identity": ["visitor"],
         "image": null,
         "dataSource": "Lensmor"
       }
@@ -103,6 +105,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 | `events` | Paginated event results connected to the matched person. |
 | `events.items[].eventId` | Public event identifier for event-scoped follow-up calls. |
 | `events.items[].sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `events.items[].attendance_identity` | Complete array of this person's identities at this event: `exhibitor_employee` and/or `visitor`. |
 | `events.items[].dataSource` | Always `Lensmor` for public event records. |
 | `events.total`, `events.page`, `events.pageSize`, `events.totalPages`, `events.hasMore` | Pagination metadata. |
 

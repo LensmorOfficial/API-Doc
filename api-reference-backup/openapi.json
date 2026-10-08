@@ -1172,7 +1172,7 @@
           "Exhibitors"
         ],
         "summary": "Search events by exhibitor company name",
-        "description": "Find deduplicated events associated with exhibitor companies that match a required company name.\n\nUse this endpoint for account planning, CRM enrichment, or the question “which events is this company associated with?” without first resolving an exhibitor ID. Optional `sponsor_match_starred` filtering can select starred or non-starred Sponsor Match events; omit it to include both states.\n\nThe endpoint returns events, not exhibitor records. A non-empty result consumes `50` credits and an empty result consumes `0` credits, so check the balance before bulk or user-confirmed searches. Matching is precision-first and incomplete names can legitimately return no results.",
+        "description": "Find deduplicated events associated with exhibitor companies matching a required company name. Use this for account planning or CRM enrichment without first resolving `exhibitor_id`. The precision-first matcher can return no result for incomplete names. A non-empty result consumes `50` credits; an empty result consumes `0`. `sponsor_match_starred` optionally selects starred or non-starred events.\n\n`attendance_scope` accepts `all` (default), `exhibitor`, or `visitor`. `exhibitor` includes events with exhibitor evidence, even when visitor evidence is present. `visitor` returns visitor-only events and excludes exhibitor evidence. Each event includes `attendance_identity`; visitor-only results can have an empty `matchedExhibitors` array.",
         "operationId": "searchEventsByExhibitorCompanyName",
         "parameters": [
           {
@@ -1225,6 +1225,10 @@
                           "id": "456",
                           "companyName": "Acme Retail Systems"
                         }
+                      ],
+                      "attendance_identity": [
+                        "exhibitor",
+                        "visitor"
                       ]
                     }
                   ],
@@ -1317,11 +1321,14 @@
           "Exhibitors"
         ],
         "summary": "List exhibitor related events",
-        "description": "Return a paginated list of Lensmor events associated with one known exhibitor identifier.\n\nUse this endpoint when an exhibitor profile has already been resolved and the integration needs the company's event history or current event associations. Event items use the shared public event shape and can be passed to event detail, fit scoring, ranking, or access workflows. Follow `hasMore` and increment `page` to retrieve additional results.\n\nIf the starting input is only a company name, use exhibitor event search instead. An exhibitor with no associated events returns a successful empty page; an unknown exhibitor identifier returns an error.",
+        "description": "Return a paginated list of Lensmor events for a known `exhibitor_id`. Use it after resolving an exhibitor profile to browse company event associations. Follow `hasMore` and increment `page` for more results; an exhibitor with no associated events returns an empty page, while an unknown ID returns an error.\n\n`attendance_scope` accepts `all` (default), `exhibitor`, or `visitor`. `all` returns events with known attendance evidence. `exhibitor` includes events with exhibitor evidence, even when visitor evidence is also present. `visitor` returns visitor-only events and excludes events with exhibitor evidence. Each item includes an event-scoped `attendance_identity` array. If you only have a company name, use exhibitor event search.",
         "operationId": "listExhibitorEvents",
         "parameters": [
           {
             "$ref": "#/components/parameters/ExhibitorIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/CompanyAttendanceScopeQuery"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1336,7 +1343,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventPage"
+                  "$ref": "#/components/schemas/ExhibitorRelatedEventPage"
                 },
                 "example": {
                   "items": [
@@ -1347,10 +1354,13 @@
                       "dateStart": "2026-01-12",
                       "dateEnd": "2026-01-15",
                       "city": "New York",
-                      "country": "United States"
+                      "country": "United States",
+                      "attendance_identity": [
+                        "visitor"
+                      ]
                     }
                   ],
-                  "total": 12,
+                  "total": 1,
                   "page": 1,
                   "pageSize": 20,
                   "totalPages": 1,
@@ -1371,7 +1381,14 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL",
+            "source": "curl --request GET \\\n  --url 'https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&attendance_scope=visitor&page=1&pageSize=20' \\\n  --header 'Authorization: Bearer <token>'"
+          }
+        ]
       }
     },
     "/external/personnel/list": {
@@ -1572,11 +1589,14 @@
           "Personnel"
         ],
         "summary": "List personnel related events",
-        "description": "Return a paginated list of Lensmor events associated with one known personnel identifier.\n\nUse this endpoint when the integration already has `personnel_id` and needs the person's event history or current event associations. Returned event items use the shared public event shape and can be passed directly to event detail, scoring, ranking, or event-access workflows. Follow `hasMore` and increment `page` when additional results are available.\n\nThis lookup does not expose or unlock contact data. If the starting identifier is a LinkedIn URL, use the LinkedIn-based lookup; if only a full name is available, use the exact-name event search and account for its credit and concurrency rules.",
+        "description": "Return paginated events associated with a known `personnel_id`. Use it after resolving the person to browse event history or current associations. Follow `hasMore` and increment `page` for additional results. This lookup does not expose or unlock contact data. Use the LinkedIn URL or exact-name lookup when a Lensmor personnel ID is unavailable.\n\n`attendance_scope` accepts `all` (default), `exhibitor_employee`, or `visitor`. `all` returns events with known attendance evidence. `exhibitor_employee` includes events with employee evidence, even when visitor evidence is also present. `visitor` returns visitor-only events and excludes events with exhibitor-employee evidence. Each item includes an event-scoped `attendance_identity` array.",
         "operationId": "listPersonnelEvents",
         "parameters": [
           {
             "$ref": "#/components/parameters/PersonnelIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PersonnelAttendanceScopeQuery"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1591,14 +1611,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventPage"
+                  "$ref": "#/components/schemas/PersonnelRelatedEventPage"
                 },
                 "example": {
                   "items": [
                     {
                       "id": "501",
                       "eventId": "139574",
-                      "name": "Retail Technology Expo 2026"
+                      "name": "Retail Technology Expo 2026",
+                      "attendance_identity": [
+                        "visitor"
+                      ]
                     }
                   ],
                   "total": 1,
@@ -1622,7 +1645,14 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL",
+            "source": "curl --request GET \\\n  --url 'https://platform.lensmor.com/external/personnel/events?personnel_id=789&attendance_scope=visitor&page=1&pageSize=20' \\\n  --header 'Authorization: Bearer <token>'"
+          }
+        ]
       }
     },
     "/external/personnel/events/by-linkedin": {
@@ -1631,7 +1661,7 @@
           "Personnel"
         ],
         "summary": "List personnel related events by LinkedIn URL",
-        "description": "Normalize a public LinkedIn profile URL, resolve the matching Lensmor personnel record, and return that person's related events.\n\nUse this endpoint for browser-extension, CRM-enrichment, or research workflows where LinkedIn URL is the stable starting identifier. The response includes personnel context plus a paginated event list, allowing the client to recover a Lensmor personnel ID for later profile or contact workflows. Continue through pages only while `hasMore` is true.\n\nURL normalization handles common LinkedIn profile variations, but a URL that cannot be resolved returns a not-found response. This call is read-only and does not unlock contact data.",
+        "description": "Normalize a public LinkedIn profile URL, resolve its matching Lensmor personnel record, and return the person plus paginated related events. Use this lookup when a LinkedIn URL is the stable starting identifier; a URL that cannot be resolved returns not found. The call does not unlock contact data. Follow `hasMore` for additional event pages.\n\n`attendance_scope` accepts `all` (default), `exhibitor_employee`, or `visitor`. `all` returns events with known attendance evidence. `exhibitor_employee` includes dual-identity events. `visitor` returns visitor-only events and excludes events with exhibitor-employee evidence. Each event includes an event-scoped `attendance_identity` array.",
         "operationId": "listPersonnelEventsByLinkedin",
         "parameters": [
           {
@@ -1644,6 +1674,9 @@
             },
             "description": "Public LinkedIn profile URL used for normalized personnel matching.",
             "example": "https://www.linkedin.com/in/jane-doe"
+          },
+          {
+            "$ref": "#/components/parameters/PersonnelAttendanceScopeQuery"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1668,7 +1701,7 @@
                       "$ref": "#/components/schemas/ContactItem"
                     },
                     "events": {
-                      "$ref": "#/components/schemas/EventPage"
+                      "$ref": "#/components/schemas/PersonnelRelatedEventPage"
                     }
                   }
                 },
@@ -1688,7 +1721,10 @@
                       {
                         "id": "501",
                         "eventId": "139574",
-                        "name": "Retail Technology Expo 2026"
+                        "name": "Retail Technology Expo 2026",
+                        "attendance_identity": [
+                          "visitor"
+                        ]
                       }
                     ],
                     "total": 1,
@@ -1713,7 +1749,14 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL",
+            "source": "curl --request GET \\\n  --url 'https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith&attendance_scope=visitor&page=1&pageSize=20' \\\n  --header 'Authorization: Bearer <token>'"
+          }
+        ]
       }
     },
     "/external/personnel/events/by-name": {
@@ -1722,7 +1765,7 @@
           "Personnel"
         ],
         "summary": "Search personnel related events by name",
-        "description": "Find a paginated, deduplicated event list for up to 50 personnel records whose full name exactly matches the supplied name.\n\nUse this endpoint only when neither a Lensmor personnel ID nor a LinkedIn URL is available. Matching is case-insensitive after trimming but is not partial or fuzzy. Date filters apply to event start dates; without `date_start_from`, the search defaults to upcoming events.\n\nThis endpoint requires an active paid user. A non-empty result consumes `50` credits, an empty result consumes `0` credits, and at most `10 requests` can run concurrently for one user. The response contains events rather than a separate personnel object.",
+        "description": "Find paginated, deduplicated events for up to 50 personnel records with the exact full name. Matching ignores case and surrounding whitespace. Date filters use event start dates; `date_start_from` defaults to `2026-01-01`. A non-empty result consumes `50` credits; an empty result consumes `0`. Up to `10 requests` can run concurrently per user.\n\n`attendance_scope` accepts `all` (default), `exhibitor_employee`, or `visitor`. `all` includes known attendance evidence. `exhibitor_employee` includes dual-identity events. `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Evidence is combined per event across matched people before filtering. Each event returns the complete `attendance_identity` array.",
         "operationId": "searchPersonnelEventsByName",
         "parameters": [
           {
@@ -1738,15 +1781,19 @@
             "example": "Jane Doe"
           },
           {
+            "$ref": "#/components/parameters/PersonnelAttendanceScopeQuery"
+          },
+          {
             "name": "date_start_from",
             "in": "query",
             "required": false,
-            "description": "Inclusive event start-date lower bound. Defaults to the current date when omitted.",
+            "description": "Inclusive event start-date lower bound. Defaults to `2026-01-01` when omitted.",
             "schema": {
               "type": "string",
-              "format": "date"
+              "format": "date",
+              "default": "2026-01-01"
             },
-            "example": "2025-01-01"
+            "example": "2026-01-01"
           },
           {
             "name": "date_start_to",
@@ -1757,7 +1804,7 @@
               "type": "string",
               "format": "date"
             },
-            "example": "2025-12-31"
+            "example": "2026-12-31"
           },
           {
             "$ref": "#/components/parameters/Page"
@@ -1777,7 +1824,7 @@
                 "schema": {
                   "oneOf": [
                     {
-                      "$ref": "#/components/schemas/EventPage"
+                      "$ref": "#/components/schemas/PersonnelRelatedEventPage"
                     },
                     {
                       "$ref": "#/components/schemas/FeatureUnavailableBusinessError"
@@ -1808,7 +1855,10 @@
                           "hasVisitors": true,
                           "sponsorMatchStarred": 0,
                           "image": null,
-                          "dataSource": "Lensmor"
+                          "dataSource": "Lensmor",
+                          "attendance_identity": [
+                            "visitor"
+                          ]
                         }
                       ],
                       "total": 1,
@@ -1862,7 +1912,14 @@
           "429": {
             "$ref": "#/components/responses/RateLimited"
           }
-        }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "curl",
+            "label": "cURL",
+            "source": "curl --request GET \\\n  --url 'https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&attendance_scope=visitor&page=1&pageSize=20' \\\n  --header 'Authorization: Bearer <token>'"
+          }
+        ]
       }
     },
     "/external/personnel/unlock-linkedin-activity": {
@@ -2787,6 +2844,38 @@
         },
         "description": "Identify the caller as `api` or `agent` for usage attribution. Defaults to `api` when omitted.",
         "example": "api"
+      },
+      "CompanyAttendanceScopeQuery": {
+        "name": "attendance_scope",
+        "in": "query",
+        "required": false,
+        "description": "Filter events by this company's attendance identity. Defaults to `all`. `exhibitor` includes events with exhibitor evidence, including events that also have visitor evidence. `visitor` returns visitor-only events and excludes events with exhibitor evidence. Only `all`, `exhibitor`, and `visitor` are valid; other values, including `null`, return 400.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "all",
+            "exhibitor",
+            "visitor"
+          ],
+          "default": "all"
+        },
+        "example": "visitor"
+      },
+      "PersonnelAttendanceScopeQuery": {
+        "name": "attendance_scope",
+        "in": "query",
+        "required": false,
+        "description": "Filter events by attendance identities for the matched person or people. Defaults to `all`. `exhibitor_employee` includes events with exhibitor-employee evidence, including events that also have visitor evidence. `visitor` returns visitor-only events and excludes events with exhibitor-employee evidence. Exact-name lookups combine evidence per event across matched personnel before applying this filter. Only `all`, `exhibitor_employee`, and `visitor` are valid; other values, including `null`, return 400.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "all",
+            "exhibitor_employee",
+            "visitor"
+          ],
+          "default": "all"
+        },
+        "example": "visitor"
       }
     },
     "requestBodies": {
@@ -2955,6 +3044,17 @@
                   "default": 20,
                   "description": "Maximum records requested per page; defaults to `20` and cannot exceed `100`.",
                   "example": 20
+                },
+                "attendance_scope": {
+                  "type": "string",
+                  "enum": [
+                    "all",
+                    "exhibitor",
+                    "visitor"
+                  ],
+                  "default": "all",
+                  "description": "Filter events by this company's attendance identity. Defaults to `all`. `exhibitor` includes events with exhibitor evidence, including events that also have visitor evidence. `visitor` returns visitor-only events and excludes events with exhibitor evidence. Only `all`, `exhibitor`, and `visitor` are valid; other values, including `null`, return 400.",
+                  "example": "exhibitor"
                 }
               }
             },
@@ -2962,11 +3062,12 @@
               "company_name": "Acme",
               "sponsor_match_starred": 1,
               "page": 1,
-              "pageSize": 20
+              "pageSize": 20,
+              "attendance_scope": "exhibitor"
             }
           }
         },
-        "description": "Provide the company name, optional Sponsor Match filter, and pagination for event reverse search."
+        "description": "Provide the company name, optional Sponsor Match filter, and pagination for event reverse search. Optional `attendance_scope` filters by company attendance identity and defaults to `all`."
       },
       "ProfileMatchingBody": {
         "required": true,
@@ -3724,7 +3825,8 @@
           {
             "type": "object",
             "required": [
-              "matchedExhibitors"
+              "matchedExhibitors",
+              "attendance_identity"
             ],
             "properties": {
               "matchedExhibitors": {
@@ -3732,12 +3834,27 @@
                 "items": {
                   "$ref": "#/components/schemas/MatchedExhibitorSummary"
                 },
-                "description": "Matched Exhibitors returned as part of this event reverse search item object."
+                "description": "Admitted company matches with exhibitor relationships at this event. This array can be empty for visitor-only results."
+              },
+              "attendance_identity": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "exhibitor",
+                    "visitor"
+                  ]
+                },
+                "description": "Complete attendance identities for this company at this event. An event matched by a scope still returns its complete identity array.",
+                "example": [
+                  "exhibitor",
+                  "visitor"
+                ]
               }
             }
           }
         ],
-        "description": "Event result enriched with the exhibitor company that produced the reverse-search match."
+        "description": "Event result with the company's attendance identities and any matched exhibitor relationships. Visitor-only results can have an empty matchedExhibitors array."
       },
       "EventReverseSearchPage": {
         "type": "object",
@@ -5960,6 +6077,152 @@
           }
         ],
         "description": "Full Lensmor event metadata plus profile-recommendation evidence and rank."
+      },
+      "ExhibitorRelatedEventItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventItem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "attendance_identity"
+            ],
+            "properties": {
+              "attendance_identity": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "exhibitor",
+                    "visitor"
+                  ]
+                },
+                "description": "Complete attendance identities for this company at this event. An event matched by a scope still returns its complete identity array.",
+                "example": [
+                  "exhibitor",
+                  "visitor"
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Event returned by a company reverse lookup with event-scoped attendance identities."
+      },
+      "PersonnelRelatedEventItem": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventItem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "attendance_identity"
+            ],
+            "properties": {
+              "attendance_identity": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "exhibitor_employee",
+                    "visitor"
+                  ]
+                },
+                "description": "Complete attendance identities for the matched personnel at this event. Exact-name lookups combine evidence across matched personnel records before filtering. Scope filtering does not trim the returned identity array.",
+                "example": [
+                  "exhibitor_employee",
+                  "visitor"
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Event returned by a person reverse lookup with event-scoped attendance identities."
+      },
+      "ExhibitorRelatedEventPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExhibitorRelatedEventItem"
+            },
+            "description": "Records returned on the current page or in the current batch."
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total matching records across all pages."
+          },
+          "page": {
+            "type": "integer",
+            "description": "One-based page number returned."
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "Maximum records requested for this page."
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total pages available for the current query."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether another result page is available."
+          }
+        },
+        "additionalProperties": true,
+        "description": "Paginated company-related events with attendance identities."
+      },
+      "PersonnelRelatedEventPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages",
+          "hasMore"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonnelRelatedEventItem"
+            },
+            "description": "Records returned on the current page or in the current batch."
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total matching records across all pages."
+          },
+          "page": {
+            "type": "integer",
+            "description": "One-based page number returned."
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "Maximum records requested for this page."
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total pages available for the current query."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether another result page is available."
+          }
+        },
+        "additionalProperties": true,
+        "description": "Paginated person-related events with attendance identities."
       }
     }
   }

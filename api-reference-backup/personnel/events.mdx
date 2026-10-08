@@ -27,12 +27,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Numeric-string personnel identifier. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -55,6 +56,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
       "country": "United States",
       "exhibitorCount": 950,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
@@ -78,6 +80,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `attendance_identity` | Complete array of this person's identities at this event: `exhibitor_employee` and/or `visitor`. |
 | `image` | Event image URL when available. |
 | `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
