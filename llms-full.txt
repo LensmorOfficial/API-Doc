@@ -2836,6 +2836,7 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `company_name` | Yes | string | Company name input. Incomplete names are allowed, but matching stays precision-first. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor`, or `visitor`. `exhibitor` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor evidence. Other values, including `null`, return `400`. |
 | `sponsor_match_starred` | No | integer | `1` returns starred Sponsor Match events, `0` returns non-starred events; omit to include both. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
@@ -2851,7 +2852,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-call-source: api" \
-  -d '{"company_name":"Acme","sponsor_match_starred":1,"page":1,"pageSize":20}'
+  -d '{"company_name":"Acme","attendance_scope":"exhibitor","sponsor_match_starred":1,"page":1,"pageSize":20}'
 ```
 
 ## Response example
@@ -2873,6 +2874,7 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
       "country": "United States",
       "exhibitorCount": 100,
       "sponsorMatchStarred": 1,
+      "attendance_identity": ["exhibitor", "visitor"],
       "image": null,
       "dataSource": "Lensmor",
       "matchedExhibitors": [
@@ -2903,14 +2905,15 @@ curl -X POST "https://platform.lensmor.com/external/exhibitors/search-events" \
 | `exhibitorCount` | Exhibitor coverage count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
 | `dataSource` | Always `Lensmor` for public event records. |
-| `matchedExhibitors` | Matched company records that connect the input to the returned event. Treat this as the primary evidence that the company-name input matched the returned event. |
+| `attendance_identity` | Complete array of this company's identities at this event: `exhibitor` and/or `visitor`. |
+| `matchedExhibitors` | Matched exhibitor relationships. Visitor-only events can have an empty array. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
 
 ## Credit behavior
 
 This endpoint consumes `50` credits after the company-name matcher finds at least one event. A successful empty response consumes `0` credits. If a non-empty search cannot spend the required credits, the API returns `402 Payment Required` instead of returning the matched records.
 
-Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, page count, and `matchedExhibitors` as the main value evidence for the search result.
+Refresh [Credits balance](/api-reference/credits/get-credits-balance) after successful searches when your UI or audit log needs final credit reconciliation. Use the returned event count, pagination, and `attendance_identity` to interpret the search result. `matchedExhibitors` can be empty for visitor-only events.
 
 ## Concurrency limit
 
@@ -3044,12 +3047,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `exhibitor_id` | Yes | string | Numeric-string exhibitor identifier. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor`, or `visitor`. `exhibitor` includes events with exhibitor evidence, including dual-identity events. `visitor` returns visitor-only events and excludes exhibitor evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -3072,11 +3076,12 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
       "country": "United States",
       "exhibitorCount": 950,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
   ],
-  "total": 12,
+  "total": 1,
   "page": 1,
   "pageSize": 20,
   "totalPages": 1,
@@ -3095,6 +3100,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `attendance_identity` | Complete array of this company's identities at this event: `exhibitor` and/or `visitor`. |
 | `image` | Event image URL when available. |
 | `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
@@ -3106,7 +3112,7 @@ curl "https://platform.lensmor.com/external/exhibitors/events?exhibitor_id=456&p
 - `429 Too Many Requests`
 
 ## Notes
-- Event items reuse the standard event-item response shape.
+- Event items include the standard event fields and the event-scoped `attendance_identity` array. With `attendance_scope=all`, a dual-identity event can return `["exhibitor", "visitor"]`.
 - Pagination behavior follows the shared [Pagination conventions](/concepts/pagination).
 - This endpoint requires `exhibitor_id`; if you only have `company_name`, use `POST /external/exhibitors/search-events`.
 
@@ -3401,12 +3407,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `personnel_id` | Yes | string | Numeric-string personnel identifier. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -3429,6 +3436,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
       "country": "United States",
       "exhibitorCount": 950,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
@@ -3452,6 +3460,7 @@ curl "https://platform.lensmor.com/external/personnel/events?personnel_id=789&pa
 | `venue`, `city`, `region`, `country` | Location metadata. |
 | `exhibitorCount` | Known exhibitor count when available. |
 | `sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `attendance_identity` | Complete array of this person's identities at this event: `exhibitor_employee` and/or `visitor`. |
 | `image` | Event image URL when available. |
 | `dataSource` | Always `Lensmor` for public event records. |
 | `total`, `page`, `pageSize`, `totalPages`, `hasMore` | Pagination metadata. |
@@ -3500,12 +3509,13 @@ See [Authentication](/authentication)
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `linkedin_url` | Yes | string | LinkedIn profile URL used for normalized matching. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. |
 
 ## Request example
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith%2F" \
+curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedin_url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fjane-smith%2F&attendance_scope=visitor&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY"
 ```
 
@@ -3544,6 +3554,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
         "country": "United States",
         "exhibitorCount": 950,
         "sponsorMatchStarred": 0,
+        "attendance_identity": ["visitor"],
         "image": null,
         "dataSource": "Lensmor"
       }
@@ -3571,6 +3582,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-linkedin?linkedi
 | `events` | Paginated event results connected to the matched person. |
 | `events.items[].eventId` | Public event identifier for event-scoped follow-up calls. |
 | `events.items[].sponsorMatchStarred` | Sponsor Match starred state (`0` or `1`). |
+| `events.items[].attendance_identity` | Complete array of this person's identities at this event: `exhibitor_employee` and/or `visitor`. |
 | `events.items[].dataSource` | Always `Lensmor` for public event records. |
 | `events.total`, `events.page`, `events.pageSize`, `events.totalPages`, `events.hasMore` | Pagination metadata. |
 
@@ -3627,7 +3639,8 @@ See [Authentication](/authentication). The API-key owner must have an active pai
 | Name | Required | Type | Notes |
 | --- | --- | --- | --- |
 | `person_name` | Yes | string | Exact full name, length `1` to `200`. Matching is case-insensitive and leading/trailing whitespace is ignored. Partial and fuzzy matching are not used. |
-| `date_start_from` | No | date | Inclusive lower bound on event start date. Defaults to the current date, so the default result contains upcoming events. |
+| `attendance_scope` | No | string | `all` (default), `exhibitor_employee`, or `visitor`. `exhibitor_employee` includes dual-identity events; `visitor` returns visitor-only events and excludes exhibitor-employee evidence. Other values, including `null`, return `400`. |
+| `date_start_from` | No | date | Inclusive lower bound on event start date. Defaults to `2026-01-01` when omitted. |
 | `date_start_to` | No | date | Inclusive upper bound on event start date. Omit for no upper bound. |
 | `page` | No | integer | Defaults to `1`. |
 | `pageSize` | No | integer | Defaults to `20`; maximum `100`. This paginates events, not personnel candidates. |
@@ -3636,7 +3649,7 @@ See [Authentication](/authentication). The API-key owner must have an active pai
 ## Request example
 
 ```bash
-curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&date_start_from=2026-08-10&date_start_to=2026-12-31&page=1&pageSize=20" \
+curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name=Jane%20Smith&attendance_scope=visitor&date_start_from=2026-08-10&date_start_to=2026-12-31&page=1&pageSize=20" \
   -H "Authorization: Bearer $LENSMOR_API_KEY" \
   -H "x-call-source: api"
 ```
@@ -3662,6 +3675,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name
       "exhibitorCount": 950,
       "hasVisitors": true,
       "sponsorMatchStarred": 0,
+      "attendance_identity": ["visitor"],
       "image": null,
       "dataSource": "Lensmor"
     }
@@ -3678,6 +3692,7 @@ curl "https://platform.lensmor.com/external/personnel/events/by-name?person_name
 
 - The server considers up to `50` personnel records with the exact full name. This candidate window is fixed and independent of event `pageSize`.
 - Events from those exact-name records are combined and deduplicated, then ordered by `dateStart` ascending.
+- Attendance evidence is combined per event across the exact-name personnel matches before scope filtering. `attendance_scope=visitor` excludes an event if any matched person has exhibitor-employee evidence there. Every event includes the complete `attendance_identity` array for the matching person or people at that event.
 - Both date bounds apply inclusively to `dateStart`. Set an earlier `date_start_from` to include historical events.
 - No personnel match or no qualifying event returns `200 OK` with `items: []`, `total: 0`, `totalPages: 0`, and `hasMore: false`.
 
